@@ -1,0 +1,27 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# fastf1 cache and intermediate data (do not commit)
+cache/
+data/
+
+# Secrets / env
+.env
+.env.local
+*.local
+
+# Node / Next.js (for later phases)
+node_modules/
+.next/
+out/
+.vercel/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
