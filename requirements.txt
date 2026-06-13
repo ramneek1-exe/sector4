@@ -1,0 +1,13 @@
+# Sector 4 — Phase 1 (data spike) dependencies
+# Pin exact versions once the environment is confirmed working.
+
+fastf1
+pandas
+numpy
+scikit-learn
+scipy
+matplotlib
+
+# Deferred (add when needed):
+# shap            # narrative grounding — Phase 3, feature_importances_ is fine for the spike
+# jupyterlab      # if running notebooks locally
