@@ -1,27 +1,27 @@
 # Product Requirements Document: Sector 4
 
-**Project Name:** Sector 4 — Predictive Telemetry Intelligence
+**Project Name:** Sector 4 — an F1 weekend companion that helps you *understand* the race (honest prediction · explanation · learning)
 **Product Owner:** Ramneek Singh
-**Timeline:** May 2026 → September 2026 (must be done before fall semester begins)
-**Private beta:** Spanish Grand Prix weekend (June 2026)
-**Public launch:** Italian Grand Prix weekend (Monza, early September 2026) at the latest — bulk of work wrapped in August so launch doesn't collide with the first week of classes
+**Sequencing:** dependency-ordered milestones, not fixed dates — the owner builds in irregular hours (see §11).
+**Private beta:** at a real 2026 race weekend — predictions issued before quali, sharpened after (the forcing function, §11 M5).
+**Public launch:** when M7 (breadth + polish) is ready; targeting before the fall semester.
 **Platform:** Web, mobile-responsive, desktop-first
 
 ---
 
 ## 1. Executive Summary
 
-Formula 1 broadcasts surface-level data, but the real story of a race weekend is buried in raw telemetry and Free Practice long-run pace. Sector 4 is a natural language interface over F1 telemetry that produces ML-backed pace predictions and grounded explanations for each prediction, alongside a curated learning layer that explains the technical concepts behind what the data is showing.
+Formula 1 broadcasts surface-level data, and the real story of a race weekend — pace, tyre degradation, strategy — is hard for a casual fan to read. Sector 4 is an **explainer-led F1 weekend companion**: a natural-language interface that helps fans *understand* what's happening across a weekend, pairing honest, calibrated predictions with grounded explanations and a curated learning layer.
 
-The product serves the casual F1 fan who watches races but skips practice — fans who want predictions that feel rigorous without doing homework, with the option to drill deeper when something piques their curiosity.
+It is **not an oracle that out-predicts the grid.** Phase 1 validation (§5.1) established that public signals — grid position, championship standings, recent form — already predict the podium about as well as anything derivable from practice telemetry. So Sector 4 competes on **experience, honesty, and explanation**, not predictive edge: it presents the podium as honest probabilities (that sharpen Friday → Saturday as the grid arrives), surfaces the genuine telemetry-derived insights it *can* stand behind (stop-count strategy and pace-gap context), and teaches the concepts behind them.
 
-The 2026 regulation reset is treated as a feature, not a problem: the model learns the new season as it unfolds, and uncertainty is surfaced visibly rather than hidden behind a confident UI.
+The product serves the casual F1 fan who watches races but skips practice. The 2026 regulation reset is treated as a feature, not a problem: the model learns the season as it unfolds, **calibration improves with data**, and uncertainty is surfaced visibly rather than hidden behind a confident UI.
 
 ---
 
 ## 2. Audience
 
-**Primary:** The engaged-but-not-obsessive F1 fan. Watches Sunday races, sometimes quali, rarely practice. Knows the drivers and rough team order but couldn't define tire degradation. Wants predictions that feel impressive without requiring practice-session homework.
+**Primary:** The engaged-but-not-obsessive F1 fan. Watches Sunday races, sometimes quali, rarely practice. Knows the drivers and rough team order but couldn't define tire degradation. Wants to understand the weekend and get honest predictions, without practice-session homework.
 
 **Secondary (served implicitly):**
 - Newer fans who want the sport to make more sense — served by the explainer layer surfaced through prediction narratives
@@ -33,11 +33,12 @@ The 2026 regulation reset is treated as a feature, not a problem: the model lear
 
 ## 3. Goals
 
-- Produce race-pace predictions that meaningfully beat naive baselines on 2026 data
-- Ground every prediction in explainable model reasoning, not LLM-generated speculation
-- Make the underlying F1 concepts accessible through contextual learning content
-- Treat regulatory uncertainty as a visible product feature, not a hidden flaw
-- Ship something a solo developer can build and maintain alongside a full-time job
+- Help casual fans *understand* a race weekend — pace, degradation, strategy — through clear, contextual explanation
+- Present predictions as **honest, calibrated probabilities** relative to public baselines (grid, standings, form), sharpening Friday → Saturday — not as a claim to beat those baselines
+- Stand behind the telemetry insights that are genuinely validated: stop-count strategy and pace-gap context (§5.1)
+- Ground every explanation in real model reasoning or cited sources, never LLM speculation
+- Make uncertainty and the model "learning the season" visible product features, not hidden flaws
+- Be engaging and fun, and shippable/maintainable by a solo developer alongside a full-time job
 
 ## 4. Non-Goals
 
@@ -73,25 +74,40 @@ The rule for non-goals: if any of these start showing up during build, they go i
 
 ## 5. Success Metrics
 
-Three metrics, three roles. The split matters because it stops "accuracy" from becoming a single noisy number used to mean different things.
+Metrics are split by role so "accuracy" never collapses into one noisy number. Crucially, predictions are judged on **honesty and calibration**, not on beating public baselines — Phase 1 (§5.1) showed those baselines are hard to beat, so the product reports against them transparently rather than claiming to out-predict them.
 
-| Metric | Role | Where it appears | v1 target |
+| Metric | Role | Where it appears | Note |
 |---|---|---|---|
-| Pace MAE (s/lap) | Primary engineering metric | Internal dev decisions | < 0.20 s/lap on held-out 2026 races |
-| Top-3 accuracy | Primary product metric | Headline claims, in-app accuracy display | >= 60% across 2026 season-to-date |
-| Spearman rho | Secondary honesty metric | Field-test write-ups, baseline comparisons | >= 0.65 on held-out races |
+| Calibration — Brier score / reliability | **Primary product-honesty metric** | In-app + methodology page | The headline integrity metric; expected to improve as 2026 data accumulates |
+| Pace MAE (s/lap) | Validated engineering metric (pace gaps) | Internal dev; pace-gap context | The telemetry-validated magnitude signal; lower is better |
+| Top-3 accuracy | Reported *alongside* baselines | Accuracy curve, methodology | Shown next to the standings/grid baselines for honesty — **not** a "beat by X%" target |
+| Spearman rho | Secondary honesty metric | Field-test write-ups | Rank correlation vs actual finishing order |
 
-**Baselines to beat:**
-- For pace/podium: grid position alone (~50-55% top-3 in modern F1)
-- For strategy: modal stop count from last 3 years at the same track
+**Reference baselines (for honest comparison, not targets to beat):**
+- Podium: grid position (post-quali) and championship standings + recent form (pre-quali). Phase 1 found telemetry does not beat these (§5.1).
+- Strategy: modal stop count from prior years at the same track — the bar the validated stop-count model clears by ~+0.07.
 
-**Validation strategy:** rolling-origin time-series CV. Train on races 1..N, validate on race N+1. Never random k-fold (leaks future info into past). The week-over-week accuracy curve this produces also becomes a public-facing artifact (see §6.4).
+**Validation strategy:** rolling-origin time-series CV (train races 1..N, validate N+1); never random k-fold (leaks future into past). The week-over-week accuracy/calibration curve is a public-facing honesty artifact (§6.4).
 
 **Operational metric:**
 - P50 query -> render latency: < 4s
 - P95 query -> render latency: < 8s
 
-The 60% top-3 target is a commitment, not a hope. If the model can't beat it, the honest move is shipping a smaller claim or no headline accuracy number — not lowering the bar to make the claim true.
+**There is no "beat the baseline" headline.** The honest move — itself a product value — is to show our probabilities next to the public baselines and let calibration visibly improve across the season.
+
+### 5.1 Phase 1 Findings (evidence base)
+
+Phase 1 was a pure data/ML validation on 2023–2025 historical data (rolling-origin CV, strict leakage guards). It is complete; full evidence in `notebooks/*_RESULTS.md`. What it established:
+
+- FP long-run pace does **not** beat grid (post-quali, ~0.78 top-3) or standings + recent form (pre-quali, ~0.67–0.71) at predicting the podium.
+- Quali-sim (low-fuel single-lap) pace does **not** beat standings at predicting the grid.
+- Dominant-compound prediction does **not** beat the track-historical norm.
+- **Validated:** stop-count strategy (Model B) beats the track-norm baseline by ~+0.07, with the gain isolated to FP degradation features (causal: deg → stops). Modest, on a dry / safety-car-clean sample — live races with safety cars will degrade it.
+- **Validated:** predicted pace **gaps in seconds + uncertainty** (Model A) — information no order-based signal (grid/standings) can produce.
+- The one results-based feature that improved the podium model was **prior-year race pace at the circuit** (track affinity).
+- Probabilities are overconfident on the small sample; **calibration is expected to improve as 2026 data accumulates** ("learns the season").
+
+**Net:** telemetry's validated value is narrow but real — stop-count strategy and pace-gap context. Podium ranking and dominant compound run on public/historical baselines, with no telemetry edge. This evidence is why the product is positioned as explainer-led (§1), not as a predictive oracle.
 
 ---
 
@@ -112,7 +128,7 @@ Example queries for v1:
 
 ### 6.2 Two Prediction Models
 
-> **Phase 1 validation outcome (2023–2025 data spikes).** Telemetry has exactly **two validated contributions**: **(1) predicted pace gaps + uncertainty** (Model A) and **(2) stop-count strategy** (Model B). **Podium ranking and dominant-compound** showed **no telemetry edge** over public/historical baselines — grid position (Saturday), championship standings/recent form (Friday), and historical compound norms — and run on those baselines as honest probabilities. Full evidence in `notebooks/*_RESULTS.md`.
+> **Phase 1 outcome (see §5.1).** Telemetry's two validated contributions are **predicted pace gaps + uncertainty** (Model A) and **stop-count strategy** (Model B). Podium ranking and dominant compound run on public/historical baselines (grid, standings, form, track norms) with **no telemetry edge**, presented as honest probabilities.
 
 **Model A — Race Pace Prediction (regression).**
 Predicts each driver's expected race pace as a delta against a reference, with uncertainty intervals per driver. **Validated role: predicted pace gaps (in seconds) + uncertainty** — information no order-based signal can produce. Podium ranking is **not** a telemetry differentiator: across the spikes FP pace did not beat grid (Saturday) or standings/form (Friday), so the top-3 call is shown as honest probabilities built on those public signals. Model A is therefore a **supporting** pace-context feature, not the headline.
@@ -122,7 +138,9 @@ Inputs include:
 - Grid position (when available)
 - Tire degradation slope on the relevant compounds
 - Track-intrinsic features (length, abrasiveness, historical pit-loss)
-- Historical performance at this track (heavily discounted for regulation continuity)
+- **Prior-year race pace at this circuit** (track affinity — the one results-based feature that lifted the podium model in Phase 1), heavily discounted for regulation continuity
+
+**Podium probabilities (how the top-3 is presented).** The top-3 is shown as honest, calibrated probabilities, not a hard ranking. They are built from public signals — championship standings, recent form, prior-year track pace, and the actual grid once it exists — and **sharpen Friday → Saturday**: pre-quali they lean on standings/form/track-affinity; post-quali, grid order is the strongest signal and the model does not beat raw grid, so the call leans on grid then. Until calibration matures (early-season, sparse 2026 data), probabilities are presented as **qualitative bands** ("strong / likely / outside shot") rather than precise percentages.
 
 **Model B — Strategy & Compound Prediction.**
 Two outputs, **validated separately** in the Phase 1 spike — the result is a split:
@@ -148,9 +166,9 @@ When feature importances are weak or contradictory, the narrative honestly says 
 ### 6.4 Visible Uncertainty
 
 The model has seen 8-15 weekends of 2026 data by launch. That's small. Rather than hide this, the product surfaces:
-- Confidence intervals on every prediction
+- Confidence intervals / probability bands on every prediction
 - A "model has seen N races of 2026 data" indicator
-- A public week-over-week accuracy curve, updated after each race
+- A public week-over-week **accuracy *and* calibration (reliability)** curve, updated after each race — calibration visibly tightening as the season accumulates is itself the honesty story
 - A "low confidence — insufficient long run data" output state for unusable sessions (wet FP2, red flags, short programs)
 
 ### 6.5 Contextual Driver Callouts
@@ -163,31 +181,25 @@ When a prediction mentions a driver, hovering or tapping the name reveals a smal
 
 These are not bios. They are derived data with a thin frame around them. Wikipedia exists for everything more.
 
-### 6.6 Learning Layer (Explainers)
+### 6.6 Learning Layer
 
-A library of short technical explainers for the core F1 concepts that show up in prediction narratives. Surfaced through:
+The learning layer is the heart of the explainer-led product. It has **two kinds of content, distinguished by how they earn trust:**
 
-- Inline links inside narratives ("driven by strong [tire deg slope](#) on the C4 compound")
-- Direct queries handled by a third intent class: `explain_concept` ("what is tire degradation?")
+- **Whats — knowledge / definitions.** Trusted by **verification** (authored and badged).
+- **Whys — per-prediction contextual explanations** tied to what's on screen. Trusted by **grounding**: they are the grounded prediction narratives (§6.3), generated from the model's actual feature attributions under a "do not invent facts" constraint. A why detects the concepts and entities it references and **links them inline** to the relevant whats.
 
-Each explainer follows a fixed structure:
-- One-paragraph "what it is" definition
-- Two or three concrete examples, including at least one pulled from recent live session data via FastF1
-- One "why it matters for predictions" tie-in
-- A "common misconception" callout
+**Whats come in two types:**
 
-**Authoring workflow:**
-1. Curated source list — a handful of trusted F1 technical sources (the published technical regulations, Pirelli's own publications, a small set of trusted technical writers, Sector 4's own session data). Sources are vetted manually. **No web scraping. No autonomous agents.**
-2. For each explainer: ~5 min curating relevant sources, ~5 min writing the prompt, ~5 min generating the LLM draft, ~10 min reviewing for factual accuracy. Anything Ramneek can't verify is deleted, not left in.
-3. Drafts ship with a **public verification badge**:
-   - **Verified** — checked against primary sources
-   - **Drafted, unverified** — LLM-drafted, sources listed, not yet vetted
-   - **Community-reviewed** — corrected by a reader and incorporated
-4. Every explainer carries a "spotted something wrong?" link that opens a one-field correction form.
+- **Concept whats** (~15–25 core teaching concepts: tyre degradation, undercut/overcut, dirty air, fuel effect, DRS, track evolution, …). Written and verified **once**, from curated trusted sources, in the product's voice, evergreen. This is the educational core — done well, by hand.
+- **Entity whats** (drivers, teams, circuits). Dynamically retrieved from an **allowlist** of vetted sources (Wikipedia plus named technical/official sources), summarized by Haiku as a **short, original paraphrase, always cited with a link, and cached**. The cache is a self-building knowledge base that accumulates from real usage.
 
-The verification badge UI must look like a deliberate design choice, not a disclaimer. If it looks like a disclaimer, readers read it as a hedge; if it looks intentional and well-typeset, readers read it as integrity. Budget design time for it specifically.
+**Trust / badges** (apply to all whats): **verified** / **drafted, unverified** / **community-reviewed**. Auto-generated entity whats start as "drafted, unverified"; high-traffic ones are promoted to "verified" by the author or via the corrections form. The badge UI must read as a deliberate, well-typeset **integrity signal, not a disclaimer hedge** — budget design time for it specifically.
 
-**v1 target:** 15 explainers at launch, mostly in "drafted, unverified" status. Promoted to "verified" over time. Concepts to cover: tire degradation, fuel effect, undercut/overcut, dirty air, qualifying vs. race pace, compound choice, pit-lane time loss, sector characteristics, DRS, track evolution, sandbagging, FP session purposes, plus 3 to be picked based on what proves to come up most.
+**Facts vs prose (staleness).** Hard facts — driver→team, car number — come from the structured **`drivers.json`** (the always-current source of truth, §8), **never** from cached prose. Cached prose is only the narrative layer. Cache freshness uses a **per-content-type TTL**: concept whats are effectively evergreen; entity whats refresh on a cadence **triggered by the race-weekend ops pipeline (§7.3) — no separate scheduler**. On refresh, if the content changed, that entry's badge resets to "drafted, unverified."
+
+**Hard rule for any auto-generated what:** short original paraphrase, **never reproduced passages**, always cited and linked, **allowlist sources only**. Every what keeps a "spotted something wrong?" one-field corrections form.
+
+**v1 target:** the ~15–25 concept whats authored (mostly "drafted, unverified", promoted over time), the entity-what retrieve→summarize→cite→cache pipeline live, and whys cross-linked into prediction narratives. Concepts to cover include: tyre degradation, fuel effect, undercut/overcut, dirty air, qualifying vs. race pace, compound choice, pit-lane time loss, sector characteristics, DRS, track evolution, sandbagging, FP session purposes, plus a few chosen by what actually comes up.
 
 ### 6.7 Animated Reveal (universal)
 
@@ -242,7 +254,7 @@ Routed via a `lookup_stat` intent. Both are secondary features, not headlines, a
 
 ### 7.2 ML Pipeline
 
-The prediction quality lives or dies on feature engineering, not model choice. RF on raw FP2 averages will lose to grid position. RF on properly engineered features can win.
+Feature engineering, not model choice, is what makes the *validated* signals work. Phase 1 (§5.1) is the honest scorecard: even properly engineered FP features do **not** beat grid/standings for the podium — but the same pipeline is exactly what delivers the two things telemetry *can* stand behind, **stop-count strategy and pace-gap magnitude**. The pipeline below exists to power those, plus the computed-stat lookups and the deg→stops explainer hook.
 
 **FP long-run feature pipeline:**
 1. **Stint detection** — group consecutive laps by compound + no pit, drop stints under 5 laps
@@ -347,14 +359,19 @@ Visual identity is resolved (§8). Exact reveal-animation choreography and the h
 
 ---
 
-## 11. Phases (placeholder for week-by-week milestones)
+## 11. Phases & Milestones
 
-- **Phase 1 — Data sandbox (May -> mid June):** environment setup, fastf1 connection, historical data pulls, feature engineering pipeline working in a notebook
-- **Phase 2 — Model + private beta (mid June -> mid July):** Model A trained, backend wired up, frontend reveal flow working, abstract driver glyph component built (helmet + number + code), **Spanish GP private beta** with predictions sent to the test group
-- **Phase 3 — Strategy model + learning layer (mid July -> mid August):** Model B, transfer learning + uncertainty visualization, explainer system architecture, first 8 explainers
-- **Phase 4 — Polish + public launch (mid August -> early September):** narrative quality, explainer count to 15+, **public launch at the Italian GP (Monza), before fall semester**
+**Phase 1 — Data/ML validation: COMPLETE.** Findings in §5.1; full evidence in `notebooks/*_RESULTS.md`.
 
-To be replaced with concrete week-by-week deliverables in a follow-up, anchored to the real calendar (work commitments, race weekends, travel).
+**Phase 2 — Build.** Dependency-ordered milestones, **no dates** (the owner builds in irregular hours, so dates aren't useful). Each has a one-line definition of done. Sequence is dependency-ordered; **M5 is the primary forcing function.**
+
+- **M1 — Productionize the pipeline.** *Done when:* the Phase 1 data/feature pipeline runs as callable, cached, leakage-safe production code (the Vercel Python `/api/` path).
+- **M2 — Thin end-to-end slice.** *Done when:* one computed-stat lookup query flows NL → parser → Python → narrative → ASCII/dither reveal on the deployed app. Proves the architecture.
+- **M3 — Headline feature: calibrated podium probabilities.** *Done when:* standings + form + prior-year-track-pace (+ actual grid as available) render through the glyphs as honest probabilities that sharpen Friday → Saturday, with visible uncertainty.
+- **M4 — Telemetry differentiators.** *Done when:* pace-gap context (Model A) and stop-count strategy (Model B, with safety-car caveat) are live, surfacing deg → stops as the teachable narrative.
+- **M5 — Private beta at a real 2026 weekend.** *Done when:* predictions are issued before quali, sharpened after, sent to testers, and outcomes logged. **The forcing function.**
+- **M6 — Learning layer.** *Done when:* concept-whats authored, the entity-what pipeline live, verification badges + corrections form working, first ~8 explainers cross-linked from narratives.
+- **M7 — Breadth + polish for public launch.** *Done when:* remaining query types, the season accuracy/calibration curve, visual polish, and explainers toward 15 are shipped (optional championship-projection stretch).
 
 ---
 
@@ -366,5 +383,6 @@ Good ideas that don't meet the "genuinely cheap" bar for v1 — captured here so
 - **Single-lap / qualifying pace ranking.** The clean-pace feature exists, but this drifts into qualifying prediction — an explicit non-goal (§4). Revisit only if the non-goal is reconsidered.
 - **Track-characteristic readouts** ("how abrasive is this circuit?"). Cheap, but overlaps the learning layer more than the prediction models — likely emerges there organically rather than as a standalone feature.
 - **Per-driver compound preference / start-tyre prediction.** A more granular cousin of the Model B compound output; defer until the race-level compound prediction is validated.
+- **Scenario exploration ("what-if" mode).** Combine Model A + Model B + conditional priors — e.g. a wet-weather toggle with a per-driver rain-skill prior — to let fans *explore* how a weekend might unfold. Framed explicitly as **educational exploration, not an accuracy claim**: these inputs are data-sparse and this is a what-if sandbox, so it does **not** reopen the §4 non-goals (no safety-car/weather *probability modeling*, no betting surface). Defer until the core experience ships.
 
 Rule: a candidate graduates to a real feature only when it clears the three-part cheap test or earns a deliberate scope decision — not because it "seems small."
