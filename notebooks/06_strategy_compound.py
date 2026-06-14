@@ -24,9 +24,10 @@ from src.data.load import is_dry_session, load_session
 from src.eval.baseline import static_baseline
 from src.features.pace import summarize_stints
 from src.features.stints import long_run_stints
-from src.features.strategy import count_stops, dominant_compound, sc_disruption_fraction
+from src.features.strategy import add_history, count_stops, dominant_compound, sc_disruption_fraction
 from src.features.track import track_features
 from src.models.pace_model import rolling_origin_predict
+from src.pipeline import build_strategy_table
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(message)s")
 
@@ -90,19 +91,6 @@ def build_tables():
     return pd.DataFrame(driver_rows), pd.DataFrame(race_rows)
 
 
-def add_history(df, race_df):
-    """Track-norm history from strictly prior years (leakage-safe)."""
-    modal_hist, dom_hist = [], []
-    for row in df.itertuples():
-        prior = race_df[(race_df.gp == row.gp) & (race_df.year < row.year)]
-        modal_hist.append(prior["modal_stops"].mode().iloc[0] if not prior.empty else np.nan)
-        dom_hist.append(prior["dominant_compound"].mode().iloc[0] if not prior.empty else None)
-    df = df.copy()
-    df["hist_modal_stops"] = modal_hist
-    df["hist_dominant"] = dom_hist
-    return df
-
-
 def acc_mae(results):
     t = np.concatenate([r["pace_true"] for r in results])
     p = np.concatenate([r["pace_pred"] for r in results])
@@ -110,21 +98,13 @@ def acc_mae(results):
 
 
 def main():
-    driver_df, race_df = build_tables()
+    driver_df = build_strategy_table()
+    _, race_df = build_tables()
     ordered = [f"{y}-{gp}" for y in YEARS for gp in CIRCUITS if f"{y}-{gp}" in set(driver_df["race_id"])]
     min_train = sum(r.startswith("2023") for r in ordered)
     n_disrupt = (race_df[race_df.year >= 2024]["sc_frac"] > SC_DISRUPT).sum()
     print(f"Built {len(driver_df)} driver-rows / {len(race_df)} weekends. "
           f"Held-out {len(ordered)-min_train}; {n_disrupt} held-out races SC-disrupted (>{SC_DISRUPT:.0%}).")
-
-    # History features. 2023 rows have no prior year -> impute with the 2023-wide
-    # modal stop count (an aggregate prior, not the race's own value).
-    driver_df = add_history(driver_df, race_df)
-    global_modal = float(race_df[race_df.year == 2023]["modal_stops"].median())
-    driver_df["hist_modal_stops"] = driver_df["hist_modal_stops"].fillna(global_modal)
-    for c in ["deg_SOFT", "deg_MEDIUM", "deg_HARD"]:
-        driver_df[c] = driver_df[c].fillna(driver_df["deg_overall"])
-    driver_df["track_temp"] = driver_df["track_temp"].fillna(driver_df["track_temp"].median())
 
     # ===== PART 1 — STRATEGY (per-driver stop count) =====
     TARGET, RACE_COL, FINISH = "n_stops", "race_id", "n_stops"
