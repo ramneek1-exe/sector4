@@ -40,7 +40,11 @@ def predict_pace_gaps(year: int, gp: str, table: pd.DataFrame | None = None,
 
     model = model_factory()
     model.fit(prior[PACE_INFER_COLS], prior["race_pace_delta"])
-    X = target[PACE_INFER_COLS]
+    # Per-tree predict on a plain array: the wrapping forest is fit with a
+    # DataFrame (feature names), but individual trees were fit on arrays, so
+    # passing the DataFrame here emits a spurious sklearn feature-name warning.
+    # Column order is preserved by PACE_INFER_COLS, so results are identical.
+    X = target[PACE_INFER_COLS].to_numpy()
     per_tree = np.stack([est.predict(X) for est in model.estimators_])
     mean = per_tree.mean(axis=0)
     std = per_tree.std(axis=0)
