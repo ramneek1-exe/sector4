@@ -47,7 +47,11 @@ def _track_temp(session) -> float:
 
 def build_strategy_table(seasons: list[int] = SEASONS,
                          circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
-    """Per-driver stop-count feature table (Model B). Loads fastf1 (batch only)."""
+    """Per-driver stop-count feature table (Model B). Loads fastf1 (batch only).
+
+    `seasons` must be in ascending calendar order: seasons[0] is treated as the
+    earliest season and is used as the baseline for hist_modal_stops imputation.
+    """
     driver_rows, race_rows = [], []
     for year in seasons:
         for gp in circuits:
