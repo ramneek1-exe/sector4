@@ -112,8 +112,10 @@ Example queries for v1:
 
 ### 6.2 Two Prediction Models
 
+> **Phase 1 validation outcome (2023–2025 data spikes).** Telemetry has exactly **two validated contributions**: **(1) predicted pace gaps + uncertainty** (Model A) and **(2) stop-count strategy** (Model B). **Podium ranking and dominant-compound** showed **no telemetry edge** over public/historical baselines — grid position (Saturday), championship standings/recent form (Friday), and historical compound norms — and run on those baselines as honest probabilities. Full evidence in `notebooks/*_RESULTS.md`.
+
 **Model A — Race Pace Prediction (regression).**
-Predicts each driver's expected race pace as a delta against a reference. Top-3 podium prediction falls out of ranking the predicted pace deltas. Outputs include uncertainty intervals per driver.
+Predicts each driver's expected race pace as a delta against a reference, with uncertainty intervals per driver. **Validated role: predicted pace gaps (in seconds) + uncertainty** — information no order-based signal can produce. Podium ranking is **not** a telemetry differentiator: across the spikes FP pace did not beat grid (Saturday) or standings/form (Friday), so the top-3 call is shown as honest probabilities built on those public signals. Model A is therefore a **supporting** pace-context feature, not the headline.
 
 Inputs include:
 - FP1/FP2 long-run pace (after the feature engineering pipeline in §7.2)
@@ -122,8 +124,11 @@ Inputs include:
 - Track-intrinsic features (length, abrasiveness, historical pit-loss)
 - Historical performance at this track (heavily discounted for regulation continuity)
 
-**Model B — Strategy & Compound Prediction (classification).**
-Primary output: optimal stop count (1-stop vs 2-stop) per driver/race. Secondary output: the **dominant tire compound** for the race — a race-level (not per-driver) call of which of the weekend's three allocated dry compounds the field will run most. These are the same problem from two angles (the optimal strategy implies compound usage), so they share a model and feature set rather than being separate models.
+**Model B — Strategy & Compound Prediction.**
+Two outputs, **validated separately** in the Phase 1 spike — the result is a split:
+
+- **Stop count (per driver) — VALIDATED telemetry edge.** FP degradation features beat the track-historical-norm baseline on held-out 2024–25 stop-count accuracy (≈0.71 vs ≈0.64), and the gain isolates to the FP deg features — the causal deg→stops link holding up empirically. This is the **only** validated telemetry edge in Phase 1. Framed as a **supporting, caveated** capability: predict the *likely* strategy **with explicit safety-car uncertainty** — live accuracy will trail the dry/SC-clean backtest, since SC-forced stops aren't strategy. It is also a prime **explainer hook** (deg → stops is teachable).
+- **Dominant compound (race-level) — NO-GO (no telemetry edge).** FP deg tied the historical-norm baseline. The call runs on **"the typical compound here"** (historical dominant / median allocated), with the weekend's Pirelli allocation as input. Secondary, presented as historical context, not a telemetry-driven prediction.
 
 Inputs include:
 - Track abrasiveness and historical pit-lane time loss
@@ -132,7 +137,7 @@ Inputs include:
 - Forecast conditions (pulled from public weather sources); assumes a dry race, with a dry/wet condition flag
 - Historical compound usage at the track (track-intrinsic features transfer across the 2026 reset; absolute deg rates do not — see §7.2)
 
-The compound prediction renders through the tire glyph (§8) and is labeled race-level. It is a secondary feature, not a headline — it should not expand the Phase 1 spike, which stays focused on Model A.
+The compound prediction renders through the tire glyph (§8) and is labeled race-level. It is a secondary feature, not a headline — and per the Phase 1 result above it carries no telemetry edge, so it is presented as historical "typical compound here" context.
 
 ### 6.3 Grounded Narrative Generation
 

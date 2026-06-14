@@ -9,7 +9,7 @@ Sector 4 is a natural language interface over F1 telemetry that produces ML-back
 ## Locked decisions that affect code
 
 - **Model A is pace regression, not winner classification.** Predict each driver's race-pace delta; rank to get the podium. Top-3 falls out of the ranking.
-- **Model B is strategy + compound**, one model, two outputs: per-driver stop count (1 vs 2) and a race-level dominant-compound call. Compound prediction needs the weekend's Pirelli allocation as an input.
+- **Model B is strategy + compound**, two outputs, validated separately (Phase 1, see findings below): **stop count (per driver) is a VALIDATED telemetry edge** (+0.07 over track-norm; gain isolates to FP deg features; causal deg→stops) — ship as a *supporting, caveated* capability (likely strategy WITH explicit safety-car uncertainty; live accuracy trails the dry/SC-clean backtest) and a prime explainer hook. **Dominant compound is NO-GO** — no telemetry edge; runs on historical "typical compound here" (Pirelli allocation still required as input).
 - **Computed-stat lookups (no ML):** pit-lane time loss and tyre deg / stint length are surfaced from already-computed pipeline values via a `lookup_stat` intent.
 - **Feature engineering is the hard part**, not model choice. The FP long-run pipeline (stint detection → lap cleaning → fuel correction → compound normalization → track-evolution correction) is in PRD §7.2. Random Forest is the starting point.
 - **LLM layer: Claude Haiku 4.5** (`claude-haiku-4-5-20251001`), two calls per query — query parser (intent + entities, strict tool-use/JSON) and grounded narrative generator (fed feature importances, "do not invent facts" constraint). Intents: `predict_pace` / `predict_strategy` / `predict_compound` / `lookup_stat` / `explain_concept`.
@@ -38,6 +38,20 @@ Sector 4 is a natural language interface over F1 telemetry that produces ML-back
 - **Plan before building.** Propose the approach, confirm against the PRD/spike brief, then implement. Surface go/no-go honestly — if Model A can't beat the baseline, say so rather than tuning the bar.
 - **Commits:** small, focused, conventional-style messages (e.g. `feat:`, `fix:`, `chore:`); one logical change per commit. **Do not add any Claude/AI attribution** — no "Generated with Claude Code" line, no "Co-Authored-By: Claude" trailer, no robot emoji. Commit messages contain only the change description.
 
-## Decision gate (Phase 1)
+## Phase 1 findings (resolved — 2023–2025 data spikes)
 
-If Model A beats the grid-position baseline on top-3 and Spearman rho, and MAE is materially better than a naive pace baseline → proceed to Phase 2. If not → stop, report which features are weak, and reconsider before any app build.
+Phase 1 is complete. Telemetry has **two validated contributions**, and several capabilities showed **no telemetry edge** over public/historical baselines. Full evidence in `notebooks/*_RESULTS.md`.
+
+| Capability | Telemetry edge over baseline? |
+|---|---|
+| Model A — podium vs grid (Saturday) | No |
+| Model A — pre-quali podium vs standings/form (Friday) | No |
+| Quali-sim → grid vs standings | No |
+| **Model B — stop-count strategy vs track-norm** | **Yes (+0.07)** |
+| Model B — dominant compound vs track-norm | No |
+
+- **Validated telemetry value:** (1) **predicted pace gaps + uncertainty** (Model A, demoted to a supporting feature), and (2) **stop-count strategy** (Model B) — the latter is the only signal that beats a strong baseline, exactly where the causal deg→stops link predicts.
+- **Runs on public/historical baselines (no telemetry edge):** podium ranking (grid / standings / form, as honest probabilities) and dominant compound (historical "typical compound here").
+- **Product implication:** lead with the explainer/learning layer + honest probabilities; let the genuine telemetry differentiator be **stop-count strategy + pace-gap context**, not podium accuracy or compound.
+
+Methodology note for any future ML work here: rolling-origin CV (never random k-fold), strict leakage guards (nothing race-derived as an input for that race; historical/standings features from strictly prior races; FP from this weekend only), Theil-Sen deg slopes, dry representative circuit set, surface go/no-go honestly rather than tuning the bar.
