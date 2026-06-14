@@ -3,7 +3,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.features.strategy import count_stops, dominant_compound, sc_disruption_fraction
+from src.features.strategy import (
+    add_history,
+    count_stops,
+    dominant_compound,
+    sc_disruption_fraction,
+)
 
 
 def _laps(rows):
@@ -53,3 +58,32 @@ def test_sc_disruption_fraction_counts_non_green_safety_laps():
     )
     # 3 of 10 laps under SC/VSC -> 0.3
     assert sc_disruption_fraction(laps) == pytest.approx(0.3)
+
+
+def test_add_history_uses_strictly_prior_years_only():
+    race_df = pd.DataFrame(
+        {
+            "gp": ["Bahrain", "Bahrain", "Bahrain"],
+            "year": [2023, 2024, 2025],
+            "modal_stops": [1, 2, 2],
+            "dominant_compound": ["HARD", "MEDIUM", "MEDIUM"],
+        }
+    )
+    df = pd.DataFrame({"gp": ["Bahrain", "Bahrain"], "year": [2024, 2025]})
+    out = add_history(df, race_df).set_index("year")
+    # 2024 sees only 2023 -> modal 1, HARD
+    assert out.loc[2024, "hist_modal_stops"] == 1
+    assert out.loc[2024, "hist_dominant"] == "HARD"
+    # 2025 sees 2023+2024 -> dominant HARD-vs-MEDIUM
+    assert out.loc[2025, "hist_dominant"] in {"HARD", "MEDIUM"}
+
+
+def test_add_history_no_prior_year_is_nan_and_none():
+    race_df = pd.DataFrame(
+        {"gp": ["Spain"], "year": [2023], "modal_stops": [2],
+         "dominant_compound": ["SOFT"]}
+    )
+    df = pd.DataFrame({"gp": ["Spain"], "year": [2023]})
+    out = add_history(df, race_df).iloc[0]
+    assert pd.isna(out["hist_modal_stops"])
+    assert out["hist_dominant"] is None

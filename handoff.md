@@ -2,8 +2,9 @@
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
 > `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-14.
-> **Status: Phase 1 (data/ML validation) COMPLETE + product repositioned (explainer-led).
-> Build has not started — next action is PRD §11 M1.**
+> **Status: Phase 1 COMPLETE + product repositioned (explainer-led). Build STARTED:
+> PRD §11 M1 (productionize the pipeline as a callable library) is COMPLETE on branch
+> `m1-productionize-pipeline`. Next action is PRD §11 M2 (thin end-to-end slice).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -88,11 +89,26 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
 
 ## 🛠️ 4. Immediate Next Steps & Open Questions
 
-**Decision is made and docs are current. Build begins at PRD §11 M1 (dependency-ordered, no dates):**
-1. **M1 — Productionize the Phase 1 pipeline:** callable, cached, leakage-safe code on
-   the Vercel Python `/api/` path. (Start here.)
+**M1 is COMPLETE (branch `m1-productionize-pipeline`). Build continues at PRD §11 M2 (dependency-ordered, no dates):**
+1. ✅ **M1 — Productionize the Phase 1 pipeline:** DONE. Callable core library (no app
+   scaffolding yet — that's M2). Spec/plan in `docs/superpowers/{specs,plans}/2026-06-14-m1-*`.
+   - **Batch layer** `src/pipeline.py` (the ONLY code that imports fastf1 + touches `cache/`)
+     builds & persists parquet feature tables via `src/store.py`.
+   - **Inference layer** `src/inference/{lookup,pace,strategy}.py` reads ONLY the parquet
+     tables (never fastf1 — enforced by `tests/test_inference_no_fastf1.py`), trains the
+     cheap model at call time on strictly-prior weekends through the single leakage
+     chokepoint `store.prior_weekends` (true calendar order from `src/calendar.py`).
+   - Three callables: `lookup_stat` (no ML), `predict_pace_gaps` (Model A, demoted —
+     deltas + per-tree uncertainty), `predict_stop_counts` (Model B, +0.07 edge, always
+     with `SC_CAVEAT`). Sparse-prior → qualitative band, not fake precision.
+   - 74 tests pass; nb 06 still reproduces the validated **+0.07** stop-count edge verbatim.
+   - **Deferred to M2 (when the API response schema is defined):** dedup `MIN_TRAIN_RACES`
+     (declared in both pace.py + strategy.py) and the per-callable target-row lookup into a
+     shared home (e.g. `store.target_weekend`); normalize return shapes across the 3
+     callables (the empty-target qualitative branch omits `n_train_races`).
 2. **M2 — Thin end-to-end slice:** one computed-stat lookup query NL→parser→Python→
-   narrative→ASCII/dither reveal on the deployed app (proves the architecture).
+   narrative→ASCII/dither reveal on the deployed app (proves the architecture). Wire the
+   `/api/` path to `from src.inference import ...`. **Start here.**
 3. **M3 — Calibrated podium probabilities** (the headline feature), then M4 telemetry
    differentiators, **M5 private beta at a real 2026 weekend (forcing function)**, M6
    learning layer, M7 breadth+polish. See PRD §11.
@@ -110,7 +126,10 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
 
 Phase 1 is finished and the repositioning is locked into the PRD/CLAUDE; treat the
 validated split as settled (stop-count strategy = real telemetry edge; podium/compound =
-baseline-driven) and the product as explainer-led, not predictive-edge. The next build
-task is **M1** (productionize the pipeline) — start there only when the user asks, keep
-all logic in `src/` with rolling-origin CV and the leakage guards above, and do not
-oversell predictions in any code, copy, or UI.
+baseline-driven) and the product as explainer-led, not predictive-edge. **M1 is done** —
+the pipeline is now a callable library (`src/pipeline.py` batch build + `src/inference/*`,
+fastf1-free). The next build task is **M2** (thin end-to-end slice) — start there only
+when the user asks. Preserve the load-bearing invariants when extending: inference must
+never import fastf1; all training must go through `store.prior_weekends` (calendar order,
+never alphabetical); round every number that reaches output; keep all logic in `src/`; and
+do not oversell predictions in any code, copy, or UI.
