@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 DRY_COMPOUNDS = {"SOFT", "MEDIUM", "HARD"}
@@ -35,3 +36,21 @@ def sc_disruption_fraction(laps: pd.DataFrame) -> float:
     status = laps["TrackStatus"].astype(str)
     disrupted = status.apply(lambda s: any(code in s for code in SC_CODES))
     return float(disrupted.mean())
+
+
+def add_history(df: pd.DataFrame, race_df: pd.DataFrame) -> pd.DataFrame:
+    """Track-norm history from strictly prior years (leakage-safe).
+
+    For each row, hist_modal_stops / hist_dominant are the modal stop count and
+    dominant compound at the same `gp` in EARLIER years only (year < row.year).
+    Rows with no prior year get NaN / None. Pure pandas — no fastf1.
+    """
+    modal_hist, dom_hist = [], []
+    for row in df.itertuples():
+        prior = race_df[(race_df.gp == row.gp) & (race_df.year < row.year)]
+        modal_hist.append(prior["modal_stops"].mode().iloc[0] if not prior.empty else np.nan)
+        dom_hist.append(prior["dominant_compound"].mode().iloc[0] if not prior.empty else None)
+    df = df.copy()
+    df["hist_modal_stops"] = modal_hist
+    df["hist_dominant"] = dom_hist
+    return df
