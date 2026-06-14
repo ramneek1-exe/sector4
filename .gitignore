@@ -5,9 +5,9 @@ __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
 
-# fastf1 cache and intermediate data (do not commit)
-cache/
-data/
+# fastf1 cache and intermediate data (do not commit) — root-anchored so src/data/ is tracked
+/cache/
+/data/
 
 # Secrets / env
 .env
@@ -25,3 +25,6 @@ out/
 Thumbs.db
 .idea/
 .vscode/
+
+# Claude Code local state
+.claude/
