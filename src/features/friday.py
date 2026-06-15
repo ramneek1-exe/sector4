@@ -62,6 +62,22 @@ def track_history_finish(results: pd.DataFrame, event: str, driver: str, before_
     return float(prior["finish_pos"].mean())
 
 
+def prior_track_pace(pace_df: pd.DataFrame, gp: str, driver: str, year: int) -> float:
+    """Driver's mean race-pace delta at this circuit in strictly prior years.
+
+    Leakage-safe (year < the target year only). NaN when the driver has no prior
+    year at the circuit; callers impute 0.0 (a neutral pace delta). `pace_df` must
+    have columns gp, Driver, year, race_pace_delta (the Phase-1 pace feature table).
+    """
+    vals = pace_df.loc[
+        (pace_df["gp"] == gp)
+        & (pace_df["Driver"] == driver)
+        & (pace_df["year"] < year),
+        "race_pace_delta",
+    ]
+    return float(vals.mean()) if len(vals) else float("nan")
+
+
 def add_friday_features(
     feature_df: pd.DataFrame,
     results: pd.DataFrame,
