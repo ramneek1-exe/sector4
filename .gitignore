@@ -19,6 +19,8 @@ node_modules/
 .next/
 out/
 .vercel/
+next-env.d.ts
+*.tsbuildinfo
 
 # OS / editor
 .DS_Store
@@ -28,3 +30,4 @@ Thumbs.db
 
 # Claude Code local state
 .claude/
+.vercel

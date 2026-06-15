@@ -1,0 +1,13 @@
+# Local dev + batch pipeline (src/pipeline.py) + tests. Superset of the slim
+# runtime set. Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+
+fastf1           # telemetry access — batch layer only, never the inference function
+scikit-learn     # pace / strategy models
+scipy            # Theil-Sen deg slopes, etc.
+matplotlib       # notebook plots
+pytest           # test runner
+
+# Deferred (add when needed):
+# shap            # narrative grounding — Phase 3; feature_importances_ is fine for now
+# jupyterlab      # if running notebooks locally

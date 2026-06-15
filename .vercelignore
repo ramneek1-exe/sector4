@@ -1,0 +1,15 @@
+# Keep deploy uploads lean — exclude local-only dirs Vercel rebuilds or never needs.
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+cache/
+data/
+.next/
+node_modules/
+notebooks/
+tests/
+docs/
+.agents/
+.claude/
+*.tsbuildinfo

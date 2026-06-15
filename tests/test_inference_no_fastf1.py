@@ -1,9 +1,13 @@
 """Design §5 guarantee: importing the inference package must not import fastf1.
 
 This is what keeps the eventual /api/ serverless functions free of fastf1 and the
-~225M cache — they ship only the small feature table.
+~225M cache — they ship only the small feature table. The sklearn guard below
+additionally keeps the lookup path light enough to fit Vercel's 500MB Python
+Lambda limit (pace/strategy pull scikit-learn; lookup must not).
 """
 import importlib
+import os
+import subprocess
 import sys
 
 
@@ -27,3 +31,20 @@ def test_public_callables_are_exported():
     assert hasattr(inf, "lookup_stat")
     assert hasattr(inf, "predict_pace_gaps")
     assert hasattr(inf, "predict_stop_counts")
+
+
+def test_lookup_path_does_not_import_sklearn_or_fastf1():
+    # Fresh interpreter: importing only the lookup path (what the Vercel function
+    # loads) must not drag in scikit-learn or fastf1, so the function stays small.
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    code = (
+        "import sys\n"
+        "from src.inference.lookup import lookup_stat\n"
+        "lookup_stat('pit_loss', 'Monaco')\n"
+        "bad = [m for m in sys.modules if m.split('.')[0] in ('sklearn', 'fastf1')]\n"
+        "assert not bad, bad\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=repo_root, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr

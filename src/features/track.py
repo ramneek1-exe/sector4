@@ -30,6 +30,8 @@ _TRACKS: dict[str, dict[str, float]] = {
     "Mexico City": {"length_km": 4.304, "n_corners": 17, "abrasiveness": 2, "pit_loss_s": 22.0},
     # long straights, high overtaking, low-deg, cold night
     "Las Vegas": {"length_km": 6.201, "n_corners": 17, "abrasiveness": 1, "pit_loss_s": 20.0},
+    # street circuit, short pit lane offset by the reduced 60 kph pit limit
+    "Monaco": {"length_km": 3.337, "n_corners": 19, "abrasiveness": 2, "pit_loss_s": 19.5},
 }
 
 # Neutral fallback so an unseen circuit degrades gracefully instead of crashing.
