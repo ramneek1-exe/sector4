@@ -2,6 +2,9 @@
   "functions": {
     "api/inference.py": {
       "includeFiles": "src/**"
+    },
+    "api/podium.py": {
+      "includeFiles": "{src/**,api/podium_features.parquet}"
     }
   }
 }

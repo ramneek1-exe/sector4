@@ -1,8 +1,13 @@
-# Sector 4 — runtime deps for the Vercel Python /api function (the lookup path).
-# Keep this MINIMAL: the function must fit Vercel's 500MB Python Lambda limit, so
-# list only what api/inference.py -> src.inference.lookup needs at import/runtime.
-# Everything heavier (fastf1, scikit-learn, scipy, matplotlib, pytest) lives in
-# requirements-dev.txt for local dev, the batch pipeline, and the test suite.
+# Sector 4 — runtime deps for the Vercel Python /api functions.
+# Two functions ship from this requirements set:
+#   - api/inference.py (lookup path) needs only pandas/pyarrow/numpy.
+#   - api/podium.py    (live podium inference) additionally needs scikit-learn
+#     (+ its scipy dependency) to train the logistic model per request.
+# This whole set is ~370MB — well under Vercel's 500MB Python limit. What blew past
+# the limit before was the BATCH-only stack (fastf1, matplotlib + the fastf1 cache);
+# those stay in requirements-dev.txt and never ship with a function.
 pandas
-pyarrow          # parquet IO for the lookup tables (tyre_deg / stint_length)
+pyarrow          # parquet IO for the lookup + podium feature tables
 numpy            # transitively via pandas; listed explicitly for clarity
+scikit-learn     # api/podium.py: LogisticRegression for predict_podium
+scipy            # scikit-learn dependency; listed explicitly for clarity
