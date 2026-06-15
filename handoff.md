@@ -4,8 +4,10 @@
 > `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-15.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (callable
 > pipeline library) MERGED to `main` (PR #1). M2 (thin end-to-end slice) COMPLETE and
-> VERIFIED end-to-end on a live Vercel preview deploy (branch `m2-thin-end-to-end-slice`,
-> ready to merge — see §4). Next action is PRD §11 M3 (calibrated podium probabilities).**
+> VERIFIED end-to-end on a live Vercel preview deploy. M3 BACKEND slice COMPLETE
+> (branch `m3-calibrated-podium-probabilities`): `predict_podium` callable shipping
+> honest bands that sharpen Friday→Saturday — see §4. Next action is the M3 FRONTEND
+> follow-up (glyph system + `drivers.json` + band UI).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -174,9 +176,37 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      `ANTHROPIC_API_KEY` as a project env var; re-enable Deployment Protection if desired);
      the M1-carried cleanups when the API schema grows past lookup (dedup `MIN_TRAIN_RACES`
      across pace.py/strategy.py; normalize the three callables' return shapes).
-3. **M3 — Calibrated podium probabilities** (the headline feature), then M4 telemetry
-   differentiators, **M5 private beta at a real 2026 weekend (forcing function)**, M6
-   learning layer, M7 breadth+polish. See PRD §11.
+3. ✅ **M3 — Calibrated podium probabilities (BACKEND slice):** COMPLETE — branch
+   `m3-calibrated-podium-probabilities`; spec/plan in `docs/superpowers/{specs,plans}/
+   2026-06-15-m3-*`. New fastf1-free callable `src/inference/podium.py:predict_podium`
+   (standings + form + prior-track-pace, + grid as available) returns honest qualitative
+   bands (`strong` / `in contention` / `outside shot`) that **sharpen Friday→Saturday**
+   (auto-mode: Saturday when grid present). Numeric `p_podium` is returned but flagged
+   `calibrated: false` so the %-upgrade is pre-wired. Supporting work: `build_podium_table`
+   (pure transform, `src/pipeline.py`), `prior_track_pace` (`src/features/friday.py`,
+   moved out of nb 05), `GP_TO_EVENT` (`src/calendar.py`), `store.PODIUM_TABLE`, and
+   `band_for` + **dropped `class_weight="balanced"`** in `src/models/podium_model.py`.
+   94 pytest pass. Trust anchor `notebooks/07_podium.py` + `PODIUM_M3_RESULTS.md`
+   reproduces the production held-out numbers from real data: **Saturday top-3 0.733 /
+   Brier 0.071, Friday 0.689 / 0.085** (unbalanced).
+   - **Key findings (this slice):** (a) dropping `class_weight="balanced"` nearly **halves
+     Brier** (Fri 0.146→0.085, Sat 0.124→0.071) while top-3 holds — the `strong` band now
+     delivers ~0.62–0.64 actual (was 0.86-pred/0.49-actual). Bands confirmed honest, no
+     threshold change. (b) nb 05's **"0.711 Friday" was a qsim-inner-join artifact** (the
+     cut feature dropped ~1 weekend); the honest production Friday is **0.689**. (c) Saturday
+     0.733 still trails raw grid (~0.778) — podium stays positioned as honest probabilities,
+     not a telemetry edge.
+   - **%-transition contract (M5 inherits, spec §5):** showing numeric % is gated on
+     **measured** calibration (enough 2026 data to fit isotonic/Platt **and** a passing
+     reliability check), NOT on a date. Bands are the honest default; % is an earned upgrade.
+   - **NEXT — M3 FRONTEND follow-up (own spec):** the abstract glyph system (helmet glyph +
+     personal number + 3-letter code, team colors, contrast guard), the **`drivers.json`**
+     source of truth (driver→team→number; doesn't exist yet), the band/uncertainty UI, the
+     `/api` route + grounded podium narrative, and the reveal. The backend callable's return
+     shape is the clean interface to build against.
+4. **M4 — Telemetry differentiators** (pace-gap context + stop-count strategy), then
+   **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
+   M7 breadth+polish. See PRD §11.
 
 **Open questions / uncertainties to validate later:**
 - **Podium probability calibration** — current probs are overconfident; needs
