@@ -3,10 +3,12 @@
 No fastf1 here: we exercise the pure assembly/persistence seam by monkeypatching
 the session-extraction helper, so the test is fast and cache-free.
 """
+import numpy as np
 import pandas as pd
 
 import src.pipeline as pipeline
 from src import store
+from src.pipeline import build_podium_table
 
 
 def test_build_all_writes_both_tables(tmp_path, monkeypatch):
@@ -26,3 +28,56 @@ def test_build_all_writes_both_tables(tmp_path, monkeypatch):
 
     pd.testing.assert_frame_equal(store.read_table(pace_path), pace)
     pd.testing.assert_frame_equal(store.read_table(strat_path), strat)
+
+
+def _pace_df():
+    # Two circuits x two years, 3 drivers. race_pace_delta lower = faster.
+    rows = []
+    for year in (2023, 2024):
+        for gp in ("Spain", "Italy"):
+            for i, drv in enumerate(["VER", "HAM", "NOR"]):
+                rows.append({
+                    "race_id": f"{year}-{gp}", "year": year, "gp": gp, "Driver": drv,
+                    "race_pace_delta": 0.1 * i, "grid_position": i + 1,
+                    "finish_pos": i + 1,
+                })
+    return pd.DataFrame(rows)
+
+
+def _results():
+    # Minimal results: one row per (year, event, driver) with date/points/finish.
+    events = {"Spain": "Spanish Grand Prix", "Italy": "Italian Grand Prix"}
+    rows = []
+    for year in (2023, 2024):
+        for gp, event in events.items():
+            for i, drv in enumerate(["VER", "HAM", "NOR"]):
+                rows.append({
+                    "year": year, "round": 1 if gp == "Spain" else 2, "gp": event,
+                    "date": pd.Timestamp(f"{year}-0{4 if gp=='Spain' else 9}-01"),
+                    "Driver": drv, "finish_pos": i + 1, "points": 25 - 7 * i,
+                    "team": "T",
+                })
+    return pd.DataFrame(rows)
+
+
+def test_build_podium_table_has_features_and_label():
+    t = build_podium_table(_pace_df(), _results())
+    needed = {"race_id", "year", "gp", "Driver", "podium",
+              "champ_points_before", "champ_rank_before", "form_finish_avg3",
+              "prior_track_pace", "grid_position"}
+    assert needed.issubset(t.columns)
+    # podium label = finish_pos <= 3 (all 3 drivers podium here)
+    assert set(t["podium"].unique()) == {1}
+    # no NaNs left in the imputed feature columns
+    for col in ["champ_points_before", "champ_rank_before", "form_finish_avg3", "prior_track_pace"]:
+        assert not t[col].isna().any()
+
+
+def test_build_podium_table_prior_track_pace_is_leakage_safe():
+    t = build_podium_table(_pace_df(), _results())
+    # 2023 rows have no prior year at the circuit -> imputed 0.0
+    y23 = t[t["year"] == 2023]
+    assert (y23["prior_track_pace"] == 0.0).all()
+    # 2024-Spain VER sees only 2023-Spain VER (race_pace_delta 0.0) -> 0.0
+    row = t[(t["race_id"] == "2024-Spain") & (t["Driver"] == "VER")].iloc[0]
+    assert row["prior_track_pace"] == 0.0
