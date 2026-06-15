@@ -11,4 +11,5 @@ notebooks/
 tests/
 docs/
 .agents/
+.claude/
 *.tsbuildinfo

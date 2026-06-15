@@ -3,10 +3,9 @@
 > Living context doc so a fresh session never cold-starts. Read this first, then
 > `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-14.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (callable
-> pipeline library) MERGED to `main` (PR #1). M2 (thin end-to-end slice) BUILT and
-> automated-verified on branch `m2-thin-end-to-end-slice`; one manual gate + the
-> Vercel deploy remain (see §4). Next action after M2 closes is PRD §11 M3
-> (calibrated podium probabilities).**
+> pipeline library) MERGED to `main` (PR #1). M2 (thin end-to-end slice) COMPLETE and
+> VERIFIED end-to-end on a live Vercel preview deploy (branch `m2-thin-end-to-end-slice`,
+> ready to merge — see §4). Next action is PRD §11 M3 (calibrated podium probabilities).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -108,28 +107,41 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      (declared in both pace.py + strategy.py) and the per-callable target-row lookup into a
      shared home (e.g. `store.target_weekend`); normalize return shapes across the 3
      callables (the empty-target qualitative branch omits `n_train_races`).
-2. ✅ **M2 — Thin end-to-end slice:** BUILT + automated-verified on branch
-   `m2-thin-end-to-end-slice`. Spec/plan in `docs/superpowers/{specs,plans}/2026-06-14-m2-*`.
+2. ✅ **M2 — Thin end-to-end slice:** COMPLETE — verified **end-to-end on a live Vercel
+   preview deploy** (exceeds the original local-only DoD). Branch `m2-thin-end-to-end-slice`;
+   spec/plan in `docs/superpowers/{specs,plans}/2026-06-14-m2-*`.
    Anchor query "How much time is lost in the pit lane at Monaco?" flows
    NL→parser→Python→narrative→ASCII/dither reveal. Build: Next.js (App Router, TS) at
    repo root; the two Haiku calls run in the Next server (`app/lib/{parser,narrative,
    orchestrate}.ts` + `app/api/ask/route.ts`); the Python serverless fn `api/inference.py`
    is pure inference wrapping `src.inference.lookup` (fastf1-free); `app/components/Reveal.tsx`
    is the shared reveal. Added a curated **Monaco** entry to `src/features/track.py`
-   (`pit_loss_s 19.5`). 78 pytest + 9 vitest tests pass; `npm run build` clean.
+   (`pit_loss_s 19.5`). 79 pytest + 9 vitest tests pass; `npm run build` clean.
    - **Final paths note:** the Python fn landed at `api/inference.py` (URL `/api/inference`),
      not the design doc's earlier `api/py/lookup.py` text — the plan's File Structure is
      authoritative and the `/api/ask` route targets `/api/inference`.
-   - **OUTSTANDING for M2 close:** (a) the **manual `vercel dev` real-key E2E** (needs an
-     `ANTHROPIC_API_KEY` in `.env.local`; the M2 done-when gate). **Highest-value check in
-     that run:** confirm the top-level Python fn `/api/inference` and the Next route handler
-     `/api/ask` BOTH resolve and don't shadow each other (Vercel builds the Next app + the
-     Python fn in one project; this coexistence can't be verified without `vercel dev`/deploy).
-     If `/api/inference` 404s or is shadowed, the fix is a small path move (e.g. `api/py/inference.py`
-     + update the route's fetch URL). (b) the **Vercel deploy** (deferred this round, owner
-     decision) — when doing it, pin the Python runtime in `vercel.json` and validate
-     `requirements.txt` against Vercel's Python size/version limits (it's still the full M1
-     Phase-1 list: fastf1, sklearn, etc., unpinned).
+   - **VERIFIED (2026-06-15) on Vercel preview** `sector4-…vercel.app`: `POST /api/inference`
+     → 200 `{value:19.5}` (the Python fn IS reached → **Next ↔ Python `/api` routing coexists
+     on real Vercel, no shadow/collision**); `POST /api/ask` → grounded 19.5s narrative;
+     off-slice query → honest unsupported message. Browser shows the card + reveal + "Powered
+     by Shaders". Also smoke-verified locally: standalone Python HTTP handler, and a guarded
+     live-Haiku test (`app/lib/live.smoke.test.ts`).
+   - **`vercel dev` caveat (learned):** for a Next.js project `vercel dev` runs only `next dev`
+     and does **not** serve top-level Python `/api/*` functions (Next owns `/api/*`, returns
+     404). So the Next↔Python hop is **not** testable under `vercel dev` — it must be verified
+     on a real deploy (as done). The M2 spec's "vercel dev faithfully emulates prod" assumption
+     was wrong for the Next+Python combo.
+   - **Deploy mechanics (for next time):** `.vercelignore` now excludes local `.venv/cache/data/
+     node_modules/.next/.claude` (the fastf1 cache had a >100MB file that failed upload). The
+     `ANTHROPIC_API_KEY` was passed per-deploy via `--env`; for a persistent/prod deploy set it
+     as a project env var instead. Preview **Deployment Protection** was relaxed to test (it
+     401s server-to-server fetches); owner may re-enable. Deploy was a **preview**, not prod.
+   - **DONE (was deferred): Python fn dependency slimming.** `src/inference/__init__.py` is now
+     lazy (the `lookup_stat` path no longer imports sklearn — guarded by a subprocess test in
+     `tests/test_inference_no_fastf1.py`); `requirements.txt` is the **slim runtime set**
+     (pandas/pyarrow/numpy) the function ships, and `requirements-dev.txt` holds fastf1/sklearn/
+     scipy/matplotlib/pytest for local dev + the batch pipeline. This is what got the function
+     under Vercel's 500MB Python Lambda limit (was ~505MB).
    - **Key finding — §6.7 reveal fidelity:** the `shaders` npm pkg (`shaders/react` v2.5.130)
      `Ascii` node ASCII-ifies a child *shader's* output, NOT arbitrary DOM; the only DOM-
      capture path (`DOMTexture`) is Chrome-Canary-flag-gated and explicitly non-production.
@@ -139,9 +151,10 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      **Open product decision for the owner:** accept this interpretation of §6.7, or revisit
      the reveal approach (different lib / WebGL ASCII / accept canvas-only content) before the
      reveal goes system-wide in M3+.
-   - **Other deferred follow-ups:** slim the Python fn deps — importing `lookup_stat` still
-     runs `src/inference/__init__.py` (pulls pace/strategy → sklearn); needs `__init__`
-     restructured (lazy imports) to ship only pandas/pyarrow.
+   - **Remaining follow-ups (not blocking M2):** a persistent/production deploy (set
+     `ANTHROPIC_API_KEY` as a project env var; re-enable Deployment Protection if desired);
+     the M1-carried cleanups when the API schema grows past lookup (dedup `MIN_TRAIN_RACES`
+     across pace.py/strategy.py; normalize the three callables' return shapes).
 3. **M3 — Calibrated podium probabilities** (the headline feature), then M4 telemetry
    differentiators, **M5 private beta at a real 2026 weekend (forcing function)**, M6
    learning layer, M7 breadth+polish. See PRD §11.
