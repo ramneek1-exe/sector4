@@ -2,9 +2,11 @@
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
 > `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-14.
-> **Status: Phase 1 COMPLETE + product repositioned (explainer-led). Build STARTED:
-> PRD §11 M1 (productionize the pipeline as a callable library) is COMPLETE on branch
-> `m1-productionize-pipeline`. Next action is PRD §11 M2 (thin end-to-end slice).**
+> **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (callable
+> pipeline library) MERGED to `main` (PR #1). M2 (thin end-to-end slice) BUILT and
+> automated-verified on branch `m2-thin-end-to-end-slice`; one manual gate + the
+> Vercel deploy remain (see §4). Next action after M2 closes is PRD §11 M3
+> (calibrated podium probabilities).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -106,9 +108,33 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      (declared in both pace.py + strategy.py) and the per-callable target-row lookup into a
      shared home (e.g. `store.target_weekend`); normalize return shapes across the 3
      callables (the empty-target qualitative branch omits `n_train_races`).
-2. **M2 — Thin end-to-end slice:** one computed-stat lookup query NL→parser→Python→
-   narrative→ASCII/dither reveal on the deployed app (proves the architecture). Wire the
-   `/api/` path to `from src.inference import ...`. **Start here.**
+2. ✅ **M2 — Thin end-to-end slice:** BUILT + automated-verified on branch
+   `m2-thin-end-to-end-slice`. Spec/plan in `docs/superpowers/{specs,plans}/2026-06-14-m2-*`.
+   Anchor query "How much time is lost in the pit lane at Monaco?" flows
+   NL→parser→Python→narrative→ASCII/dither reveal. Build: Next.js (App Router, TS) at
+   repo root; the two Haiku calls run in the Next server (`app/lib/{parser,narrative,
+   orchestrate}.ts` + `app/api/ask/route.ts`); the Python serverless fn `api/inference.py`
+   is pure inference wrapping `src.inference.lookup` (fastf1-free); `app/components/Reveal.tsx`
+   is the shared reveal. Added a curated **Monaco** entry to `src/features/track.py`
+   (`pit_loss_s 19.5`). 78 pytest + 9 vitest tests pass; `npm run build` clean.
+   - **Final paths note:** the Python fn landed at `api/inference.py` (URL `/api/inference`),
+     not the design doc's earlier `api/py/lookup.py` text — the plan's File Structure is
+     authoritative and the `/api/ask` route targets `/api/inference`.
+   - **OUTSTANDING for M2 close:** (a) the **manual `vercel dev` real-key E2E** (needs an
+     `ANTHROPIC_API_KEY` in `.env.local`; the M2 done-when gate); (b) the **Vercel deploy**
+     (deliberately deferred this round, owner decision).
+   - **Key finding — §6.7 reveal fidelity:** the `shaders` npm pkg (`shaders/react` v2.5.130)
+     `Ascii` node ASCII-ifies a child *shader's* output, NOT arbitrary DOM; the only DOM-
+     capture path (`DOMTexture`) is Chrome-Canary-flag-gated and explicitly non-production.
+     So a true "card text dissolving from ASCII noise" is not production-viable with this
+     package. M2 ships a faithful alternative: a decorative ASCII-over-noise backdrop behind
+     an always-readable card + GSAP fade; reduced-motion / no-WebGPU → plain fade.
+     **Open product decision for the owner:** accept this interpretation of §6.7, or revisit
+     the reveal approach (different lib / WebGL ASCII / accept canvas-only content) before the
+     reveal goes system-wide in M3+.
+   - **Other deferred follow-ups:** slim the Python fn deps — importing `lookup_stat` still
+     runs `src/inference/__init__.py` (pulls pace/strategy → sklearn); needs `__init__`
+     restructured (lazy imports) to ship only pandas/pyarrow.
 3. **M3 — Calibrated podium probabilities** (the headline feature), then M4 telemetry
    differentiators, **M5 private beta at a real 2026 weekend (forcing function)**, M6
    learning layer, M7 breadth+polish. See PRD §11.
