@@ -1,0 +1,67 @@
+"""predict_podium — M3 headline: calibrated podium probabilities as honest bands.
+
+Reads ONLY the persisted podium feature table (no fastf1) and trains a logistic
+model on strictly prior weekends via store.prior_weekends (the leakage chokepoint,
+calendar order). The product surface is qualitative bands; the numeric p_podium is
+returned but flagged `calibrated: false` so the %-upgrade is pre-wired for when 2026
+calibration matures (spec §5). Sharpens Friday -> Saturday: Saturday adds the actual
+grid. Numbers rounded at the boundary. (spec §6, §7)
+"""
+from __future__ import annotations
+
+import pandas as pd
+
+from src import store
+from src.calendar import race_id
+from src.models.podium_model import band_for, default_classifier_factory
+
+# Feature columns declared here (NOT imported from feature-build modules) to keep
+# this module's import graph fastf1-free, matching pace.py's pattern.
+BASE_COLS = ["champ_rank_before", "champ_points_before", "form_finish_avg3"]
+FRIDAY_COLS = BASE_COLS + ["prior_track_pace"]
+SATURDAY_COLS = FRIDAY_COLS + ["grid_position"]
+MIN_TRAIN_RACES = 8  # the validated rolling-origin warmup (spec §2)
+
+
+def _resolve_mode(target: pd.DataFrame, mode: str) -> str:
+    """auto -> saturday when the target weekend has a known grid, else friday."""
+    if mode in ("friday", "saturday"):
+        return mode
+    has_grid = "grid_position" in target and target["grid_position"].notna().all()
+    return "saturday" if has_grid else "friday"
+
+
+def predict_podium(year: int, gp: str, mode: str = "auto",
+                   table: pd.DataFrame | None = None,
+                   model_factory=default_classifier_factory) -> dict:
+    """Per-driver podium band (+ flagged p_podium), sharpening Friday -> Saturday."""
+    table = table if table is not None else store.read_table(store.PODIUM_TABLE)
+    target = table[table["race_id"] == race_id(year, gp)]
+    if target.empty:
+        return {"year": year, "gp": gp, "qualitative": True, "calibrated": False,
+                "reason": "no feature row for target weekend", "drivers": []}
+
+    prior = store.prior_weekends(table, year, gp)
+    n_train = int(prior["race_id"].nunique())
+    if n_train < MIN_TRAIN_RACES or prior["podium"].nunique() < 2:
+        return {"year": year, "gp": gp, "qualitative": True, "calibrated": False,
+                "n_train_races": n_train,
+                "reason": "too few prior weekends for a calibrated podium",
+                "drivers": []}
+
+    resolved = _resolve_mode(target, mode)
+    cols = SATURDAY_COLS if resolved == "saturday" else FRIDAY_COLS
+
+    model = model_factory()
+    model.fit(prior[cols], prior["podium"])
+    proba = model.predict_proba(target[cols])[:, 1]
+
+    drivers = [
+        {"driver": d, "band": band_for(float(p)), "p_podium": round(float(p), 2)}
+        for d, p in zip(target["Driver"], proba)
+    ]
+    drivers.sort(key=lambda r: r["p_podium"], reverse=True)
+    for i, d in enumerate(drivers, start=1):
+        d["rank"] = i
+    return {"year": year, "gp": gp, "mode": resolved, "qualitative": True,
+            "calibrated": False, "n_train_races": n_train, "drivers": drivers}
