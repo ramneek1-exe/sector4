@@ -157,6 +157,19 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      reveal approach (different lib / WebGL ASCII / accept canvas-only content). The fade fix
      is small (fire on the answer mounting, not on the loading placeholder).
      **Open product decision for the owner** stands: how faithful to §6.7 to be.
+   - **KNOWN DEFECT (tracked — owner approved merge on condition this is fixed):**
+     pit-loss is **only curated for 9 circuits** (the dry spike set + Monaco). Any other
+     circuit silently returns the generic `_DEFAULTS` **21.0** — but still labelled
+     `source: "curated track features"`, i.e. a confidently-WRONG number (violates the
+     honesty principle). Compounded by **no circuit-name normalization**: the Haiku parser
+     emits free-text names ("Monza", "Spa", "Mexico", "Italian Grand Prix") that don't match
+     the curated keys ("Italy", "Mexico City", …), so even curated circuits miss → 21.0.
+     Net: only literal "Monaco" works. **Fix (M3 / data work):** (1) derive pit-loss from data
+     for ALL circuits per PRD §7.2 (the real answer); (2) until then, make `lookup_stat`
+     return an honest "not available for this circuit" (value None) instead of the 21.0
+     default for non-curated GPs; (3) normalize circuit names → canonical keys (or constrain
+     the parser to a known list). The `_DEFAULTS` prior can stay for the FEATURE pipeline but
+     must not be presented to users as a curated fact.
    - **Remaining follow-ups (not blocking M2):** a persistent/production deploy (set
      `ANTHROPIC_API_KEY` as a project env var; re-enable Deployment Protection if desired);
      the M1-carried cleanups when the API schema grows past lookup (dedup `MIN_TRAIN_RACES`
