@@ -148,9 +148,15 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      So a true "card text dissolving from ASCII noise" is not production-viable with this
      package. M2 ships a faithful alternative: a decorative ASCII-over-noise backdrop behind
      an always-readable card + GSAP fade; reduced-motion / no-WebGPU → plain fade.
-     **Open product decision for the owner:** accept this interpretation of §6.7, or revisit
-     the reveal approach (different lib / WebGL ASCII / accept canvas-only content) before the
-     reveal goes system-wide in M3+.
+     **Observed in the deployed app: the card currently renders STATICALLY — no animation.**
+     Two causes: (1) the GSAP fade is mis-timed — `page.tsx` sets `active` during `loading`
+     too, so the fade fires on the empty loading placeholder and never re-runs when the card
+     content mounts (effect deps `[fallback, active]` don't change); (2) the shader path is a
+     static, WebGPU-gated decorative backdrop, never a content resolve. **Deferred to M3+**
+     (when the reveal goes system-wide): fix the fade timing AND choose the real signature-
+     reveal approach (different lib / WebGL ASCII / accept canvas-only content). The fade fix
+     is small (fire on the answer mounting, not on the loading placeholder).
+     **Open product decision for the owner** stands: how faithful to §6.7 to be.
    - **Remaining follow-ups (not blocking M2):** a persistent/production deploy (set
      `ANTHROPIC_API_KEY` as a project env var; re-enable Deployment Protection if desired);
      the M1-carried cleanups when the API schema grows past lookup (dedup `MIN_TRAIN_RACES`
