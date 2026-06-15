@@ -4,6 +4,29 @@
 > Prereqs read: `handoff.md`, `CLAUDE.md`, `sector4-prd.md` §5.1/§6.2/§6.4/§7.2/§11, `notebooks/QUALISIM_PODIUM_RESULTS.md`.
 > Builds on: M1 (`src/inference/*`, fastf1-free callable surface; `store.prior_weekends` leakage chokepoint) and the Phase 1 podium spike (`notebooks/05_podium_classifier.py`).
 
+## 0. Planning-phase verification (2026-06-15) — numbers corrected
+
+Reconstructing nb 05's build from the production tables (`spike_features.parquet` +
+`season_results.parquet`, **no `qualisim_table` dependency** — qsim was the cut
+feature) over the full 8-circuit × 3-season set (23 weekends present / 388 rows /
+8 train + 15 held-out / base-rate 0.162) measured:
+
+| Model | Friday top-3 | Friday Brier | Saturday top-3 | Saturday Brier |
+|---|---|---|---|---|
+| `balanced` (nb 05 config) | 0.667 | 0.146 | **0.733** | 0.124 |
+| **`None` — M3 ships this** | **0.689** | **0.085** | **0.733** | **0.071** |
+
+Corrections this forces (authoritative; older sections defer to these numbers):
+- **nb 05's "0.711 Friday" is a qsim-inner-join artifact and is NOT a target.** That
+  join silently dropped ~1 weekend / 15 rows (373/22 vs the honest 388/23). Production
+  must not depend on the cut feature, so the honest Friday figure is **0.689**.
+  **Saturday 0.733 is unchanged and reproduces exactly.**
+- **Dropping `class_weight="balanced"` is validated, not just hypothesized:** it nearly
+  halves Brier (Friday 0.146→0.085, Saturday 0.124→0.071) while top-3 holds/improves.
+- **Trust anchor is a runnable script + `RESULTS.md`** (the repo's real-data pattern,
+  like nb 06), not a data-dependent pytest (`data/` is gitignored → would skip in CI).
+  Pytest covers behavior on synthetic in-memory tables (§11).
+
 ## 1. Goal & Definition of Done
 
 Ship the **backend** of Sector 4's headline feature: an honest, calibration-ready
@@ -37,10 +60,10 @@ that is an explicit **follow-up spec**, not this one (see §9).
 | Decision | Choice |
 |---|---|
 | Slice | **Backend callable only.** Glyphs / `drivers.json` / band UI / reveal / `/api` route / narrative → follow-up spec. |
-| Target data | **Historical 2023–25 only.** No live-2026 ingestion (deferred to M5). Predicts any weekend present in the table; pinned to notebook 05 numbers by a regression test. |
-| Circuit set | The **validated 8-circuit dry set** (Bahrain, Saudi Arabia, Spain, Hungary, Italy, Mexico City, Las Vegas, Abu Dhabi), 2023–25 — identical to the spike, so the regression test is exact. |
+| Target data | **Historical 2023–25 only.** No live-2026 ingestion (deferred to M5). Predicts any weekend present in the table; pinned to the **production** held-out numbers (§0), not nb 05's qsim-filtered 0.711. |
+| Circuit set | The **validated 8-circuit dry set** (Bahrain, Saudi Arabia, Spain, Hungary, Italy, Mexico City, Las Vegas, Abu Dhabi), 2023–25 — **23 weekends present** (one session missing upstream), **no qsim dependency**. |
 | Probability surface | **Qualitative bands now, calibration-ready.** `p_podium` returned but `calibrated: false`; numeric % stays off. |
-| Overconfidence fix | **Drop `class_weight="balanced"`** in `podium_model.py` (the documented 0.86→0.49 cause). No isotonic/Platt machinery yet (sample too small; §5). |
+| Overconfidence fix | **Drop `class_weight="balanced"`** in `podium_model.py` — measured to nearly halve Brier (§0) while top-3 holds. No isotonic/Platt machinery yet (sample too small; §5). |
 | Feature set | `BASE = [champ_rank_before, champ_points_before, form_finish_avg3]`, `+ prior_track_pace` always; **Saturday** adds `grid_position`. (Quali-sim grid & constructor standings were Phase-1-cut — excluded.) |
 | Mode | `predict_podium(..., mode="auto")`: Saturday feature set when the target's grid is present, else Friday. Explicit `"friday"`/`"saturday"` override allowed. |
 | Min training | `MIN_TRAIN_RACES = 8` (the validated rolling-origin floor; below → qualitative low-confidence, no proba). |
@@ -73,7 +96,7 @@ per-weekend rows over the 8-circuit × 3-season set. Columns:
 
 | Column | Source | Role |
 |---|---|---|
-| `race_id`, `year`, `gp`, `Driver`, `team` | calendar + race results | keys |
+| `race_id`, `year`, `gp`, `Driver` | pace table + calendar | keys |
 | `champ_points_before`, `champ_rank_before` | `friday.add_friday_features` | feature (BASE) |
 | `form_finish_avg3` | `friday.add_friday_features` (impute 10.5) | feature (BASE) |
 | `prior_track_pace` | `friday.prior_track_pace` (new fn; impute 0.0) | feature |
@@ -81,10 +104,14 @@ per-weekend rows over the 8-circuit × 3-season set. Columns:
 | `finish_pos` | race results | **label source only** — never a feature |
 | `podium` | `(finish_pos <= 3)` | target label |
 
-`build_podium_table` in `src/pipeline.py` (fastf1, batch only): loads race results
-per (year, gp) for grid/finish/points/team, calls `add_friday_features`, joins
-`PACE_TABLE` for `prior_track_pace`, computes the `podium` label, persists via
-`store.write_table`. Mirrors `build_strategy_table`'s structure.
+`build_podium_table` in `src/pipeline.py` is a **pure transform** taking
+`(pace_df, results)` (no internal I/O — fully unit-testable on synthetic frames):
+selects keys + `race_pace_delta`/`grid_position`/`finish_pos` from the pace table,
+computes the `podium` label, calls `add_friday_features`, derives `prior_track_pace`,
+imputes Friday-state missingness. The trust-anchor script does the read→build→write
+(reads `data/spike_features.parquet` + `load_results`, persists via `store.write_table`).
+`team` is intentionally **not** here — driver→team is owned by `drivers.json`
+(CLAUDE.md source of truth), and constructor standings was Phase-1-cut.
 
 **Leakage guards (explicit):** `finish_pos` is the label only and is never in any
 feature list. `grid_position` is the actual pre-race grid — a legal known input for
@@ -122,11 +149,15 @@ honest outcome** — bands are the default, % is an earned upgrade.
 Anchored to nb 05's *observed* held-out podium rates so a band means something
 empirically, rather than echoing the overconfident raw %:
 
-| Band | `p_podium` | Observed podium rate (nb 05 Friday) | Meaning |
+| Band | `p_podium` | Indicative podium rate (nb 05 balanced) | Meaning |
 |---|---|---|---|
 | `strong` | ≥ 0.50 | ≈ 0.49 | strong chance relative to the field |
 | `in contention` | 0.20 – 0.50 | ≈ 0.14 | a real but minority chance |
 | `outside shot` | < 0.20 | ≈ 0.00 | longshot; ranked but not expected |
+
+The rate column is **indicative** (from nb 05's balanced reliability); the trust-anchor
+script (§11) re-measures reliability against the shipped unbalanced model and the band
+thresholds are confirmed against that.
 
 `band_for(p)` lives in `src/models/podium_model.py` (unit-tested at the
 boundaries). Labels describe **chance relative to the field, never certainty** —
@@ -193,10 +224,14 @@ notebook cells (house rule).
 
 ## 11. Testing
 
-- **Regression / trust anchor** (`tests/test_podium_regression.py`): build (or load
-  a fixture of) the podium table and reproduce nb 05's held-out metrics — Friday
-  top-3 ≈ 0.711, Saturday ≈ 0.733, plus Brier — within a small tolerance. Proves the
-  production port matches the spike.
+- **Trust anchor** — a runnable production-path script `notebooks/07_podium.py` +
+  `notebooks/PODIUM_M3_RESULTS.md` (the repo's real-data pattern, like nb 06; **not**
+  a CI pytest — `data/` is gitignored). It builds the table via `build_podium_table`,
+  runs `predict_podium`/`podium_model`, and reproduces the **production** held-out
+  numbers from §0 (Saturday top-3 0.733 / Brier 0.071; Friday 0.689 / Brier 0.085,
+  unbalanced) within a small tolerance, and records the band reliability. Proves the
+  production code path is faithful and re-measures the §6 band rates against the
+  shipped (unbalanced) model.
 - **Inference** (`tests/test_inference_no_fastf1.py` extension + new test): bands
   present, drivers sorted by `p_podium`, numbers rounded; the no-fastf1 subprocess
   guard still passes with `predict_podium` imported.
@@ -212,8 +247,8 @@ notebook cells (house rule).
 
 `predict_podium` returns honest qualitative bands that sharpen Friday → Saturday for
 any 2023–25 target weekend, computed fastf1-free from the persisted podium table
-through the `store.prior_weekends` leakage chokepoint; the regression test
-reproduces the validated nb 05 numbers; `p_podium` + `calibrated: false` +
+through the `store.prior_weekends` leakage chokepoint; the trust-anchor script
+reproduces the production held-out numbers (§0); `p_podium` + `calibrated: false` +
 `n_train_races` are returned so the %-upgrade is pre-wired; all M1 invariants and
 the full existing test suite stay green.
 
