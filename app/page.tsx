@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { Reveal } from "@/app/components/Reveal";
+import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 
-type Answer =
-  | { supported: true; facts: { gp: string; value: number; units: string; source: string }; narrative: string }
-  | { supported: false; message: string }
-  | { error: string };
+// The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
+type Answer = ApiAnswer | { error: string };
 
 export default function Home() {
   const [query, setQuery] = useState("How much time is lost in the pit lane at Monaco?");

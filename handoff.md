@@ -121,8 +121,15 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      not the design doc's earlier `api/py/lookup.py` text — the plan's File Structure is
      authoritative and the `/api/ask` route targets `/api/inference`.
    - **OUTSTANDING for M2 close:** (a) the **manual `vercel dev` real-key E2E** (needs an
-     `ANTHROPIC_API_KEY` in `.env.local`; the M2 done-when gate); (b) the **Vercel deploy**
-     (deliberately deferred this round, owner decision).
+     `ANTHROPIC_API_KEY` in `.env.local`; the M2 done-when gate). **Highest-value check in
+     that run:** confirm the top-level Python fn `/api/inference` and the Next route handler
+     `/api/ask` BOTH resolve and don't shadow each other (Vercel builds the Next app + the
+     Python fn in one project; this coexistence can't be verified without `vercel dev`/deploy).
+     If `/api/inference` 404s or is shadowed, the fix is a small path move (e.g. `api/py/inference.py`
+     + update the route's fetch URL). (b) the **Vercel deploy** (deferred this round, owner
+     decision) — when doing it, pin the Python runtime in `vercel.json` and validate
+     `requirements.txt` against Vercel's Python size/version limits (it's still the full M1
+     Phase-1 list: fastf1, sklearn, etc., unpinned).
    - **Key finding — §6.7 reveal fidelity:** the `shaders` npm pkg (`shaders/react` v2.5.130)
      `Ascii` node ASCII-ifies a child *shader's* output, NOT arbitrary DOM; the only DOM-
      capture path (`DOMTexture`) is Chrome-Canary-flag-gated and explicitly non-production.
