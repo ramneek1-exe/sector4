@@ -18,6 +18,18 @@ describe("parseQuery", () => {
     expect(out).toEqual({ intent: "lookup_stat", stat: "pit_loss", gp: "Monaco" });
   });
 
+  it("extracts a podium intent with gp + year", async () => {
+    const client = fakeClient({ intent: "predict_podium", gp: "Monza", year: 2024 });
+    const out = await parseQuery(client, "who's likely to podium at Monza in 2024?");
+    expect(out).toEqual({ intent: "predict_podium", gp: "Monza", year: 2024 });
+  });
+
+  it("omits year when the parser doesn't return one", async () => {
+    const client = fakeClient({ intent: "predict_podium", gp: "Italy" });
+    const out = await parseQuery(client, "who podiums at Monza?");
+    expect(out).toEqual({ intent: "predict_podium", gp: "Italy" });
+  });
+
   it("forces the route_query tool", async () => {
     let seen: any;
     const client = {

@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { getClient } from "@/app/lib/anthropic";
 import { parseQuery } from "@/app/lib/parser";
-import { generateNarrative, type StatFacts } from "@/app/lib/narrative";
+import {
+  generateNarrative,
+  generatePodiumNarrative,
+  type StatFacts,
+  type PodiumFacts,
+} from "@/app/lib/narrative";
 import { answerQuery } from "@/app/lib/orchestrate";
 
 export async function POST(req: Request) {
@@ -32,6 +37,16 @@ export async function POST(req: Request) {
           return (await res.json()) as StatFacts;
         },
         narrate: (facts) => generateNarrative(client, facts),
+        predictPodium: async (year, gp): Promise<PodiumFacts> => {
+          const res = await fetch(`${origin}/api/podium`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ year, gp }),
+          });
+          if (!res.ok) throw new Error(`podium endpoint returned ${res.status}`);
+          return (await res.json()) as PodiumFacts;
+        },
+        narratePodium: (facts) => generatePodiumNarrative(client, facts),
       },
       query,
     );
