@@ -20,8 +20,12 @@ Next.js (App Router) + TypeScript monorepo · Python ML in the Vercel Python run
 
 ```bash
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # full toolchain (fastf1, sklearn, pytest, …)
 ```
+
+> `requirements.txt` is the **slim runtime** set (pandas/pyarrow/numpy) the Vercel
+> `/api` lookup function ships with — it must stay under Vercel's 500MB Python
+> limit. Local dev, the batch pipeline, and tests use `requirements-dev.txt`.
 
 Then in code, enable the fastf1 cache before any session loads:
 

@@ -1,17 +1,8 @@
-# Sector 4 — Phase 1 (data spike) dependencies
-# Pin exact versions once the environment is confirmed working.
-
-fastf1
+# Sector 4 — runtime deps for the Vercel Python /api function (the lookup path).
+# Keep this MINIMAL: the function must fit Vercel's 500MB Python Lambda limit, so
+# list only what api/inference.py -> src.inference.lookup needs at import/runtime.
+# Everything heavier (fastf1, scikit-learn, scipy, matplotlib, pytest) lives in
+# requirements-dev.txt for local dev, the batch pipeline, and the test suite.
 pandas
-numpy
-scikit-learn
-scipy
-matplotlib
-pyarrow          # parquet IO for intermediate feature tables in data/
-
-# Dev:
-pytest
-
-# Deferred (add when needed):
-# shap            # narrative grounding — Phase 3, feature_importances_ is fine for the spike
-# jupyterlab      # if running notebooks locally
+pyarrow          # parquet IO for the lookup tables (tyre_deg / stint_length)
+numpy            # transitively via pandas; listed explicitly for clarity
