@@ -42,3 +42,10 @@ def test_unknown_circuit_returns_none_value():
 def test_unknown_stat_raises():
     with pytest.raises(ValueError):
         lookup_stat("top_speed", "Bahrain", table=_strategy_table())
+
+
+def test_pit_loss_monaco_is_curated():
+    out = lookup_stat("pit_loss", "Monaco")
+    assert out["value"] == 19.5
+    assert out["units"] == "s"
+    assert out["source"] == "curated track features"
