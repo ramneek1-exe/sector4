@@ -43,3 +43,8 @@ def test_write_then_read_roundtrips(tmp_path):
     write_table(df, path)
     back = read_table(path)
     pd.testing.assert_frame_equal(back, df)
+
+
+def test_podium_table_constant_defined():
+    from src import store
+    assert store.PODIUM_TABLE == "data/podium_features.parquet"

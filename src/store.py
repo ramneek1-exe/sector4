@@ -16,6 +16,7 @@ from src.calendar import calendar_order, race_id
 
 PACE_TABLE = "data/pace_features.parquet"
 STRATEGY_TABLE = "data/strategy_features.parquet"
+PODIUM_TABLE = "data/podium_features.parquet"
 
 
 def write_table(df: pd.DataFrame, path: str) -> None:
