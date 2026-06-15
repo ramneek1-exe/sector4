@@ -17,6 +17,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src import store
 from src.calendar import DRY_CIRCUITS, SEASONS, calendar_order
 from src.data.results import load_results
 from src.models.podium_model import (
@@ -30,6 +31,10 @@ from src.inference.podium import FRIDAY_COLS, SATURDAY_COLS
 pace_df = pd.read_parquet("data/spike_features.parquet")
 results = load_results(SEASONS)
 df = build_podium_table(pace_df, results)
+# Persist so predict_podium's default (table=None) read path works for this
+# historical slice (the production batch persist; live ingestion is M5).
+store.write_table(df, store.PODIUM_TABLE)
+print(f"wrote {store.PODIUM_TABLE}")
 
 ordered = [r for r in calendar_order(SEASONS, DRY_CIRCUITS) if r in set(df["race_id"])]
 min_train = sum(r.startswith(str(SEASONS[0])) for r in ordered)

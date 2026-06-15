@@ -50,6 +50,23 @@ def test_explicit_mode_override_respected():
     assert out["mode"] == "friday"
 
 
+def test_explicit_saturday_degrades_to_friday_when_grid_missing():
+    # An incomplete grid must not crash predict_proba with a NaN; Saturday needs a
+    # complete grid, so it falls back to the pre-grid Friday mode.
+    out = predict_podium(2024, "Bahrain", mode="saturday",
+                         table=_podium_table(with_grid=False))
+    assert out["mode"] == "friday"
+    assert out["drivers"]  # produced a real prediction, not a crash
+
+
+def test_training_slice_excludes_the_target_weekend():
+    # Leakage guard: the target weekend's rows must never be in the training data.
+    from src import store
+    table = _podium_table()
+    prior = store.prior_weekends(table, 2024, "Bahrain")
+    assert "2024-Bahrain" not in set(prior["race_id"])
+
+
 def test_empty_target_is_qualitative():
     out = predict_podium(2030, "Narnia", table=_podium_table())
     assert out["qualitative"] is True

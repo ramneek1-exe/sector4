@@ -24,9 +24,15 @@ MIN_TRAIN_RACES = 8  # the validated rolling-origin warmup (spec §2)
 
 
 def _resolve_mode(target: pd.DataFrame, mode: str) -> str:
-    """auto -> saturday when the target weekend has a known grid, else friday."""
-    if mode in ("friday", "saturday"):
-        return mode
+    """Resolve the prediction mode against grid availability.
+
+    Saturday needs a COMPLETE grid (it is a feature), so both `auto` and an explicit
+    `saturday` degrade to Friday when any target grid is missing — Friday is exactly
+    the pre-grid mode, and this keeps a NaN out of the model. Explicit `friday` always
+    stays Friday.
+    """
+    if mode == "friday":
+        return "friday"
     has_grid = "grid_position" in target and target["grid_position"].notna().all()
     return "saturday" if has_grid else "friday"
 
