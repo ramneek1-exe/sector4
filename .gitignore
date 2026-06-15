@@ -20,6 +20,7 @@ node_modules/
 out/
 .vercel/
 next-env.d.ts
+*.tsbuildinfo
 
 # OS / editor
 .DS_Store
