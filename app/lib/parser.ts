@@ -4,10 +4,11 @@ export type Intent =
   | "predict_pace"
   | "predict_strategy"
   | "predict_compound"
+  | "predict_podium"
   | "lookup_stat"
   | "explain_concept";
 
-export type ParsedQuery = { intent: Intent; stat?: string; gp?: string };
+export type ParsedQuery = { intent: Intent; stat?: string; gp?: string; year?: number };
 
 export const ROUTE_TOOL = {
   name: "route_query",
@@ -17,14 +18,31 @@ export const ROUTE_TOOL = {
     properties: {
       intent: {
         type: "string",
-        enum: ["predict_pace", "predict_strategy", "predict_compound", "lookup_stat", "explain_concept"],
+        enum: [
+          "predict_pace",
+          "predict_strategy",
+          "predict_compound",
+          "predict_podium",
+          "lookup_stat",
+          "explain_concept",
+        ],
+        description:
+          "Use predict_podium for who-will-finish-on-the-podium / top-3 / who-will-win questions.",
       },
       stat: {
         type: "string",
         enum: ["pit_loss", "tyre_deg", "stint_length"],
         description: "Only set for lookup_stat queries.",
       },
-      gp: { type: "string", description: "Grand Prix / circuit identifier, e.g. Monaco." },
+      gp: {
+        type: "string",
+        description:
+          "Grand Prix / circuit. Prefer the country or city name, e.g. Italy, Mexico City, Las Vegas, Saudi Arabia.",
+      },
+      year: {
+        type: "integer",
+        description: "Season year if the question names one, e.g. 2024. Omit if not stated.",
+      },
     },
     required: ["intent"],
   },
@@ -40,6 +58,11 @@ export async function parseQuery(client: LlmClient, query: string): Promise<Pars
   });
   const block = msg.content.find((b: any) => b.type === "tool_use");
   if (!block) throw new Error("parser returned no tool_use block");
-  const { intent, stat, gp } = block.input as ParsedQuery;
-  return { intent, ...(stat ? { stat } : {}), ...(gp ? { gp } : {}) };
+  const { intent, stat, gp, year } = block.input as ParsedQuery;
+  return {
+    intent,
+    ...(stat ? { stat } : {}),
+    ...(gp ? { gp } : {}),
+    ...(typeof year === "number" ? { year } : {}),
+  };
 }

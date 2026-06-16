@@ -16,6 +16,19 @@ DRY_CIRCUITS = [
 ]
 SEASONS = [2023, 2024, 2025]
 
+# Circuit key (feature-table `gp`) -> results EventName, for joining race results
+# (standings/form/track history). Canonical home so notebooks/pipeline share one map.
+GP_TO_EVENT = {
+    "Bahrain": "Bahrain Grand Prix",
+    "Saudi Arabia": "Saudi Arabian Grand Prix",
+    "Spain": "Spanish Grand Prix",
+    "Hungary": "Hungarian Grand Prix",
+    "Italy": "Italian Grand Prix",
+    "Mexico City": "Mexico City Grand Prix",
+    "Las Vegas": "Las Vegas Grand Prix",
+    "Abu Dhabi": "Abu Dhabi Grand Prix",
+}
+
 
 def race_id(year: int, gp: str) -> str:
     """Canonical race identifier, e.g. (2024, "Bahrain") -> "2024-Bahrain"."""

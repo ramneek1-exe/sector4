@@ -14,9 +14,10 @@ import numpy as np
 import pandas as pd
 
 from src import store
-from src.calendar import DRY_CIRCUITS, SEASONS, race_id
+from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, SEASONS, race_id
 from src.data.load import is_dry_session, load_session
 from src.features.assemble import build_dataset
+from src.features.friday import add_friday_features, prior_track_pace
 from src.features.pace import summarize_stints
 from src.features.stints import long_run_stints
 from src.features.strategy import (
@@ -109,6 +110,32 @@ def build_strategy_table(seasons: list[int] = SEASONS,
         driver_df[c] = driver_df[c].fillna(driver_df["deg_overall"])
     driver_df["track_temp"] = driver_df["track_temp"].fillna(driver_df["track_temp"].median())
     return driver_df
+
+
+def build_podium_table(pace_df: pd.DataFrame, results: pd.DataFrame,
+                       gp_to_event: dict = GP_TO_EVENT) -> pd.DataFrame:
+    """Per-driver-per-weekend podium feature table (pure transform; no I/O).
+
+    Inputs: the Phase-1 pace feature table (race_id/year/gp/Driver/race_pace_delta/
+    grid_position/finish_pos) and the season results table (for standings/form/track
+    history). Output adds the Friday-state features, prior_track_pace, and the binary
+    `podium` label. Imputes Friday-state missingness so the model never sees NaN.
+    Leakage: `finish_pos` is the label source only and is never a feature; grid is a
+    legal pre-race input; prior_track_pace uses strictly prior years (spec §4).
+    """
+    df = pace_df[["race_id", "year", "gp", "Driver",
+                  "finish_pos", "grid_position", "race_pace_delta"]].copy()
+    df["podium"] = (df["finish_pos"] <= 3).astype(int)
+    df = add_friday_features(df, results, gp_to_event)
+    df["prior_track_pace"] = [
+        prior_track_pace(pace_df, r.gp, r.Driver, r.year)
+        for r in df.itertuples(index=False)
+    ]
+    df["champ_points_before"] = df["champ_points_before"].fillna(0.0)
+    df["champ_rank_before"] = df["champ_rank_before"].fillna(10.5)
+    df["form_finish_avg3"] = df["form_finish_avg3"].fillna(10.5)
+    df["prior_track_pace"] = df["prior_track_pace"].fillna(0.0)
+    return df
 
 
 def build_all() -> None:

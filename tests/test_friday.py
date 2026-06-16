@@ -14,6 +14,7 @@ from src.features.friday import (
     trailing_finish_avg,
     track_history_finish,
     add_friday_features,
+    prior_track_pace,
 )
 
 
@@ -101,3 +102,22 @@ def test_add_friday_features_attaches_columns_without_leakage():
     assert row["form_finish_avg3"] == pytest.approx(4 / 3)
     # track history at "A GP" prior to 2024-04-01: only 2023 A(1) -> 1.0
     assert row["track_hist_finish"] == pytest.approx(1.0)
+
+
+def _pace_df():
+    return pd.DataFrame([
+        {"gp": "Spain", "Driver": "VER", "year": 2023, "race_pace_delta": 0.10},
+        {"gp": "Spain", "Driver": "VER", "year": 2024, "race_pace_delta": 0.30},
+        {"gp": "Spain", "Driver": "VER", "year": 2025, "race_pace_delta": 0.99},
+        {"gp": "Spain", "Driver": "HAM", "year": 2024, "race_pace_delta": 0.50},
+    ])
+
+
+def test_prior_track_pace_averages_strictly_prior_years():
+    # 2025 sees 2023+2024 only (mean of 0.10, 0.30) -> 0.20; never the 2025 row.
+    assert prior_track_pace(_pace_df(), "Spain", "VER", 2025) == 0.20
+
+
+def test_prior_track_pace_nan_when_no_prior_year():
+    # HAM's first Spain is 2024 -> no strictly-prior year -> NaN.
+    assert np.isnan(prior_track_pace(_pace_df(), "Spain", "HAM", 2024))

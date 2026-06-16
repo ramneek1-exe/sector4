@@ -1,6 +1,6 @@
 # tests/test_calendar.py
 """Tests for canonical calendar ordering (M1)."""
-from src.calendar import DRY_CIRCUITS, SEASONS, calendar_order, race_id
+from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, SEASONS, calendar_order, race_id
 
 
 def test_race_id_format():
@@ -23,3 +23,10 @@ def test_defaults_cover_eight_dry_circuits_three_seasons():
     assert len(DRY_CIRCUITS) == 8
     assert SEASONS == [2023, 2024, 2025]
     assert len(calendar_order()) == 24
+
+
+def test_gp_to_event_covers_every_dry_circuit():
+    # Every circuit key used by the feature tables must map to a results EventName.
+    for gp in DRY_CIRCUITS:
+        assert gp in GP_TO_EVENT
+        assert GP_TO_EVENT[gp].endswith("Grand Prix")

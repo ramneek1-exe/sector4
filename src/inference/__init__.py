@@ -7,7 +7,7 @@ the 500MB Lambda limit. Eager `from .pace/.strategy import ...` here would defea
 that — accessing pace/strategy below imports them only on first use. Imports
 stay fastf1-free either way (enforced by tests/test_inference_no_fastf1.py).
 """
-__all__ = ["lookup_stat", "predict_pace_gaps", "predict_stop_counts"]
+__all__ = ["lookup_stat", "predict_pace_gaps", "predict_stop_counts", "predict_podium"]
 
 
 def __getattr__(name: str):
@@ -20,4 +20,7 @@ def __getattr__(name: str):
     if name == "predict_stop_counts":
         from src.inference.strategy import predict_stop_counts
         return predict_stop_counts
+    if name == "predict_podium":
+        from src.inference.podium import predict_podium
+        return predict_podium
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

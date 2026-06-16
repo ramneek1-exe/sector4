@@ -2,8 +2,9 @@
 
 Predicts P(podium) per driver. Probabilities are the product surface (the UI shows
 %s), so we report Brier score alongside top-3 accuracy. The base estimator is a
-standardized logistic regression: naturally probabilistic and stable on the small
-sample (proper isotonic calibration needs more data than ~22 weekends provide).
+standardized logistic regression (no class balancing — that overconfidence fix is
+in `default_classifier_factory`); proper isotonic calibration needs more data than
+~22 weekends provide.
 
 Rolling-origin only (train races 1..N, predict N+1) — never random k-fold.
 """
@@ -17,10 +18,25 @@ from sklearn.preprocessing import StandardScaler
 
 
 def default_classifier_factory():
+    # No class_weight="balanced": on the small sample it made probabilities
+    # overconfident (predicted 0.86 where the real podium rate was 0.49). Removing
+    # it nearly halves held-out Brier while top-3 holds (spec §0). Proper isotonic/
+    # Platt calibration is deferred until 2026 data is large enough to fit it.
     return make_pipeline(
         StandardScaler(),
-        LogisticRegression(max_iter=1000, class_weight="balanced"),
+        LogisticRegression(max_iter=1000),
     )
+
+
+# Qualitative bands are the product surface while calibration is immature. Thresholds
+# anchored to observed podium rates; labels describe chance relative to the field,
+# never certainty (spec §6).
+def band_for(p: float) -> str:
+    if p >= 0.50:
+        return "strong"
+    if p >= 0.20:
+        return "in contention"
+    return "outside shot"
 
 
 def rolling_origin_classify(

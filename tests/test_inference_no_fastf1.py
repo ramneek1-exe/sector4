@@ -17,7 +17,8 @@ def test_importing_inference_does_not_import_fastf1():
         if name == "fastf1" or name.startswith("fastf1."):
             del sys.modules[name]
     for name in ["src.inference", "src.inference.lookup",
-                 "src.inference.pace", "src.inference.strategy"]:
+                 "src.inference.pace", "src.inference.strategy",
+                 "src.inference.podium"]:
         sys.modules.pop(name, None)
 
     importlib.import_module("src.inference")
@@ -31,6 +32,7 @@ def test_public_callables_are_exported():
     assert hasattr(inf, "lookup_stat")
     assert hasattr(inf, "predict_pace_gaps")
     assert hasattr(inf, "predict_stop_counts")
+    assert hasattr(inf, "predict_podium")
 
 
 def test_lookup_path_does_not_import_sklearn_or_fastf1():
@@ -42,6 +44,21 @@ def test_lookup_path_does_not_import_sklearn_or_fastf1():
         "from src.inference.lookup import lookup_stat\n"
         "lookup_stat('pit_loss', 'Monaco')\n"
         "bad = [m for m in sys.modules if m.split('.')[0] in ('sklearn', 'fastf1')]\n"
+        "assert not bad, bad\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=repo_root, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_podium_path_does_not_import_fastf1():
+    # Fresh interpreter: importing + calling the podium path must not pull fastf1.
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    code = (
+        "import sys\n"
+        "from src.inference.podium import predict_podium\n"
+        "bad = [m for m in sys.modules if m == 'fastf1' or m.startswith('fastf1.')]\n"
         "assert not bad, bad\n"
     )
     result = subprocess.run(

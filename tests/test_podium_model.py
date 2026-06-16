@@ -3,7 +3,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.models.podium_model import rolling_origin_classify, evaluate_podium
+from src.models.podium_model import (
+    band_for,
+    default_classifier_factory,
+    rolling_origin_classify,
+    evaluate_podium,
+)
 
 
 def make_dataset(n_races=6, n_drivers=10, seed=0):
@@ -70,3 +75,19 @@ def test_evaluate_podium_partial_overlap():
          "finish_pos": np.array([1, 2, 3, 4, 5])},  # pred podium A,B,D ; actual A,B,C -> 2/3
     ]
     assert evaluate_podium(res)["top3"] == pytest.approx(2 / 3)
+
+
+def test_band_for_thresholds():
+    assert band_for(0.80) == "strong"
+    assert band_for(0.50) == "strong"            # boundary inclusive
+    assert band_for(0.49) == "in contention"
+    assert band_for(0.20) == "in contention"     # boundary inclusive
+    assert band_for(0.19) == "outside shot"
+    assert band_for(0.0) == "outside shot"
+
+
+def test_default_classifier_is_not_class_balanced():
+    # Dropping class_weight="balanced" is the calibration fix (spec §0/§8).
+    clf = default_classifier_factory()
+    logreg = clf.named_steps["logisticregression"]
+    assert logreg.class_weight is None
