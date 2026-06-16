@@ -16,3 +16,17 @@ body {
   background: #f5f7fb;
   color: #0b1020;
 }
+
+/* Content emerges from the fog — fade + rise. Disabled for reduced motion. */
+@keyframes fogIn {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.fog-in {
+  animation: fogIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fog-in {
+    animation: none;
+  }
+}

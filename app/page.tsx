@@ -1,67 +1,75 @@
 "use client";
 
 import { useState } from "react";
-import { Reveal } from "@/app/components/Reveal";
 import { DriverGlyph } from "@/app/components/DriverGlyph";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts } from "@/app/lib/narrative";
+import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
 
-const BAND_STYLE: Record<string, string> = {
-  strong: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  "in contention": "bg-amber-100 text-amber-800 border-amber-300",
-  "outside shot": "bg-slate-100 text-slate-500 border-slate-300",
+const BAND_TEXT: Record<string, string> = {
+  strong: "text-emerald-600",
+  "in contention": "text-amber-600",
+  "outside shot": "text-slate-400",
 };
 
-function PodiumCard({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
+/** Top-4 podium as a horizontal helmet lineup — code under each helmet. No box. */
+function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-baseline justify-between">
-        <h2 className="font-grotesk text-lg font-bold tracking-tight text-ink">
-          {podium.year} {podium.gp} — podium odds
-        </h2>
-        {podium.mode && (
-          <span className="text-xs uppercase tracking-wide text-muted">{podium.mode}</span>
-        )}
+    <div className="fog-in flex flex-col items-center gap-9 text-center">
+      <div className="font-grotesk text-xs uppercase tracking-[0.2em] text-muted">
+        {podium.year} {podium.gp} · podium odds
+        {podium.mode ? ` · ${podium.mode}` : ""}
       </div>
 
       {podium.drivers.length > 0 ? (
-        <ol className="mt-4 space-y-2">
-          {podium.drivers.slice(0, 6).map((d) => (
-            <li key={d.driver} className="flex items-center gap-3">
-              <span className="w-5 text-right font-mono text-sm tabular-nums text-muted">{d.rank}</span>
-              <DriverGlyph code={d.driver} team={d.team} />
-              <span
-                className={`rounded border px-2 py-0.5 font-grotesk text-xs font-medium ${
-                  BAND_STYLE[d.band] ?? BAND_STYLE["outside shot"]
+        <div className="flex items-end justify-center gap-8 sm:gap-12">
+          {podium.drivers.slice(0, 4).map((d) => (
+            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+              <DriverGlyph code={d.driver} team={d.team} size={92} />
+              <div className="mt-1 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
+              <div
+                className={`font-grotesk text-[11px] font-semibold uppercase tracking-wide ${
+                  BAND_TEXT[d.band] ?? BAND_TEXT["outside shot"]
                 }`}
               >
                 {d.band}
-              </span>
-              <span className="ml-auto font-mono text-xs tabular-nums text-muted">p≈{d.p_podium}</span>
-            </li>
+              </div>
+              <div className="font-mono text-[11px] text-muted">p≈{d.p_podium}</div>
+            </div>
           ))}
-        </ol>
+        </div>
       ) : (
-        <p className="mt-4 text-muted">
-          {podium.reason ?? "Not enough data for this weekend yet."}
-        </p>
+        <p className="text-muted">{podium.reason ?? "Not enough data for this weekend yet."}</p>
       )}
 
-      <p className="mt-4 text-ink">{narrative}</p>
-      <p className="mt-3 text-xs text-muted">
-        Honest bands, not precise %s — the p values are the model’s raw probabilities and are
-        <span className="text-muted"> not yet calibrated</span>
+      <p className="max-w-xl font-lastik text-lg leading-relaxed text-ink/90">{narrative}</p>
+      <p className="max-w-md font-grotesk text-[11px] text-muted">
+        Honest bands, not precise %s — the p values are the model’s raw probabilities and are not yet
+        calibrated
         {typeof podium.n_train_races === "number" && ` · trained on ${podium.n_train_races} prior weekends`}.
       </p>
     </div>
   );
 }
 
+/** Computed-stat answer (e.g. pit-loss). No box. */
+function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
+  return (
+    <div className="fog-in flex flex-col items-center gap-4 text-center">
+      <div className="text-7xl font-bold tracking-tight text-ink">
+        {facts.value}
+        <span className="ml-1 text-3xl text-muted">{facts.units}</span>
+      </div>
+      <p className="max-w-xl font-lastik text-lg leading-relaxed text-ink/90">{narrative}</p>
+      <p className="font-grotesk text-[11px] uppercase tracking-wide text-muted">Source: {facts.source}</p>
+    </div>
+  );
+}
+
 export default function Home() {
-  const [query, setQuery] = useState("How much time is lost in the pit lane at Monaco?");
+  const [query, setQuery] = useState("Who is likely to podium at the 2024 Italian Grand Prix?");
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -84,39 +92,35 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <form onSubmit={ask} className="flex gap-2">
+    <main className="relative mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-12 px-6 py-24">
+      <form onSubmit={ask} className="flex w-full max-w-xl gap-2">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded border border-slate-300 bg-white text-ink px-3 py-2 text-sm outline-none focus:border-accent"
+          className="flex-1 rounded-full border border-white/50 bg-white/55 px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none backdrop-blur placeholder:text-muted focus:border-accent"
           placeholder="Ask about a race weekend…"
         />
-        <button className="rounded bg-accent px-4 py-2 text-sm font-medium text-white" disabled={loading}>
+        <button
+          className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:bg-accent-bright disabled:opacity-60"
+          disabled={loading}
+        >
           {loading ? "…" : "Ask"}
         </button>
       </form>
 
-      <div className="mt-10">
-        <Reveal active={loading || answer !== null}>
-          {answer && "supported" in answer && answer.supported && "facts" in answer && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-4xl font-bold text-ink">
-                {answer.facts.value}
-                <span className="ml-1 text-lg text-muted">{answer.facts.units}</span>
-              </div>
-              <p className="mt-3 text-ink">{answer.narrative}</p>
-              <p className="mt-3 text-xs text-muted">Source: {answer.facts.source}</p>
-            </div>
-          )}
-          {answer && "supported" in answer && answer.supported && "podium" in answer && (
-            <PodiumCard podium={answer.podium} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && !answer.supported && (
-            <p className="text-muted">{answer.message}</p>
-          )}
-          {answer && "error" in answer && <p className="text-red-600">Error: {answer.error}</p>}
-        </Reveal>
+      <div className="flex w-full justify-center">
+        {answer && "supported" in answer && answer.supported && "facts" in answer && (
+          <StatAnswer facts={answer.facts} narrative={answer.narrative} />
+        )}
+        {answer && "supported" in answer && answer.supported && "podium" in answer && (
+          <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
+        )}
+        {answer && "supported" in answer && !answer.supported && (
+          <p className="fog-in max-w-xl text-center font-lastik text-lg text-muted">{answer.message}</p>
+        )}
+        {answer && "error" in answer && (
+          <p className="fog-in text-center font-grotesk text-red-600">Error: {answer.error}</p>
+        )}
       </div>
     </main>
   );
