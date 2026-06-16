@@ -31,3 +31,6 @@ Thumbs.db
 # Claude Code local state
 .claude/
 .vercel
+
+# Visual-companion brainstorm scratch
+.superpowers/
