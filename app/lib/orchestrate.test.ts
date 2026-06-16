@@ -12,8 +12,8 @@ const PODIUM: PodiumFacts = {
   calibrated: false,
   n_train_races: 12,
   drivers: [
-    { driver: "NOR", band: "strong", p_podium: 0.86, rank: 1 },
-    { driver: "PIA", band: "strong", p_podium: 0.76, rank: 2 },
+    { driver: "NOR", team: "McLaren", band: "strong", p_podium: 0.86, rank: 1 },
+    { driver: "PIA", team: "McLaren", band: "strong", p_podium: 0.76, rank: 2 },
   ],
 };
 

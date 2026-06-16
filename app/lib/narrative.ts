@@ -29,7 +29,7 @@ export async function generateNarrative(client: LlmClient, facts: StatFacts): Pr
     .trim();
 }
 
-export type PodiumDriver = { driver: string; band: string; p_podium: number; rank: number };
+export type PodiumDriver = { driver: string; team: string | null; band: string; p_podium: number; rank: number };
 
 export type PodiumFacts = {
   year: number;
