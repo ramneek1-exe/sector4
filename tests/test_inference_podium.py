@@ -22,6 +22,7 @@ def _podium_table(n_train_weekends=8, with_grid=True):
                 "form_finish_avg3": float(rank), "prior_track_pace": 0.05 * rank,
                 "grid_position": rank if with_grid else float("nan"),
                 "finish_pos": rank,
+                "team": "TestTeam",
             })
     return pd.DataFrame(rows)
 
@@ -34,7 +35,7 @@ def test_predict_podium_returns_sorted_bands_and_flagged_proba():
     ps = [d["p_podium"] for d in out["drivers"]]
     assert ps == sorted(ps, reverse=True)      # sorted by probability desc
     top = out["drivers"][0]
-    assert set(top) == {"driver", "band", "p_podium", "rank"}
+    assert set(top) == {"driver", "team", "band", "p_podium", "rank"}
     assert top["band"] in {"strong", "in contention", "outside shot"}
     assert top["p_podium"] == round(top["p_podium"], 2)
     assert top["rank"] == 1
@@ -85,3 +86,9 @@ def test_feature_columns_exclude_finish():
     assert "finish_pos" not in SATURDAY_COLS
     assert "grid_position" in SATURDAY_COLS
     assert "grid_position" not in FRIDAY_COLS
+
+
+def test_predict_podium_surfaces_team_per_driver():
+    out = predict_podium(2024, "Bahrain", table=_podium_table())
+    assert out["drivers"][0]["team"] == "TestTeam"
+    assert set(out["drivers"][0]) == {"driver", "team", "band", "p_podium", "rank"}
