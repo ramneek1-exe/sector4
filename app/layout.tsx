@@ -13,14 +13,14 @@ const DISCLAIMER =
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
-      <body className="min-h-screen bg-bg text-ink antialiased font-lastik">
+      <body className="flex min-h-screen flex-col bg-bg text-ink antialiased font-lastik">
         <AuroraBackdrop />
         {/* The ONLY use of Bebas Neue: the wordmark, flush top-left. */}
         <span className="fixed left-6 top-5 z-20 font-bebas text-3xl tracking-wide text-ink">
           SECTOR 4
         </span>
         {children}
-        <footer className="fixed inset-x-0 bottom-0 z-10 flex items-center justify-between gap-4 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
+        <footer className="relative z-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
           <span className="max-w-3xl">{DISCLAIMER}</span>
           <a
             href="https://shaders.com"

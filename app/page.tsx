@@ -92,7 +92,7 @@ export default function Home() {
   }
 
   return (
-    <main className="relative mx-auto flex min-h-screen max-w-3xl flex-col items-center justify-center gap-12 px-6 py-24">
+    <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-12 px-6 py-24">
       <form onSubmit={ask} className="flex w-full max-w-xl gap-2">
         <input
           value={query}

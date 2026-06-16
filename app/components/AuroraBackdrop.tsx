@@ -21,14 +21,6 @@ type ShaderModule = {
   FractalNoise: ComponentType<any>;
 };
 
-const AURORA: React.CSSProperties = {
-  background:
-    "radial-gradient(120% 80% at 72% 18%, rgba(46,139,255,0.28) 0%, transparent 58%)," +
-    "radial-gradient(120% 90% at 18% 82%, rgba(30,63,208,0.22) 0%, transparent 55%)," +
-    "radial-gradient(90% 70% at 88% 92%, rgba(89,200,255,0.20) 0%, transparent 60%)," +
-    "linear-gradient(160deg, #EEF6FF 0%, #F5F7FB 45%, #E7EEFF 100%)",
-};
-
 export function AuroraBackdrop() {
   const [fallback, setFallback] = useState(true);
   const [mod, setMod] = useState<ShaderModule | null>(null);
@@ -45,11 +37,30 @@ export function AuroraBackdrop() {
 
   return (
     <>
-      <div aria-hidden className="fixed inset-0 -z-20" style={AURORA} />
+      {/* Base wash + drifting aurora light (visible on every browser). */}
+      <div
+        aria-hidden
+        className="fixed inset-0 -z-20 overflow-hidden"
+        style={{ background: "linear-gradient(160deg, #EAF1FF 0%, #F3F6FC 50%, #E6ECFF 100%)" }}
+      >
+        <div
+          className="aurora-a absolute -left-[15%] -top-[20%] h-[80vh] w-[80vh] rounded-full opacity-70 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(46,139,255,0.55), transparent 62%)" }}
+        />
+        <div
+          className="aurora-b absolute -right-[12%] top-[6%] h-[70vh] w-[70vh] rounded-full opacity-60 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(89,200,255,0.6), transparent 62%)" }}
+        />
+        <div
+          className="aurora-a absolute -bottom-[25%] left-[18%] h-[80vh] w-[80vh] rounded-full opacity-55 blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(30,63,208,0.5), transparent 62%)" }}
+        />
+      </div>
+      {/* Optional living-ASCII fog over the aurora (WebGPU only). */}
       {!fallback && mod && (
         <div
           aria-hidden
-          className="pointer-events-none fixed inset-0 -z-10 opacity-[0.16] mix-blend-multiply"
+          className="pointer-events-none fixed inset-0 -z-10 opacity-[0.18] mix-blend-multiply"
         >
           <mod.Shader disableTelemetry style={{ width: "100%", height: "100%" }}>
             <mod.Ascii characters="·:+=*#%@" cellSize={12}>

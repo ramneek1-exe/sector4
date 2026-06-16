@@ -30,3 +30,18 @@ body {
     animation: none;
   }
 }
+
+/* Living aurora — drifting blue light blobs (works without WebGPU). */
+@keyframes auroraDriftA {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(7%, -5%) scale(1.18); }
+}
+@keyframes auroraDriftB {
+  0%, 100% { transform: translate(0, 0) scale(1.12); }
+  50% { transform: translate(-6%, 6%) scale(1); }
+}
+.aurora-a { animation: auroraDriftA 22s ease-in-out infinite; }
+.aurora-b { animation: auroraDriftB 28s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .aurora-a, .aurora-b { animation: none; }
+}
