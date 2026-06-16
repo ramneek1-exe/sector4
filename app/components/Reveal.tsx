@@ -80,7 +80,7 @@ export function Reveal({ children, active }: { children: ReactNode; active: bool
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-lg opacity-40">
         <Shader disableTelemetry style={{ width: "100%", height: "100%" }}>
           <Ascii characters="@%#*+=-:." cellSize={14}>
-            <FractalNoise colorA="#000000" colorB="#3a3a3a" />
+            <FractalNoise colorA="#0b1e6b" colorB="#59c8ff" />
           </Ascii>
         </Shader>
       </div>
@@ -96,7 +96,7 @@ function ShadersAttribution() {
   return (
     <a
       href="https://shaders.com"
-      className="mt-2 block text-[10px] uppercase tracking-widest text-zinc-600"
+      className="mt-2 block text-[10px] uppercase tracking-widest text-muted"
       rel="noopener noreferrer"
       target="_blank"
     >
