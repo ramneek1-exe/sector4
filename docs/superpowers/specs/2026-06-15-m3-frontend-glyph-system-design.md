@@ -18,7 +18,7 @@ Replace the barebones podium ranked-list with Sector 4's **abstract driver glyph
 
 **In scope:** `drivers.json` + `teams.json`; the `team` field added to the podium table/response; `DriverGlyph` (helmet SVG + number + contrast-guard + code); `contrastGuard` util; the 4-role type system via `next/font`; the Tailwind theme tokens + light-theme re-skin of the shell, the pit-loss card, and the podium card; recolor of the existing reveal backdrop to the blue ramp; the §8 footer disclaimer.
 
-**Out of scope (deferred):** car silhouette (team glyph) and tire glyphs (M4); track layouts; the **system-wide reveal *fidelity* fix** (its own known defect — only the *recolor* is in scope here); contextual hover callouts (§6.5, M6); the "S4" favicon monogram (M7); any live-2026 data.
+**Out of scope (deferred):** car silhouette (team glyph) and tire glyphs (M4); track layouts; the **system-wide reveal *fidelity* fix** (its own known defect — only the *recolor* is in scope here); contextual hover callouts (§6.5, M6); the "S4" favicon monogram (M7); any live-2026 data. **A marketing/landing page** that fronts the product (owner goal, noted 2026-06-15) is a separate future effort — when built, the "SECTOR 4" Bebas Neue wordmark is the natural anchor; the glyph system here is the visual vocabulary it will reuse.
 
 ## 3. Locked palette (owner-approved)
 
@@ -85,13 +85,13 @@ Join each driver's actual `team` for that weekend into the podium feature table 
 
 ## 7. Type system + theme tokens
 
-- **`next/font`:** Space Grotesk + Bebas Neue + a mono (Geist Mono) via `next/font/google`; **Lastik via `next/font/local`**, self-hosted from `app/fonts/lastik/` (`.woff2` + `.woff`; owner-supplied). Four roles, no more (§8): Bebas Neue = display/wordmark, Lastik = serif body, Space Grotesk = data labels/codes, mono = ASCII set.
+- **`next/font`:** Space Grotesk + Bebas Neue + a mono (Geist Mono) via `next/font/google`; **Lastik via `next/font/local`**, self-hosted from `app/fonts/lastik/` (`.woff2` + `.woff`; owner-supplied). Four roles, no more (§8): **Bebas Neue = the "SECTOR 4" wordmark ONLY** (nothing else uses it), Lastik = serif body, Space Grotesk = data labels / driver codes / card headers, mono = ASCII set.
 - **Tailwind tokens** (`tailwind.config.ts`) for the §3 palette: `bg`, `ink`, `accent`, `accent-bright`, `muted`, plus the ASCII `ramp` as a named array and the four font families. CSS variables in `globals.css`.
 - **Light-theme re-skin:** `layout.tsx` flips `bg-black text-zinc-100` → `bg / ink`; the existing pit-loss card and podium card restyled to the light theme (band chips re-tuned for legibility on white).
 
 ## 8. Podium card, reveal, footer
 
-- **Podium card** (`app/page.tsx` `PodiumCard`): glyph rows — `rank · DriverGlyph(code, team) · band chip · p≈` — replacing the current code-string list. Header (`year gp — podium odds`) in Bebas Neue; "not yet calibrated" note retained.
+- **Podium card** (`app/page.tsx` `PodiumCard`): glyph rows — `rank · DriverGlyph(code, team) · band chip · p≈` — replacing the current code-string list. Header (`year gp — podium odds`) in **Space Grotesk** (a data label, not the wordmark); "not yet calibrated" note retained. The only Bebas Neue on the page is the "SECTOR 4" wordmark in the layout header.
 - **Reveal recolor:** the existing decorative ASCII/noise backdrop in `Reveal.tsx` uses the §3 blue ramp. The deferred system-wide *fidelity* redesign is untouched.
 - **Footer disclaimer:** the verbatim §8 disclaimer, always present, in the layout.
 
