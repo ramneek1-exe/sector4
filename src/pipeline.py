@@ -127,6 +127,14 @@ def build_podium_table(pace_df: pd.DataFrame, results: pd.DataFrame,
                   "finish_pos", "grid_position", "race_pace_delta"]].copy()
     df["podium"] = (df["finish_pos"] <= 3).astype(int)
     df = add_friday_features(df, results, gp_to_event)
+    # Year-correct team for the glyph (metadata, NOT a feature). Map the feature
+    # table's gp key -> results EventName, then left-join the driver's team.
+    team_lookup = (
+        results.rename(columns={"gp": "event"})[["year", "event", "Driver", "team"]]
+        .drop_duplicates()
+    )
+    df["event"] = df["gp"].map(gp_to_event)
+    df = df.merge(team_lookup, on=["year", "event", "Driver"], how="left").drop(columns="event")
     df["prior_track_pace"] = [
         prior_track_pace(pace_df, r.gp, r.Driver, r.year)
         for r in df.itertuples(index=False)

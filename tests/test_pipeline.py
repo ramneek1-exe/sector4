@@ -81,3 +81,10 @@ def test_build_podium_table_prior_track_pace_is_leakage_safe():
     # 2024-Spain VER sees only 2023-Spain VER (race_pace_delta 0.0) -> 0.0
     row = t[(t["race_id"] == "2024-Spain") & (t["Driver"] == "VER")].iloc[0]
     assert row["prior_track_pace"] == 0.0
+
+
+def test_build_podium_table_includes_year_correct_team():
+    t = build_podium_table(_pace_df(), _results())
+    assert "team" in t.columns
+    # _results() puts every driver on team "T"
+    assert set(t["team"].dropna().unique()) == {"T"}
