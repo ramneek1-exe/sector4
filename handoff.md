@@ -1,14 +1,15 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-15.
-> **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (callable
-> pipeline library) MERGED to `main` (PR #1). M2 (thin end-to-end slice) COMPLETE and
-> VERIFIED end-to-end on a live Vercel preview deploy. M3 BACKEND slice + a LIVE PREVIEW
-> INTEGRATION COMPLETE and VERIFIED end-to-end on a real Vercel preview (branch
-> `m3-calibrated-podium-probabilities`, open as PR #3): `predict_podium` ships honest
-> bands that sharpen Friday→Saturday, queryable in the browser — see §4. Next action is
-> the full M3 FRONTEND spec (abstract glyph system + `drivers.json` + band UI).**
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-16.
+> **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
+> PR #1), M2 (thin slice), and M3 BACKEND + live podium integration (PR #3) are all
+> MERGED to `main` and live on PRODUCTION (`sector4-zeta.vercel.app`): `predict_podium`
+> ships honest bands that sharpen Friday→Saturday, queryable in the browser. IN PROGRESS:
+> the M3 FRONTEND glyph system + a boxless aurora/ASCII-fog UI redesign — branch
+> `m3-frontend-glyph-system`, NOT yet merged, deployed to a live Vercel PREVIEW and
+> verified in-browser. Next action: continue frontend polish (see §4) then merge. The
+> next session resumes here.**
 
 ## 🎯 1. Current Goal & Status
 
@@ -214,14 +215,46 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      end-to-end for "2024 Italian GP podium", "Monza 2025" (alias+year), and the pit-loss
      regression. **Gotcha (cost a redeploy):** Vercel env vars are per-environment — the key
      was only on Production, so branch previews 500'd until `ANTHROPIC_API_KEY` was added to the
-     **Preview** env (then redeploy; existing deploys don't pick up new vars). Open as **PR #3**
-     (not merged; merging puts podium on production, which already has the key).
-   - **NEXT — full M3 FRONTEND spec (own brainstorm/spec; the barebones card above is a stopgap):**
-     the abstract glyph system (helmet glyph + personal number + 3-letter code, team colors,
-     contrast guard), the **`drivers.json`** source of truth (driver→team→number; doesn't exist
-     yet), the proper band/uncertainty UI, and the reveal. The backend callable's return shape is
-     the clean interface to build against.
-4. **M4 — Telemetry differentiators** (pace-gap context + stop-count strategy), then
+     **Preview** env (then redeploy; existing deploys don't pick up new vars). **MERGED via
+     PR #3 to `main` → live on PRODUCTION** (`sector4-zeta.vercel.app`); the rotated
+     `ANTHROPIC_API_KEY` is set on prod + preview envs.
+4. 🔄 **M3 FRONTEND — glyph system + boxless aurora UI (IN PROGRESS):** branch
+   `m3-frontend-glyph-system`, spec+plan in `docs/superpowers/{specs,plans}/2026-06-15-m3-frontend-
+   glyph-system*`. **NOT merged; deployed to a live Vercel PREVIEW and verified in-browser.**
+   Built so far (all committed/pushed, 103 pytest + 25 vitest green, build clean):
+   - **Driver glyph** `app/components/DriverGlyph.tsx` — the **owner-provided full-face helmet SVG**
+     (visor right), team-color shell + dark visor + accent vent + contrast-guarded personal number.
+     Pure color logic in `app/lib/glyph.ts` (`resolveGlyph`) + `app/lib/contrast.ts` (WCAG guard),
+     both unit-tested (no React test infra).
+   - **Source of truth:** `app/data/drivers.json` (27 codes → name/career-number/personalColor) +
+     `app/data/teams.json` (11 team strings incl. both `RB` and `Racing Bulls` → primary/secondary).
+     Year-correct **team comes from the API**: `team` was added to `build_podium_table` +
+     `predict_podium` + `api/podium.py` (rebuilt `api/podium_features.parquet`).
+   - **Type system + theme:** 4 roles via `app/lib/fonts.ts` — **ALL self-hosted** via
+     `next/font/local` (`app/fonts/google/*.woff2` for Bebas/Space-Grotesk/JetBrains-Mono +
+     `app/fonts/lastik/Lastik-Regular.woff2`). **Bebas Neue = the SECTOR 4 wordmark ONLY.** Light
+     blue/white theme tokens in `tailwind.config.ts` (`bg #F5F7FB`, `ink #0B1020`, `accent #2348E0`,
+     …); palette from the owner's blue reference image.
+   - **Boxless aurora redesign (owner direction):** NO cards — content emerges over a full-bleed
+     **`AuroraBackdrop.tsx`** (animated CSS aurora blobs that work everywhere + an optional WebGPU
+     `shaders` Ascii/FractalNoise fog overlay; reduced-motion/no-WebGPU → static aurora). Pill
+     input+button; wordmark flush top-left; **podium = top-4 helmets in a horizontal lineup with the
+     3-letter code under each** (`PodiumLineup` in `app/page.tsx`); `.fog-in` fade. Footer disclaimer
+     + "Powered by Shaders" attribution.
+   - **KEY BUILD GOTCHAS FIXED (don't reintroduce):** (a) `next/font/google` **fails to fetch
+     gstatic in the Vercel build** → self-host all fonts. (b) `.vercelignore` had an unanchored
+     `data/` that **stripped `app/data/*.json`** from the deploy → root-anchored to `/data/` `/cache/`.
+     (c) Lastik web fonts must be **committed** (`app/fonts/lastik/*.woff2/.woff`; the `.otf/.ttf`
+     desktop originals are intentionally untracked). (d) the `shaders` pkg **cannot ASCII-ify real
+     DOM/text** (M2 finding) → the "content from ASCII fog" is a decorative backdrop, not literal
+     text-from-ASCII.
+   - **NEXT (owner: "needs a lot of polish"):** make the aurora more dramatic/saturated; tune helmet
+     sizing/spacing in the lineup; design the **empty (pre-query) state** (currently just the form
+     centered); then a final review + merge to main (→ production). Deferred still: car/tire/track
+     glyphs (M4), hover callouts (M6), favicon (M7), the system-wide reveal *fidelity* fix, live-2026.
+   - **A future LANDING PAGE** that fronts the product is an owner goal (saved to memory) — reuses
+     this glyph system + palette; separate effort, not M3.
+5. **M4 — Telemetry differentiators** (pace-gap context + stop-count strategy), then
    **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
    M7 breadth+polish. See PRD §11.
 
