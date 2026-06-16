@@ -1,0 +1,13 @@
+{
+  "Red Bull Racing": { "primary": "#223971", "secondary": "#E2002A" },
+  "Ferrari": { "primary": "#E8002D", "secondary": "#FFEB00" },
+  "Mercedes": { "primary": "#00D7B6", "secondary": "#0B1020" },
+  "McLaren": { "primary": "#FF8000", "secondary": "#47C7FC" },
+  "Aston Martin": { "primary": "#229971", "secondary": "#00352F" },
+  "Alpine": { "primary": "#0093CC", "secondary": "#FF87BC" },
+  "Williams": { "primary": "#1868DB", "secondary": "#64C4FF" },
+  "RB": { "primary": "#6692FF", "secondary": "#1634CB" },
+  "Racing Bulls": { "primary": "#6692FF", "secondary": "#2B4562" },
+  "Kick Sauber": { "primary": "#52E252", "secondary": "#006B2D" },
+  "Haas F1 Team": { "primary": "#9CA3AF", "secondary": "#DA0000" }
+}
