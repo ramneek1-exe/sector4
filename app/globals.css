@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* ASCII / Dither ramp, dark -> light (PRD §8 reference image) */
+  --ramp-0: #0b1e6b;
+  --ramp-1: #1e3fd0;
+  --ramp-2: #2e8bff;
+  --ramp-3: #59c8ff;
+  --ramp-4: #b8e2ff;
+  --ramp-5: #eef6ff;
+}
+
+body {
+  background: #f5f7fb;
+  color: #0b1020;
+}
