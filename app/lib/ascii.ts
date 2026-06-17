@@ -15,6 +15,8 @@ export type AsciiCell = {
   ch: string;
   /** Average colour as #rrggbb, or null when the cell is empty. */
   color: string | null;
+  /** Mean coverage (alpha) of the cell, 0..1; 0 for empty cells. */
+  coverage: number;
 };
 
 export type AsciiGrid = {
@@ -91,12 +93,12 @@ export function sampleAscii(
 
       const coverage = count > 0 ? aSum / count : 0;
       if (coverage < threshold || wSum === 0) {
-        cells.push({ ch: "", color: null });
+        cells.push({ ch: "", color: null, coverage: 0 });
         continue;
       }
       const idx = Math.min(RAMP.length - 1, Math.round(coverage * (RAMP.length - 1)));
       const color = `#${toHex(rSum / wSum)}${toHex(gSum / wSum)}${toHex(bSum / wSum)}`;
-      cells.push({ ch: RAMP[idx] || RAMP[RAMP.length - 1], color });
+      cells.push({ ch: RAMP[idx] || RAMP[RAMP.length - 1], color, coverage });
     }
   }
 

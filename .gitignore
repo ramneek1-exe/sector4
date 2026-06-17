@@ -30,7 +30,13 @@ Thumbs.db
 
 # Claude Code local state
 .claude/
+.agents/
+skills-lock.json
 .vercel
 
 # Visual-companion brainstorm scratch
 .superpowers/
+
+# Lastik desktop font originals — only the web .woff2/.woff are tracked
+/app/fonts/lastik/Lastik-Regular.otf
+/app/fonts/lastik/Lastik-Regular.ttf

@@ -13,7 +13,7 @@
 }
 
 body {
-  background: #f5f7fb;
+  background: #fafafa;
   color: #0b1020;
 }
 
@@ -31,27 +31,3 @@ body {
   }
 }
 
-/* ASCII glyph cells materialise from blur — scattered, not a sweep. The delay is
-   set per-cell inline; here we only define the curve. Reduced motion → no class. */
-@keyframes asciiIn {
-  from { opacity: 0; filter: blur(3px); }
-  to { opacity: 1; filter: none; }
-}
-.ascii-cell {
-  animation: asciiIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Living aurora — drifting blue light blobs (works without WebGPU). */
-@keyframes auroraDriftA {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(7%, -5%) scale(1.18); }
-}
-@keyframes auroraDriftB {
-  0%, 100% { transform: translate(0, 0) scale(1.12); }
-  50% { transform: translate(-6%, 6%) scale(1); }
-}
-.aurora-a { animation: auroraDriftA 22s ease-in-out infinite; }
-.aurora-b { animation: auroraDriftB 28s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .aurora-a, .aurora-b { animation: none; }
-}

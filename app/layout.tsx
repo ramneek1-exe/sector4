@@ -1,7 +1,6 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import { fontVars } from "@/app/lib/fonts";
-import { AuroraBackdrop } from "@/app/components/AuroraBackdrop";
 
 export const metadata = { title: "Sector 4", description: "F1 weekend companion" };
 
@@ -14,7 +13,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
       <body className="flex min-h-screen flex-col bg-bg text-ink antialiased font-lastik">
-        <AuroraBackdrop />
         {/* The ONLY use of Bebas Neue: the wordmark, flush top-left. */}
         <span className="fixed left-6 top-5 z-20 font-bebas text-3xl tracking-wide text-ink">
           SECTOR 4
