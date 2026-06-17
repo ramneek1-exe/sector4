@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { DriverGlyph } from "@/app/components/DriverGlyph";
+import { AsciiFog } from "@/app/components/AsciiFog";
+import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
@@ -14,7 +15,13 @@ const BAND_TEXT: Record<string, string> = {
   "outside shot": "text-slate-400",
 };
 
-/** Top-4 podium as a horizontal helmet lineup — code under each helmet. No box. */
+const EXAMPLES = [
+  "Who is likely to podium at the 2024 Italian Grand Prix?",
+  "Monza 2025 podium",
+  "How much time is lost in the pit lane at Monaco?",
+];
+
+/** Top-4 podium as a horizontal helmet lineup — ASCII helmet + code under each. No box. */
 function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-9 text-center">
@@ -24,11 +31,11 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
       </div>
 
       {podium.drivers.length > 0 ? (
-        <div className="flex items-end justify-center gap-8 sm:gap-12">
+        <div className="flex items-end justify-center gap-6 sm:gap-10">
           {podium.drivers.slice(0, 4).map((d) => (
             <div key={d.driver} className="flex flex-col items-center gap-1.5">
-              <DriverGlyph code={d.driver} team={d.team} size={92} />
-              <div className="mt-1 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
+              <AsciiGlyph code={d.driver} team={d.team} size={96} />
+              <div className="mt-2 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
               <div
                 className={`font-grotesk text-[11px] font-semibold uppercase tracking-wide ${
                   BAND_TEXT[d.band] ?? BAND_TEXT["outside shot"]
@@ -68,20 +75,42 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
   );
 }
 
+/** Pre-query state: a hint + example queries, sitting in the same fog as the answers. */
+function EmptyState({ onPick }: { onPick: (q: string) => void }) {
+  return (
+    <div className="fog-in flex flex-col items-center gap-5 text-center">
+      <p className="max-w-md font-lastik text-lg text-ink/70">
+        Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {EXAMPLES.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => onPick(q)}
+            className="rounded-full border border-white/60 bg-white/45 px-4 py-1.5 font-grotesk text-xs text-muted backdrop-blur transition hover:border-accent hover:text-ink"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
-  const [query, setQuery] = useState("Who is likely to podium at the 2024 Italian Grand Prix?");
+  const [query, setQuery] = useState(EXAMPLES[0]);
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function ask(e: React.FormEvent) {
-    e.preventDefault();
+  async function run(q: string) {
     setLoading(true);
     setAnswer(null);
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: q }),
       });
       setAnswer(await res.json());
     } catch {
@@ -92,8 +121,14 @@ export default function Home() {
   }
 
   return (
-    <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-12 px-6 py-24">
-      <form onSubmit={ask} className="flex w-full max-w-xl gap-2">
+    <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void run(query);
+        }}
+        className="flex w-full max-w-xl gap-2"
+      >
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -108,7 +143,23 @@ export default function Home() {
         </button>
       </form>
 
-      <div className="flex w-full justify-center">
+      {/* Action zone — the ONLY place the living ASCII fog animates, directly under the bar. */}
+      <section className="relative flex min-h-[440px] w-full items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_62%_70%_at_50%_42%,black,transparent_78%)]">
+          <AsciiFog className="h-full w-full" />
+        </div>
+
+        {!answer && !loading && (
+          <EmptyState
+            onPick={(q) => {
+              setQuery(q);
+              void run(q);
+            }}
+          />
+        )}
+        {loading && (
+          <p className="fog-in font-grotesk text-sm uppercase tracking-[0.2em] text-muted">Reading the weekend…</p>
+        )}
         {answer && "supported" in answer && answer.supported && "facts" in answer && (
           <StatAnswer facts={answer.facts} narrative={answer.narrative} />
         )}
@@ -121,7 +172,7 @@ export default function Home() {
         {answer && "error" in answer && (
           <p className="fog-in text-center font-grotesk text-red-600">Error: {answer.error}</p>
         )}
-      </div>
+      </section>
     </main>
   );
 }
