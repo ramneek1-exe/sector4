@@ -2,19 +2,24 @@
 
 import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
+import { warpedField } from "@/app/lib/noise";
 
 // Brand ramp (globals.css :root) — dark → light blue.
 const COLOR_LO = [30, 63, 208]; // --ramp-1
 const COLOR_HI = [89, 200, 255]; // --ramp-3
-const CELL = 22; // px per character cell (one 5x5 dot-matrix glyph)
-const FPS = 20;
+const CELL = 16; // px per character cell (one 5x5 dot-matrix glyph)
+const FPS = 30;
+const NOISE_SCALE = 0.09; // lower = larger, smoother blobs
+const MOUSE_RADIUS = 200; // px of cursor influence
+const MOUSE_GAIN = 0.85; // how much the cursor brightens the field
 
 /**
- * A CONFINED, ambient ASCII fog using the 1NCOGNIT0 dot-matrix glyph technique
- * (see app/lib/ascii-bitmap.ts) instead of single monospace characters — bolder,
- * more legible, and the look the owner asked for. Only lives where the action is
- * (under the query bar), drawn over the plain page background. Animated, but slow;
- * a single static frame under prefers-reduced-motion.
+ * Confined, cursor-reactive ASCII fog. The field is domain-warped FBM (app/lib/
+ * noise.ts) — it churns and folds organically rather than scrolling as a fixed
+ * pattern — quantised into 1NCOGNIT0 dot-matrix glyphs (app/lib/ascii-bitmap.ts).
+ * The cursor brightens the field within a radius (inspired by the reactbits Dither
+ * background). Lives only in the action zone, over the plain page background.
+ * Static single frame and no pointer reactivity under prefers-reduced-motion.
  */
 export function AsciiFog({ className = "" }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,6 +34,7 @@ export function AsciiFog({ className = "" }: { className?: string }) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     let cols = 0;
     let rows = 0;
+    const mouse = { x: -1e4, y: -1e4, a: 0 }; // a = influence amount, eased
 
     const resize = () => {
       const { clientWidth: w, clientHeight: h } = canvas;
@@ -45,18 +51,21 @@ export function AsciiFog({ className = "" }: { className?: string }) {
 
     const draw = (t: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const mc = mouse.x / CELL;
+      const mr = mouse.y / CELL;
+      const radCells = MOUSE_RADIUS / CELL;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          // Smooth animated value-noise from layered sines (cheap, no deps).
-          const n =
-            Math.sin(c * 0.45 + t) * 0.5 +
-            Math.sin(r * 0.6 - t * 0.7) * 0.3 +
-            Math.sin((c + r) * 0.28 + t * 0.45) * 0.2;
-          const v = (n + 1) / 2; // 0..1
+          let v = warpedField(c * NOISE_SCALE, r * NOISE_SCALE, t);
+          if (mouse.a > 0) {
+            const d = Math.hypot(c - mc, r - mr) / radCells;
+            if (d < 1) v += (1 - d) * (1 - d) * MOUSE_GAIN * mouse.a;
+          }
           const bits = glyphFor(v);
           if (!bits) continue;
-          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * v);
-          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${0.22 + v * 0.45})`;
+          const cv = Math.min(1, v);
+          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
+          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${0.2 + cv * 0.5})`;
           const ox = c * CELL;
           const oy = r * CELL;
           for (let by = 0; by < GLYPH_DIM; by++) {
@@ -73,9 +82,21 @@ export function AsciiFog({ className = "" }: { className?: string }) {
     ro.observe(canvas);
 
     if (reduce) {
-      draw(2.1); // single static frame (non-zero phase so it isn't blank)
+      draw(12.3); // single static frame
       return () => ro.disconnect();
     }
+
+    const onMove = (e: PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.a = 1;
+    };
+    const onLeave = () => {
+      mouse.a = 0;
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
 
     let raf = 0;
     let last = 0;
@@ -83,12 +104,14 @@ export function AsciiFog({ className = "" }: { className?: string }) {
       raf = requestAnimationFrame(frame);
       if (ms - last < 1000 / FPS) return;
       last = ms;
-      draw(ms * 0.0007); // slow drift
+      draw(ms * 0.0009); // slow drift
     };
     raf = requestAnimationFrame(frame);
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
     };
   }, []);
 

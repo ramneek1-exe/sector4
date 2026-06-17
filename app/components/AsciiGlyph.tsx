@@ -3,26 +3,30 @@
 import { useEffect, useRef, useState } from "react";
 import { DriverGlyph } from "@/app/components/DriverGlyph";
 import { asciiRowsFor, sampleAscii, type AsciiGrid } from "@/app/lib/ascii";
-import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { resolveGlyph } from "@/app/lib/glyph";
-import { HELMET_VIEWBOX, helmetSvgMarkup } from "@/app/lib/helmet";
+import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 
-const SS = 6; // off-screen supersample per ASCII cell
-const REVEAL_MS = 420; // window over which cells scatter in
-const FADE_MS = 220; // per-cell fade duration
+const SS = 5; // off-screen supersample per ASCII cell
+const REVEAL_MS = 520; // window over which cells scatter in
+const FADE_MS = 320; // per-cell develop duration
+
+function easeOut(t: number) {
+  return 1 - (1 - t) * (1 - t) * (1 - t);
+}
 
 /**
- * The driver helmet rendered AS COLOURED DOT-MATRIX ASCII (1NCOGNIT0 technique,
- * app/lib/ascii-bitmap.ts) — each cell is a 5x5 glyph picked by coverage and tinted
- * with the team colour (PRD §8). The helmet is rasterised + sampled off-screen, then
- * drawn to a canvas; the vector glyph is shown first and as the no-canvas/SSR
- * fallback. Cells dissolve in (scattered), gated behind prefers-reduced-motion.
+ * The driver helmet rendered as a COLOURED ASCII / dither field (PRD §8). The helmet
+ * is rasterised + sampled off-screen (app/lib/ascii.ts); each cell is drawn as a
+ * square whose size scales with coverage — solid where the helmet is filled, finer
+ * "particles" at the edges (no lattice gaps). The team colour is retained; a crisp
+ * numeral is overlaid for legibility. Cells develop in with a scattered dither-resolve.
+ * The vector glyph is the SSR / no-canvas fallback.
  */
 export function AsciiGlyph({
   code,
   team,
-  size = 120,
-  cols = 15,
+  size = 132,
+  cols = 32,
 }: {
   code: string;
   team: string | null;
@@ -31,13 +35,13 @@ export function AsciiGlyph({
 }) {
   const [grid, setGrid] = useState<AsciiGrid | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const g = resolveGlyph(code, team);
 
   // 1. Rasterise + sample the helmet off-screen.
   useEffect(() => {
     let cancelled = false;
-    const g = resolveGlyph(code, team);
     const { w, h } = HELMET_VIEWBOX;
-    const rows = asciiRowsFor(w, h, cols, 1); // square cells for the dot matrix
+    const rows = asciiRowsFor(w, h, cols, 1); // square cells
     const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(helmetSvgMarkup(g))}`;
 
     const img = new Image();
@@ -51,7 +55,7 @@ export function AsciiGlyph({
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, c.width, c.height);
         const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        setGrid(sampleAscii(data, c.width, c.height, cols, { rows }));
+        setGrid(sampleAscii(data, c.width, c.height, cols, { rows, threshold: 0.12 }));
       } catch {
         /* tainted/unsupported canvas → keep the vector fallback */
       }
@@ -60,9 +64,10 @@ export function AsciiGlyph({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, team, cols]);
 
-  // 2. Draw the dot-matrix to the visible canvas, with a scattered dissolve.
+  // 2. Draw the dither field to the visible canvas, with a scattered develop reveal.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!grid || !canvas) return;
@@ -79,29 +84,39 @@ export function AsciiGlyph({
     canvas.style.height = `${heightPx}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const sub = cellPx / GLYPH_DIM;
-    const dot = Math.max(1, sub * 0.9);
     // Per-cell scatter offset for the dissolve (deterministic, no hydration risk).
-    const delayFor = (i: number) => ((i * 53) % 17) / 17 * REVEAL_MS;
+    const delayFor = (i: number) => (((i * 73) % 23) / 23) * REVEAL_MS;
+    // Coverage → square fill ratio. Biased dense so the helmet reads solid, with
+    // smaller particles only at the soft edges.
+    const fillRatio = (cov: number) => Math.min(1, 0.45 + cov * 0.85);
 
-    const paint = (alphaFor: (i: number) => number) => {
+    const paint = (progress: (i: number) => number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       grid.cells.forEach((cell, i) => {
-        const bits = glyphFor(cell.coverage);
-        if (!bits || !cell.color) return;
-        const a = alphaFor(i);
-        if (a <= 0) return;
-        ctx.globalAlpha = a;
-        ctx.fillStyle = cell.color;
+        if (cell.coverage <= 0 || !cell.color) return;
+        const p = progress(i);
+        if (p <= 0) return;
         const ox = (i % grid.cols) * cellPx;
         const oy = Math.floor(i / grid.cols) * cellPx;
-        for (let by = 0; by < GLYPH_DIM; by++) {
-          for (let bx = 0; bx < GLYPH_DIM; bx++) {
-            if (bits[by * GLYPH_DIM + bx]) ctx.fillRect(ox + bx * sub, oy + by * sub, dot, dot);
-          }
-        }
+        const s = cellPx * fillRatio(cell.coverage) * easeOut(p);
+        const off = (cellPx - s) / 2;
+        ctx.globalAlpha = Math.min(1, p * 1.2);
+        ctx.fillStyle = cell.color;
+        ctx.fillRect(ox + off, oy + off, s, s);
       });
       ctx.globalAlpha = 1;
+
+      // Crisp numeral overlay (legible where the ASCII can't be), fades in last.
+      if (g.number !== null) {
+        const last = Math.min(1, progress(grid.cells.length - 1) + 0.2);
+        ctx.globalAlpha = Math.max(0, (last - 0.5) * 2);
+        ctx.fillStyle = g.numberColor;
+        ctx.font = `800 ${Math.round(NUMBER_POS.size * heightPx)}px Arial, Helvetica, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(g.number), NUMBER_POS.x * size, NUMBER_POS.y * heightPx);
+        ctx.globalAlpha = 1;
+      }
     };
 
     if (reduce) {
@@ -113,10 +128,11 @@ export function AsciiGlyph({
     const tick = (now: number) => {
       const t = now - start;
       paint((i) => Math.max(0, Math.min(1, (t - delayFor(i)) / FADE_MS)));
-      if (t < REVEAL_MS + FADE_MS) raf = requestAnimationFrame(tick);
+      if (t < REVEAL_MS + FADE_MS + 120) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grid, size]);
 
   // Vector fallback: server render, while sampling, or if canvas is unavailable.

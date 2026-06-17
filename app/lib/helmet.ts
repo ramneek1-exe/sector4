@@ -15,16 +15,19 @@ export const VISOR =
 export const VENT =
   "M403.397 234.572C414.949 233.373 425.282 241.784 426.454 253.342C427.627 264.901 419.195 275.217 407.64 276.364C396.116 277.508 385.844 269.107 384.675 257.585C383.503 246.062 391.881 235.767 403.397 234.572Z";
 
+// Where the personal number sits in the viewBox (matches DriverGlyph), as a 0..1
+// fraction — so the ASCII renderer can overlay a crisp numeral at the same spot.
+export const NUMBER_POS = { x: 265 / HELMET_VIEWBOX.w, y: 330 / HELMET_VIEWBOX.h, size: 190 / HELMET_VIEWBOX.h };
+
 /**
  * Standalone SVG markup for the resolved helmet, for off-screen rasterisation by
- * the ASCII renderer. Uses a concrete generic font (CSS vars and document fonts
- * don't resolve inside an <img>-loaded SVG) — the numeral is illegible at ASCII
- * resolution anyway; what matters is that it contributes its personal colour.
+ * the ASCII renderer. The number is omitted by default — at ASCII resolution it
+ * reads as mush, so AsciiGlyph overlays a crisp numeral instead (NUMBER_POS).
  */
-export function helmetSvgMarkup(g: ResolvedGlyph): string {
+export function helmetSvgMarkup(g: ResolvedGlyph, includeNumber = false): string {
   const { w, h } = HELMET_VIEWBOX;
   const number =
-    g.number !== null
+    includeNumber && g.number !== null
       ? `<text x="265" y="330" text-anchor="middle" dominant-baseline="middle" font-family="Arial, Helvetica, sans-serif" font-size="190" font-weight="800" fill="${g.numberColor}">${g.number}</text>`
       : "";
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><path d="${SHELL}" fill="${g.helmetFill}"/><path d="${VISOR}" fill="${VISOR_FILL}"/><path d="${VENT}" fill="${g.accent}"/>${number}</svg>`;
