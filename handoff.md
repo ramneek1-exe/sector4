@@ -6,10 +6,12 @@
 > PR #1), M2 (thin slice), and M3 BACKEND + live podium integration (PR #3) are all
 > MERGED to `main` and live on PRODUCTION (`sector4-zeta.vercel.app`): `predict_podium`
 > ships honest bands that sharpen Friday→Saturday, queryable in the browser. IN PROGRESS:
-> the M3 FRONTEND glyph system + a boxless aurora/ASCII-fog UI redesign — branch
-> `m3-frontend-glyph-system`, NOT yet merged, deployed to a live Vercel PREVIEW and
-> verified in-browser. Next action: continue frontend polish (see §4) then merge. The
-> next session resumes here.**
+> the M3 FRONTEND — an **ASCII/dither glyph + UI system on a plain `#FAFAFA` background** —
+> branch `m3-frontend-glyph-system`, all commits pushed, NOT yet merged. Deployed to a live
+> Vercel PREVIEW and **verified end-to-end in-browser** (real podium query → 4 colour-retaining
+> ASCII helmets w/ legible numbers, confined cursor-reactive ASCII fog): preview alias
+> `sector4-git-m3-frontend-glyp-f39471-ramneek88888-7746s-projects.vercel.app`. Next action:
+> final review + merge to `main` (→ production). The next session resumes here.**
 
 ## 🎯 1. Current Goal & Status
 
@@ -218,42 +220,49 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      **Preview** env (then redeploy; existing deploys don't pick up new vars). **MERGED via
      PR #3 to `main` → live on PRODUCTION** (`sector4-zeta.vercel.app`); the rotated
      `ANTHROPIC_API_KEY` is set on prod + preview envs.
-4. 🔄 **M3 FRONTEND — glyph system + boxless aurora UI (IN PROGRESS):** branch
+4. 🔄 **M3 FRONTEND — ASCII/dither glyph + UI system (IN PROGRESS):** branch
    `m3-frontend-glyph-system`, spec+plan in `docs/superpowers/{specs,plans}/2026-06-15-m3-frontend-
-   glyph-system*`. **NOT merged; deployed to a live Vercel PREVIEW and verified in-browser.**
-   Built so far (all committed/pushed, 103 pytest + 25 vitest green, build clean):
-   - **Driver glyph** `app/components/DriverGlyph.tsx` — the **owner-provided full-face helmet SVG**
-     (visor right), team-color shell + dark visor + accent vent + contrast-guarded personal number.
-     Pure color logic in `app/lib/glyph.ts` (`resolveGlyph`) + `app/lib/contrast.ts` (WCAG guard),
-     both unit-tested (no React test infra).
-   - **Source of truth:** `app/data/drivers.json` (27 codes → name/career-number/personalColor) +
-     `app/data/teams.json` (11 team strings incl. both `RB` and `Racing Bulls` → primary/secondary).
-     Year-correct **team comes from the API**: `team` was added to `build_podium_table` +
-     `predict_podium` + `api/podium.py` (rebuilt `api/podium_features.parquet`).
-   - **Type system + theme:** 4 roles via `app/lib/fonts.ts` — **ALL self-hosted** via
-     `next/font/local` (`app/fonts/google/*.woff2` for Bebas/Space-Grotesk/JetBrains-Mono +
-     `app/fonts/lastik/Lastik-Regular.woff2`). **Bebas Neue = the SECTOR 4 wordmark ONLY.** Light
-     blue/white theme tokens in `tailwind.config.ts` (`bg #F5F7FB`, `ink #0B1020`, `accent #2348E0`,
-     …); palette from the owner's blue reference image.
-   - **Boxless aurora redesign (owner direction):** NO cards — content emerges over a full-bleed
-     **`AuroraBackdrop.tsx`** (animated CSS aurora blobs that work everywhere + an optional WebGPU
-     `shaders` Ascii/FractalNoise fog overlay; reduced-motion/no-WebGPU → static aurora). Pill
-     input+button; wordmark flush top-left; **podium = top-4 helmets in a horizontal lineup with the
-     3-letter code under each** (`PodiumLineup` in `app/page.tsx`); `.fog-in` fade. Footer disclaimer
-     + "Powered by Shaders" attribution.
-   - **KEY BUILD GOTCHAS FIXED (don't reintroduce):** (a) `next/font/google` **fails to fetch
-     gstatic in the Vercel build** → self-host all fonts. (b) `.vercelignore` had an unanchored
-     `data/` that **stripped `app/data/*.json`** from the deploy → root-anchored to `/data/` `/cache/`.
-     (c) Lastik web fonts must be **committed** (`app/fonts/lastik/*.woff2/.woff`; the `.otf/.ttf`
-     desktop originals are intentionally untracked). (d) the `shaders` pkg **cannot ASCII-ify real
-     DOM/text** (M2 finding) → the "content from ASCII fog" is a decorative backdrop, not literal
-     text-from-ASCII.
-   - **NEXT (owner: "needs a lot of polish"):** make the aurora more dramatic/saturated; tune helmet
-     sizing/spacing in the lineup; design the **empty (pre-query) state** (currently just the form
-     centered); then a final review + merge to main (→ production). Deferred still: car/tire/track
-     glyphs (M4), hover callouts (M6), favicon (M7), the system-wide reveal *fidelity* fix, live-2026.
-   - **A future LANDING PAGE** that fronts the product is an owner goal (saved to memory) — reuses
-     this glyph system + palette; separate effort, not M3.
+   glyph-system*` (the spec predates the ASCII pivot below — treat the code as authoritative).
+   **All commits pushed; NOT merged. Verified END-TO-END on a live Vercel preview** (real podium
+   query → ASCII helmets in the lineup; 38 vitest + Python suite green, `npm run build` clean).
+   The look went through three owner-driven iterations this session; the CURRENT state is:
+   - **Background = plain `#FAFAFA`.** The aurora was REMOVED (`AuroraBackdrop.tsx` deleted) — owner
+     wanted a flat colour. `tailwind bg`/`body` = `#FAFAFA`.
+   - **ASCII technique = 1NCOGNIT0 dot-matrix** (`app/lib/ascii-bitmap.ts`): font-free 5×5 bitmap
+     glyphs (dot→plus→x→hash→bigdot) chosen by brightness, lit sub-cells tinted by source colour.
+     Ported from the etlaM21/1NCOGNIT0 Spark AR `asciiShader.sca`. Runs on **canvas 2D** (no
+     WebGPU/WebGL) — chosen because the `shaders` pkg can't ASCII-ify DOM/SVG (M2 finding, still true).
+   - **Fog** `app/components/AsciiFog.tsx` — CONFINED to the action zone under the query bar (NOT
+     full-page; owner: "only where the action is"). Field is **domain-warped FBM** (`app/lib/noise.ts`,
+     not sines — sines read as a rotating pattern) so it churns organically, + a **cursor-radius
+     brighten** (inspired by the reactbits "Dither" background; `MOUSE_RADIUS`/`MOUSE_GAIN`). Edge-
+     masked to a soft ellipse in `app/page.tsx`; a radial white scrim sits behind content for legibility.
+     Static single frame + no pointer reactivity under `prefers-reduced-motion`.
+   - **Helmets** `app/components/AsciiGlyph.tsx` — rasterise the helmet SVG off-screen → sample
+     (`app/lib/ascii.ts`, per-cell coverage+colour) → draw a **dither field of coverage-scaled squares**
+     (solid where filled, fine particles at edges — NOT the gappy dot-matrix, which read as a lattice).
+     Team colour retained; the rasterised numeral is baked OUT and a **crisp contrast-guarded number is
+     overlaid** (`NUMBER_POS` in `helmet.ts`) for legibility. **Scattered dither-resolve reveal** (cells
+     develop in, numeral fades last); reduced-motion → instant. `DriverGlyph.tsx` (plain SVG, shared
+     paths in `helmet.ts`) is the SSR/no-canvas fallback. Verified live: 4 `<canvas>` helmets, 0
+     vector fallbacks; numbers 4/81/16/33 legible, team colours correct.
+   - **Source of truth + type system (unchanged from first iteration):** `app/data/drivers.json` (codes
+     → name/number/personalColor) + `app/data/teams.json` (incl. both `RB` + `Racing Bulls`); year-correct
+     `team` comes from the API (`build_podium_table`/`predict_podium`/`api/podium.py`). 4 self-hosted font
+     roles via `app/lib/fonts.ts` (`next/font/local`); **Bebas Neue = wordmark ONLY**. Empty (pre-query)
+     state = hint + example chips (`app/page.tsx`).
+   - **KEY BUILD GOTCHAS FIXED (don't reintroduce):** (a) `next/font/google` fails to fetch gstatic in
+     the Vercel build → self-host all fonts. (b) unanchored `data/` in `.vercelignore` stripped
+     `app/data/*.json` → root-anchored. (c) Lastik web fonts must be committed (`app/fonts/lastik/*.woff2/
+     .woff`; `.otf/.ttf` desktop originals are gitignored). (d) the `shaders` pkg can't ASCII-ify DOM. (e)
+     Vercel env vars are per-environment — `ANTHROPIC_API_KEY` must be on **Preview** too (it is). (f)
+     canvas `ctx.font` can't resolve CSS vars → numeral overlay uses a concrete `Arial` stack.
+   - **NEXT:** final review → **merge `m3-frontend-glyph-system` to `main`** (→ production). Optional polish
+     before/after merge: fog density/colour, reveal timing, helmet size/spacing in the lineup. Deferred
+     still: car/tire/track glyphs (M4), hover callouts (M6), favicon (M7), live-2026. Note `app/components/
+     Reveal.tsx` + `reveal-fallback.ts` (M2 shaders reveal) remain in the tree but are now unused by the page.
+   - **A future LANDING PAGE** fronting the product is an owner goal (saved to memory) — reuses this
+     glyph system + palette; separate effort, not M3.
 5. **M4 — Telemetry differentiators** (pace-gap context + stop-count strategy), then
    **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
    M7 breadth+polish. See PRD §11.
@@ -271,10 +280,14 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
 
 Phase 1 is finished and the repositioning is locked into the PRD/CLAUDE; treat the
 validated split as settled (stop-count strategy = real telemetry edge; podium/compound =
-baseline-driven) and the product as explainer-led, not predictive-edge. **M1 is done** —
-the pipeline is now a callable library (`src/pipeline.py` batch build + `src/inference/*`,
-fastf1-free). The next build task is **M2** (thin end-to-end slice) — start there only
-when the user asks. Preserve the load-bearing invariants when extending: inference must
-never import fastf1; all training must go through `store.prior_weekends` (calendar order,
-never alphabetical); round every number that reaches output; keep all logic in `src/`; and
+baseline-driven) and the product as explainer-led, not predictive-edge. **M1/M2/M3-backend
+are merged to `main` and live in production. M3 FRONTEND (the ASCII/dither UI on branch
+`m3-frontend-glyph-system`) is built, pushed, and verified on a live preview but NOT yet
+merged** — the immediate next action is a final review + merge to `main` (see §4 item 4 for
+the current architecture). After that, M4 (telemetry differentiators: pace-gap context +
+stop-count strategy). Start any new build only when the user asks. Preserve the load-bearing
+invariants when extending: inference must never import fastf1; all training must go through
+`store.prior_weekends` (calendar order, never alphabetical); round every number that reaches
+output; keep all logic in `src/`; on the frontend keep the ASCII rendering on canvas (the
+`shaders` pkg can't ASCII-ify DOM) and gate all motion behind `prefers-reduced-motion`; and
 do not oversell predictions in any code, copy, or UI.
