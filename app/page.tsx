@@ -131,12 +131,12 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-full border border-ink/15 bg-white px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
+            className="pixel-edge w-full border border-ink/15 bg-white px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
             placeholder="Ask about a race weekend…"
           />
         </div>
         <button
-          className="relative overflow-hidden rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] motion-reduce:hover:translate-y-0"
+          className="pixel-edge relative overflow-hidden bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] motion-reduce:hover:translate-y-0"
           disabled={loading}
           aria-busy={loading}
         >
@@ -149,8 +149,8 @@ export default function Home() {
       </form>
 
       {/* Action zone — the ONLY place the living ASCII fog animates, directly under the bar. */}
-      <section className="relative flex min-h-[440px] w-full items-center justify-center">
-        <div className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_62%_70%_at_50%_42%,black,transparent_78%)]">
+      <section className="relative flex min-h-[600px] w-full items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_78%_94%_at_50%_50%,black_0%,transparent_70%)]">
           <AsciiFog className="h-full w-full" />
         </div>
         {/* Soft light behind the content so text reads over the fog — boxless, no card. */}

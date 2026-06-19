@@ -17,39 +17,52 @@ function TyreGlyph({ size }: { size: number }) {
   const detailed = size >= 48;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
-      <circle cx="50" cy="50" r="49" fill="#0d0d0d" />
-      <circle cx="50" cy="50" r="43" fill="#181818" />
-      <circle cx="50" cy="50" r="40" fill="none" stroke="#E10600" strokeWidth="3.5" />
+      {/* tyre annulus — open centre so the background shows through the spokes */}
+      <circle cx="50" cy="50" r="41" fill="none" stroke="#101010" strokeWidth="16" />
+      {/* continuous white sidewall line */}
+      <circle cx="50" cy="50" r="37" fill="none" stroke="#f4f4f4" strokeWidth="3" />
+      {/* two red compound stripes on opposite sides (Pirelli-style soft marking) */}
+      <circle
+        cx="50"
+        cy="50"
+        r="37"
+        fill="none"
+        stroke="#E10600"
+        strokeWidth="6"
+        strokeDasharray="16 100.24"
+        strokeDashoffset="8"
+      />
       {detailed && (
         <>
           <defs>
-            <path id="s4-tyre-arc" d="M50,50 m-33,0 a33,33 0 1,1 66,0 a33,33 0 1,1 -66,0" />
+            <path id="s4-tyre-arc" d="M50,50 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
           </defs>
-          <text className="font-grotesk" fill="#f2f2f2" fontSize="8" fontWeight="700" letterSpacing="0.5">
-            <textPath href="#s4-tyre-arc" startOffset="0">
-              SECTOR4 · SECTOR4 · SECTOR4 ·
-            </textPath>
+          <text className="font-grotesk" fill="#ededed" fontSize="7.5" fontWeight="700" letterSpacing="0.5">
+            <textPath href="#s4-tyre-arc" startOffset="25%">SECTOR4</textPath>
+          </text>
+          <text className="font-grotesk" fill="#ededed" fontSize="7.5" fontWeight="700" letterSpacing="0.5">
+            <textPath href="#s4-tyre-arc" startOffset="75%">SECTOR4</textPath>
           </text>
         </>
       )}
-      <circle cx="50" cy="50" r="24" fill="#1e1e1e" />
-      <g stroke="#363636" strokeWidth="2.6" strokeLinecap="round">
+      {/* open spokes — gaps between them let the background through */}
+      <g stroke="#2c2c2c" strokeWidth="2.4" strokeLinecap="round">
         {SPOKES.map((a) => {
           const r = (a * Math.PI) / 180;
           return (
             <line
               key={a}
-              x1={50 + 9 * Math.sin(r)}
-              y1={50 - 9 * Math.cos(r)}
-              x2={50 + 21 * Math.sin(r)}
-              y2={50 - 21 * Math.cos(r)}
+              x1={50 + 11 * Math.sin(r)}
+              y1={50 - 11 * Math.cos(r)}
+              x2={50 + 30 * Math.sin(r)}
+              y2={50 - 30 * Math.cos(r)}
             />
           );
         })}
       </g>
-      <circle cx="50" cy="50" r="8" fill="#2a2a2a" />
-      {/* balance mark — an asymmetric cue so the spin reads clearly */}
-      <circle cx="50" cy="20" r="2.4" fill="#E10600" />
+      {/* hub */}
+      <circle cx="50" cy="50" r="11" fill="#161616" />
+      <circle cx="50" cy="50" r="4" fill="#2a2a2a" />
     </svg>
   );
 }
