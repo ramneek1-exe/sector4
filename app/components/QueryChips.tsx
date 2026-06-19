@@ -19,8 +19,10 @@ const POOL = [
 const CYCLE_MS = 4200; // slower cadence — one chip at a time
 const FADE_MS = 3800; // animation (fade in → hold → fade out) finishes before the next appears
 
+// Clamp lives on an inner <span>: the animated chip is position:absolute, which
+// blockifies `display:-webkit-box` to flow-root and silently disables line-clamp.
 const chipClass =
-  "rounded-full border border-white/60 bg-white/45 px-4 py-1.5 font-grotesk text-xs text-muted backdrop-blur transition hover:border-accent hover:text-ink";
+  "max-w-[16rem] rounded-2xl border border-ink/10 bg-white/90 px-4 py-2 text-left font-grotesk text-xs leading-snug text-ink/80 shadow-sm backdrop-blur transition hover:border-accent hover:text-ink";
 
 export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (q: string) => void }) {
   const [reduce, setReduce] = useState(false);
@@ -41,7 +43,7 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
       <div className="flex flex-wrap items-center justify-center gap-2">
         {examples.slice(0, 3).map((q) => (
           <button key={q} type="button" onClick={() => onPick(q)} className={chipClass}>
-            {q}
+            <span className="line-clamp-2">{q}</span>
           </button>
         ))}
       </div>
@@ -59,7 +61,7 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
         style={{ top: p.top, left: p.left, animationDuration: `${FADE_MS}ms` }}
         className={`chip-drift pointer-events-auto absolute -translate-x-1/2 ${chipClass}`}
       >
-        {q}
+        <span className="line-clamp-2">{q}</span>
       </button>
     </div>
   );
