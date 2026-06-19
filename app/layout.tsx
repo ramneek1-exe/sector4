@@ -18,16 +18,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           SECTOR 4
         </span>
         {children}
-        <footer className="relative z-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
+        <footer className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
           <span className="max-w-3xl">{DISCLAIMER}</span>
-          <a
-            href="https://shaders.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0 uppercase tracking-widest"
-          >
-            Powered by Shaders
-          </a>
         </footer>
       </body>
     </html>
