@@ -5,6 +5,7 @@ import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import { PixelSpinner } from "@/app/components/PixelSpinner";
+import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
@@ -21,6 +22,10 @@ const EXAMPLES = [
   "Who is likely to podium at the 2024 Italian Grand Prix?",
   "Monza 2025 podium",
   "How much time is lost in the pit lane at Monaco?",
+  "Who podiums at the 2024 Abu Dhabi Grand Prix?",
+  "Bahrain 2024 podium odds",
+  "Las Vegas 2024 podium",
+  "How much time is lost in the pit lane at Monza?",
 ];
 
 /** Top-4 podium as a horizontal helmet lineup — ASCII helmet + code under each. No box. */
@@ -84,18 +89,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
       <p className="max-w-md font-lastik text-lg text-ink/70">
         Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
       </p>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        {EXAMPLES.map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => onPick(q)}
-            className="rounded-full border border-white/60 bg-white/45 px-4 py-1.5 font-grotesk text-xs text-muted backdrop-blur transition hover:border-accent hover:text-ink"
-          >
-            {q}
-          </button>
-        ))}
-      </div>
+      <QueryChips examples={EXAMPLES} onPick={onPick} />
     </div>
   );
 }

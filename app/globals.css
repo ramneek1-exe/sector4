@@ -31,3 +31,20 @@ body {
   }
 }
 
+
+/* Suggested-query chips: fade in at a slot, linger, fade out as the rotation advances. */
+@keyframes chip-drift {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  14% { opacity: 1; transform: translate(-50%, 0); }
+  86% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
+}
+.chip-drift {
+  animation: chip-drift 2.6s ease-in-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-drift {
+    animation: none;
+    opacity: 1;
+  }
+}
