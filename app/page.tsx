@@ -144,11 +144,7 @@ export default function Home() {
           <span className={`block transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}>
             Ask
           </span>
-          {loading && (
-            <span className="absolute inset-0 flex items-center justify-center">
-              <TyreSpinner size={22} />
-            </span>
-          )}
+          <TyreSpinner active={loading} size={22} />
         </button>
       </form>
 

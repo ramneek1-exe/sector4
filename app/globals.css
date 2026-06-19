@@ -94,14 +94,22 @@ body {
 @keyframes tyre-spin {
   to { transform: rotate(360deg); }
 }
+@keyframes tyre-rollout {
+  from { transform: translateX(0); }
+  to { transform: translateX(240%); }
+}
 .tyre-rollin {
   animation: tyre-rollin 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tyre-rollout {
+  animation: tyre-rollout 0.45s cubic-bezier(0.55, 0, 0.67, 0.2) both;
 }
 .tyre-spin {
   animation: tyre-spin 0.85s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .tyre-rollin,
+  .tyre-rollout,
   .tyre-spin {
     animation: none;
   }
