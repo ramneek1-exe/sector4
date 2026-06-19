@@ -8,8 +8,8 @@ import { useEffect, useRef, useState } from "react";
 // in from the left, spins while loading, then rolls out to the right when loading ends.
 // Reused later as the tyre glyph (M4).
 
-// 12 spokes — matches the reference F1 wheel.
-const SPOKES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
+// 10 spokes — matches the reference F1 wheel.
+const SPOKES = [0, 36, 72, 108, 144, 180, 216, 252, 288, 324];
 const EXIT_MS = 480; // keep mounted long enough for the roll-out to finish
 
 function TyreGlyph({ size }: { size: number }) {
@@ -46,17 +46,17 @@ function TyreGlyph({ size }: { size: number }) {
           </text>
         </>
       )}
-      {/* grey rim ring */}
-      <circle cx="50" cy="50" r="29" fill="none" stroke="#a8a8a8" strokeWidth="3" />
-      {/* 12 open spokes — gaps between them let the background through */}
-      <g stroke="#7f7f7f" strokeWidth="1.8" strokeLinecap="round">
+      {/* dark rim ring */}
+      <circle cx="50" cy="50" r="29" fill="none" stroke="#565656" strokeWidth="3" />
+      {/* 10 open spokes — thicker + anchored to a larger hub so they read solid */}
+      <g stroke="#474747" strokeWidth="3.4" strokeLinecap="butt">
         {SPOKES.map((a) => {
           const r = (a * Math.PI) / 180;
           return (
             <line
               key={a}
-              x1={50 + 9 * Math.sin(r)}
-              y1={50 - 9 * Math.cos(r)}
+              x1={50 + 13 * Math.sin(r)}
+              y1={50 - 13 * Math.cos(r)}
               x2={50 + 27 * Math.sin(r)}
               y2={50 - 27 * Math.cos(r)}
             />
@@ -64,8 +64,8 @@ function TyreGlyph({ size }: { size: number }) {
         })}
       </g>
       {/* hub */}
-      <circle cx="50" cy="50" r="9" fill="#8a8a8a" />
-      <circle cx="50" cy="50" r="3.5" fill="#6f6f6f" />
+      <circle cx="50" cy="50" r="13" fill="#555555" />
+      <circle cx="50" cy="50" r="5" fill="#383838" />
     </svg>
   );
 }

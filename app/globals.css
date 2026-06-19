@@ -115,6 +115,20 @@ body {
   }
 }
 
+/* Border that traces the pixelated outline (drop-shadow follows the clipped shape, so the
+   outermost pixel row reads as the border and never gets cut by the clip). Recolours on focus. */
+.pixel-bordered {
+  --edge: rgba(11, 16, 32, 0.22);
+  filter: drop-shadow(1px 0 0 var(--edge)) drop-shadow(-1px 0 0 var(--edge))
+    drop-shadow(0 1px 0 var(--edge)) drop-shadow(0 -1px 0 var(--edge));
+}
+.pixel-bordered:hover {
+  --edge: rgba(35, 72, 224, 0.5);
+}
+.pixel-bordered:focus {
+  --edge: #2348e0;
+}
+
 /* Pixelised outer edge — a stair-stepped PILL (follows the rounded radius, soft 3px steps). */
 .pixel-edge {
   border-radius: 0;
@@ -154,5 +168,16 @@ body {
     5.3px 6px, 8.1px 6px,
     8.1px 3px, 12.4px 3px,
     12.4px 0px, 24.0px 0px
+  );
+}
+
+/* Text legibility wash over the fog — a feathered white radial that fades to transparent.
+   No border, no defined shape (edgeless, like the ascii fog). Padding gives the feather room. */
+.legible {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(250, 250, 250, 0.92) 0%,
+    rgba(250, 250, 250, 0.85) 50%,
+    rgba(250, 250, 250, 0) 82%
   );
 }

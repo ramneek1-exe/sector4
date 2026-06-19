@@ -28,11 +28,15 @@ const EXAMPLES = [
   "How much time is lost in the pit lane at Monza?",
 ];
 
+// Subtle white backing so text stays legible over the fog — feathered to transparent,
+// no defined shape/border (edgeless, like the fog itself). See `.legible` in globals.css.
+const LEGIBLE = "legible";
+
 /** Top-4 podium as a horizontal helmet lineup — ASCII helmet + code under each. No box. */
 function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-9 text-center">
-      <div className="font-pixel-serif text-sm tracking-[0.12em] text-muted">
+      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
         {podium.year} {podium.gp} · podium odds
         {podium.mode ? ` · ${podium.mode}` : ""}
       </div>
@@ -58,8 +62,8 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
         <p className="text-muted">{podium.reason ?? "Not enough data for this weekend yet."}</p>
       )}
 
-      <p className="max-w-xl font-lastik text-lg leading-relaxed text-ink/90">{narrative}</p>
-      <p className="max-w-md font-grotesk text-[11px] text-muted">
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
         Honest bands, not precise %s — the p values are the model’s raw probabilities and are not yet
         calibrated
         {typeof podium.n_train_races === "number" && ` · trained on ${podium.n_train_races} prior weekends`}.
@@ -72,12 +76,12 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
 function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
-      <div className="font-pixel-serif text-7xl font-bold tracking-tight text-ink">
+      <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
         {facts.value}
         <span className="ml-1 text-3xl text-muted">{facts.units}</span>
       </div>
-      <p className="max-w-xl font-lastik text-lg leading-relaxed text-ink/90">{narrative}</p>
-      <p className="font-grotesk text-[11px] uppercase tracking-wide text-muted">Source: {facts.source}</p>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <p className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>Source: {facts.source}</p>
     </div>
   );
 }
@@ -86,7 +90,7 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
-      <p className="max-w-md font-lastik text-lg text-ink/70">
+      <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
         Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
       </p>
       <QueryChips examples={EXAMPLES} onPick={onPick} />
@@ -131,12 +135,12 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pixel-edge w-full border border-ink/15 bg-white px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
+            className="pixel-edge pixel-bordered h-12 w-full bg-white px-5 font-grotesk text-sm text-ink outline-none transition placeholder:text-muted hover:-translate-y-px motion-reduce:hover:translate-y-0"
             placeholder="Ask about a race weekend…"
           />
         </div>
         <button
-          className="pixel-edge relative overflow-hidden bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] motion-reduce:hover:translate-y-0"
+          className="pixel-edge relative inline-flex h-12 items-center justify-center overflow-hidden bg-accent px-6 font-grotesk text-sm font-medium text-white transition hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0"
           disabled={loading}
           aria-busy={loading}
         >
@@ -168,7 +172,7 @@ export default function Home() {
           />
         )}
         {loading && (
-          <p className="fog-in font-pixel text-3xl tracking-wide text-ink/75">{loadingLine}</p>
+          <p className={`fog-in font-pixel text-3xl tracking-wide text-ink/75 ${LEGIBLE} px-4 py-2`}>{loadingLine}</p>
         )}
         {answer && "supported" in answer && answer.supported && "facts" in answer && (
           <StatAnswer facts={answer.facts} narrative={answer.narrative} />
@@ -177,10 +181,10 @@ export default function Home() {
           <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
         )}
         {answer && "supported" in answer && !answer.supported && (
-          <p className="fog-in max-w-xl text-center font-lastik text-lg text-muted">{answer.message}</p>
+          <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
         )}
         {answer && "error" in answer && (
-          <p className="fog-in text-center font-grotesk text-red-600">Error: {answer.error}</p>
+          <p className={`fog-in text-center font-grotesk text-red-600 ${LEGIBLE} px-4 py-2`}>Error: {answer.error}</p>
         )}
       </section>
     </main>
