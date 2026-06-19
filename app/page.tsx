@@ -149,7 +149,7 @@ export default function Home() {
         {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_46%_50%_at_50%_50%,rgba(250,250,250,0.88),rgba(250,250,250,0.4)_55%,transparent_75%)]"
+          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_46%_50%_at_50%_50%,rgba(250,250,250,0.74),rgba(250,250,250,0.3)_55%,transparent_75%)]"
         />
 
         {!answer && !loading && (

@@ -65,7 +65,7 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           if (!bits) continue;
           const cv = Math.min(1, v);
           const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
-          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${0.2 + cv * 0.5})`;
+          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(1, 0.32 + cv * 0.62)})`;
           const ox = c * CELL;
           const oy = r * CELL;
           for (let by = 0; by < GLYPH_DIM; by++) {
