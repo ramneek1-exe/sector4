@@ -140,7 +140,11 @@ export default function Home() {
           />
         </div>
         <button
-          className="relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full bg-accent px-6 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0"
+          className={`relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-7 font-grotesk text-lg font-medium shadow-sm transition duration-200 motion-reduce:hover:translate-y-0 ${
+            loading
+              ? "bg-[#f3f3f3] text-ink"
+              : "bg-accent text-white hover:-translate-y-px hover:bg-[#1b39b0]"
+          }`}
           disabled={loading}
           aria-busy={loading}
         >
@@ -148,7 +152,7 @@ export default function Home() {
           <span className={`block transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}>
             Ask
           </span>
-          <TyreSpinner active={loading} size={22} />
+          <TyreSpinner active={loading} size={30} />
         </button>
       </form>
 
