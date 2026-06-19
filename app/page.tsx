@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
+import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
@@ -102,9 +103,11 @@ export default function Home() {
   const [query, setQuery] = useState(EXAMPLES[0]);
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
   async function run(q: string) {
     setLoading(true);
+    setLoadingLine(pickLoadingLine());
     setAnswer(null);
     try {
       const res = await fetch("/api/ask", {
@@ -163,7 +166,7 @@ export default function Home() {
           />
         )}
         {loading && (
-          <p className="fog-in font-grotesk text-sm uppercase tracking-[0.2em] text-muted">Reading the weekend…</p>
+          <p className="fog-in font-pixel text-base tracking-wide text-muted">{loadingLine}</p>
         )}
         {answer && "supported" in answer && answer.supported && "facts" in answer && (
           <StatAnswer facts={answer.facts} narrative={answer.narrative} />
