@@ -135,12 +135,12 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pixel-edge pixel-bordered h-12 w-full bg-white px-5 font-grotesk text-sm text-ink outline-none transition placeholder:text-muted hover:-translate-y-px motion-reduce:hover:translate-y-0"
+            className="h-12 w-full rounded-full border border-ink/15 bg-white px-5 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
             placeholder="Ask about a race weekend…"
           />
         </div>
         <button
-          className="pixel-edge relative inline-flex h-12 items-center justify-center overflow-hidden bg-accent px-6 font-grotesk text-sm font-medium text-white transition hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0"
+          className="relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full bg-accent px-6 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0"
           disabled={loading}
           aria-busy={loading}
         >
