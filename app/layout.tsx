@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="flex min-h-screen flex-col bg-bg text-ink antialiased font-lastik">
         {/* The ONLY use of Bebas Neue: the wordmark, flush top-left. */}
         <span className="fixed left-6 top-5 z-20 font-bebas text-3xl tracking-wide text-ink">
-          SECTOR 4
+          SECTOR4
         </span>
         {children}
         <footer className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">

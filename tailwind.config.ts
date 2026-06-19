@@ -16,6 +16,8 @@ const config: Config = {
         grotesk: ["var(--font-grotesk)", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
         lastik: ["var(--font-lastik)", "serif"],
+        "pixel-serif": ["var(--font-pixel-serif)", "serif"],
+        pixel: ["var(--font-pixel)", "monospace"],
       },
     },
   },

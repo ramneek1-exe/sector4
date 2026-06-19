@@ -36,4 +36,17 @@ export const lastik = localFont({
   display: "swap",
 });
 
-export const fontVars = `${bebas.variable} ${grotesk.variable} ${mono.variable} ${lastik.variable}`;
+// Pixel serif — display moments (answer numbers, section headers, future landing). PP Mondwest.
+export const pixelSerif = localFont({
+  src: [{ path: "../fonts/bitmap/PPMondwest-Regular.otf", weight: "400", style: "normal" }],
+  variable: "--font-pixel-serif",
+  display: "swap",
+});
+// Pixel sans — small "computer" accents. PP NeueBit Bold.
+export const pixel = localFont({
+  src: [{ path: "../fonts/bitmap/PPNeueBit-Bold.otf", weight: "700", style: "normal" }],
+  variable: "--font-pixel",
+  display: "swap",
+});
+
+export const fontVars = `${bebas.variable} ${grotesk.variable} ${mono.variable} ${lastik.variable} ${pixelSerif.variable} ${pixel.variable}`;

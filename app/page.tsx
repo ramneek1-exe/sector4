@@ -25,7 +25,7 @@ const EXAMPLES = [
 function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-9 text-center">
-      <div className="font-grotesk text-xs uppercase tracking-[0.2em] text-muted">
+      <div className="font-pixel-serif text-sm tracking-[0.12em] text-muted">
         {podium.year} {podium.gp} · podium odds
         {podium.mode ? ` · ${podium.mode}` : ""}
       </div>
@@ -65,7 +65,7 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
 function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
-      <div className="text-7xl font-bold tracking-tight text-ink">
+      <div className="font-pixel-serif text-7xl font-bold tracking-tight text-ink">
         {facts.value}
         <span className="ml-1 text-3xl text-muted">{facts.units}</span>
       </div>
