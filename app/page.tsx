@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
-import { PixelSpinner } from "@/app/components/PixelSpinner";
+import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
@@ -136,10 +136,19 @@ export default function Home() {
           />
         </div>
         <button
-          className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] disabled:opacity-60 motion-reduce:hover:translate-y-0"
+          className="relative overflow-hidden rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] motion-reduce:hover:translate-y-0"
           disabled={loading}
+          aria-busy={loading}
         >
-          {loading ? <PixelSpinner /> : "Ask"}
+          {/* Label stays in the DOM (invisible while loading) to hold the button width. */}
+          <span className={`block transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}>
+            Ask
+          </span>
+          {loading && (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <TyreSpinner size={22} />
+            </span>
+          )}
         </button>
       </form>
 

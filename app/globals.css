@@ -85,3 +85,24 @@ body {
     opacity: 0.7;
   }
 }
+
+/* Ask-button tyre: rolls in from the left edge, then spins in place. */
+@keyframes tyre-rollin {
+  from { transform: translateX(-240%); }
+  to { transform: translateX(0); }
+}
+@keyframes tyre-spin {
+  to { transform: rotate(360deg); }
+}
+.tyre-rollin {
+  animation: tyre-rollin 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tyre-spin {
+  animation: tyre-spin 0.85s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tyre-rollin,
+  .tyre-spin {
+    animation: none;
+  }
+}
