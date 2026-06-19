@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
+import { PixelSpinner } from "@/app/components/PixelSpinner";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
@@ -142,7 +143,7 @@ export default function Home() {
           className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:bg-accent-bright disabled:opacity-60"
           disabled={loading}
         >
-          {loading ? "…" : "Ask"}
+          {loading ? <PixelSpinner /> : "Ask"}
         </button>
       </form>
 
