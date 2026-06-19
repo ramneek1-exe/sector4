@@ -47,7 +47,7 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
         const q = examples[exIdx];
         return (
           <button
-            key={`${slot}-${exIdx}`}
+            key={`${slot}-${cycle}`}
             type="button"
             onClick={() => onPick(q)}
             style={{ top: POS[slot].top, left: POS[slot].left }}

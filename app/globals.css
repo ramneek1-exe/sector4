@@ -79,5 +79,6 @@ body {
   .bar-shell:focus-within::after {
     animation: none;
     opacity: 0.6;
+    transform: translateY(2px);
   }
 }
