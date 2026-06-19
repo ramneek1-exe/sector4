@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { visibleChips } from "@/app/lib/chips";
 
 const SLOTS = 3;
-// Absolute slot positions (around the centred content; percentages of the zone).
+// Absolute slot positions — kept to the periphery so chips never collide with the
+// centred intro copy (which sits in the vertical middle). Two up top, one low-centre.
 const POS = [
-  { top: "12%", left: "10%" },
-  { top: "68%", left: "62%" },
-  { top: "30%", left: "74%" },
+  { top: "8%", left: "20%" },
+  { top: "8%", left: "80%" },
+  { top: "90%", left: "50%" },
 ];
 const CYCLE_MS = 2600;
 

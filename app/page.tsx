@@ -85,7 +85,7 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
 /** Pre-query state: a hint + example queries, sitting in the same fog as the answers. */
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
-    <div className="fog-in flex flex-col items-center gap-5 text-center">
+    <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
       <p className="max-w-md font-lastik text-lg text-ink/70">
         Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
       </p>
