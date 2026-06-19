@@ -12,7 +12,7 @@ const DISCLAIMER =
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
-      <body className="flex min-h-screen flex-col bg-bg text-ink antialiased font-lastik">
+      <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg text-ink antialiased font-lastik">
         {/* The ONLY use of Bebas Neue: the wordmark, flush top-left. */}
         <span className="fixed left-6 top-5 z-20 font-bebas text-3xl tracking-wide text-ink">
           SECTOR4

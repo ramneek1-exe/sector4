@@ -8,7 +8,8 @@ import { useEffect, useRef, useState } from "react";
 // in from the left, spins while loading, then rolls out to the right when loading ends.
 // Reused later as the tyre glyph (M4).
 
-const SPOKES = [0, 72, 144, 216, 288];
+// 12 spokes — matches the reference F1 wheel.
+const SPOKES = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330];
 const EXIT_MS = 480; // keep mounted long enough for the roll-out to finish
 
 function TyreGlyph({ size }: { size: number }) {
@@ -17,52 +18,54 @@ function TyreGlyph({ size }: { size: number }) {
   const detailed = size >= 48;
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
-      {/* tyre annulus — open centre so the background shows through the spokes */}
-      <circle cx="50" cy="50" r="41" fill="none" stroke="#101010" strokeWidth="16" />
-      {/* continuous white sidewall line */}
-      <circle cx="50" cy="50" r="37" fill="none" stroke="#f4f4f4" strokeWidth="3" />
-      {/* two red compound stripes on opposite sides (Pirelli-style soft marking) */}
+      {/* dark tyre annulus — open centre so the background shows through the spokes */}
+      <circle cx="50" cy="50" r="39.5" fill="none" stroke="#333333" strokeWidth="19" />
+      {/* continuous white sidewall line, hugging the wheel (inner) */}
+      <circle cx="50" cy="50" r="32" fill="none" stroke="#f4f4f4" strokeWidth="2.5" />
+      {/* two long red compound stripes, OUTSIDE the white, on opposite sides (L/R) */}
       <circle
         cx="50"
         cy="50"
-        r="37"
+        r="42"
         fill="none"
         stroke="#E10600"
-        strokeWidth="6"
-        strokeDasharray="16 100.24"
-        strokeDashoffset="8"
+        strokeWidth="5"
+        strokeDasharray="80 51.95"
+        strokeDashoffset="40"
       />
       {detailed && (
         <>
           <defs>
-            <path id="s4-tyre-arc" d="M50,50 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+            <path id="s4-tyre-arc" d="M50,50 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0" />
           </defs>
-          <text className="font-grotesk" fill="#ededed" fontSize="7.5" fontWeight="700" letterSpacing="0.5">
+          <text className="font-grotesk" fill="#f4f4f4" fontSize="7" fontWeight="700" letterSpacing="0.4">
             <textPath href="#s4-tyre-arc" startOffset="25%">SECTOR4</textPath>
           </text>
-          <text className="font-grotesk" fill="#ededed" fontSize="7.5" fontWeight="700" letterSpacing="0.5">
+          <text className="font-grotesk" fill="#f4f4f4" fontSize="7" fontWeight="700" letterSpacing="0.4">
             <textPath href="#s4-tyre-arc" startOffset="75%">SECTOR4</textPath>
           </text>
         </>
       )}
-      {/* open spokes — gaps between them let the background through */}
-      <g stroke="#2c2c2c" strokeWidth="2.4" strokeLinecap="round">
+      {/* grey rim ring */}
+      <circle cx="50" cy="50" r="29" fill="none" stroke="#a8a8a8" strokeWidth="3" />
+      {/* 12 open spokes — gaps between them let the background through */}
+      <g stroke="#7f7f7f" strokeWidth="1.8" strokeLinecap="round">
         {SPOKES.map((a) => {
           const r = (a * Math.PI) / 180;
           return (
             <line
               key={a}
-              x1={50 + 11 * Math.sin(r)}
-              y1={50 - 11 * Math.cos(r)}
-              x2={50 + 30 * Math.sin(r)}
-              y2={50 - 30 * Math.cos(r)}
+              x1={50 + 9 * Math.sin(r)}
+              y1={50 - 9 * Math.cos(r)}
+              x2={50 + 27 * Math.sin(r)}
+              y2={50 - 27 * Math.cos(r)}
             />
           );
         })}
       </g>
       {/* hub */}
-      <circle cx="50" cy="50" r="11" fill="#161616" />
-      <circle cx="50" cy="50" r="4" fill="#2a2a2a" />
+      <circle cx="50" cy="50" r="9" fill="#8a8a8a" />
+      <circle cx="50" cy="50" r="3.5" fill="#6f6f6f" />
     </svg>
   );
 }
