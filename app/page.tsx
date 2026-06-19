@@ -131,7 +131,7 @@ export default function Home() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-full border border-white/50 bg-white/55 px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none backdrop-blur transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
+            className="w-full rounded-full border border-ink/15 bg-white px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
             placeholder="Ask about a race weekend…"
           />
         </div>
@@ -163,7 +163,7 @@ export default function Home() {
           />
         )}
         {loading && (
-          <p className="fog-in font-pixel text-base tracking-wide text-muted">{loadingLine}</p>
+          <p className="fog-in font-pixel text-3xl tracking-wide text-ink/75">{loadingLine}</p>
         )}
         {answer && "supported" in answer && answer.supported && "facts" in answer && (
           <StatAnswer facts={answer.facts} narrative={answer.narrative} />

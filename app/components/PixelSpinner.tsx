@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-// Rotating quadrant blocks — reads as a pixel/ASCII spinner in the mono face.
-const FRAMES = ["▖", "▘", "▝", "▗"];
+// Rotating line — a spinning line in the mono face.
+const FRAMES = ["│", "╱", "─", "╲"];
 
 /** Cycling pixel spinner. Fixed-width (one glyph). Static first frame under reduced motion. */
 export function PixelSpinner() {

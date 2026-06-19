@@ -3,18 +3,19 @@
 import { useEffect, useState } from "react";
 import { nextIndex } from "@/app/lib/chips";
 
-// Peripheral spots — kept clear of the centred intro copy (the vertical/horizontal middle).
+// Peripheral spots in the top/bottom bands — clear of the centred intro copy. Each is
+// EDGE-anchored (left OR right) so a wide chip never overflows or bunches near an edge.
 // One chip appears at a random one of these each time, never repeating the previous spot.
-const POOL = [
-  { top: "10%", left: "16%" },
-  { top: "9%", left: "42%" },
-  { top: "11%", left: "70%" },
-  { top: "14%", left: "86%" },
-  { top: "50%", left: "9%" },
-  { top: "52%", left: "91%" },
-  { top: "88%", left: "22%" },
-  { top: "90%", left: "50%" },
-  { top: "86%", left: "78%" },
+const POOL: Array<{ top: string; left?: string; right?: string }> = [
+  { top: "8%", left: "6%" },
+  { top: "8%", right: "6%" },
+  { top: "20%", left: "3%" },
+  { top: "20%", right: "3%" },
+  { top: "12%", left: "42%" },
+  { top: "84%", left: "6%" },
+  { top: "84%", right: "6%" },
+  { top: "90%", left: "40%" },
+  { top: "88%", right: "30%" },
 ];
 const CYCLE_MS = 4200; // slower cadence — one chip at a time
 const FADE_MS = 3800; // animation (fade in → hold → fade out) finishes before the next appears
@@ -58,8 +59,8 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
         key={state.step}
         type="button"
         onClick={() => onPick(q)}
-        style={{ top: p.top, left: p.left, animationDuration: `${FADE_MS}ms` }}
-        className={`chip-drift pointer-events-auto absolute -translate-x-1/2 ${chipClass}`}
+        style={{ ...p, animationDuration: `${FADE_MS}ms` }}
+        className={`chip-drift pointer-events-auto absolute ${chipClass}`}
       >
         <span className="line-clamp-2">{q}</span>
       </button>
