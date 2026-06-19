@@ -48,3 +48,36 @@ body {
     opacity: 1;
   }
 }
+
+/* Query bar: soft breathing underglow while focused. */
+@keyframes bar-glow {
+  0%, 100% { opacity: 0.45; transform: translateY(2px) scaleX(0.96); }
+  50% { opacity: 0.9; transform: translateY(2px) scaleX(1); }
+}
+.bar-shell {
+  position: relative;
+}
+.bar-shell::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -7px;
+  height: 14px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--ramp-1), var(--ramp-3));
+  filter: blur(11px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.bar-shell:focus-within::after {
+  opacity: 0.8;
+  animation: bar-glow 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar-shell:focus-within::after {
+    animation: none;
+    opacity: 0.6;
+  }
+}

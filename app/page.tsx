@@ -127,14 +127,16 @@ export default function Home() {
         }}
         className="flex w-full max-w-xl gap-2"
       >
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded-full border border-white/50 bg-white/55 px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none backdrop-blur placeholder:text-muted focus:border-accent"
-          placeholder="Ask about a race weekend…"
-        />
+        <div className="bar-shell flex-1">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full rounded-full border border-white/50 bg-white/55 px-5 py-3 font-grotesk text-sm text-ink shadow-sm outline-none backdrop-blur transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
+            placeholder="Ask about a race weekend…"
+          />
+        </div>
         <button
-          className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:bg-accent-bright disabled:opacity-60"
+          className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-medium text-white shadow-sm transition hover:-translate-y-px hover:bg-accent-bright hover:shadow-[0_6px_20px_-6px_var(--ramp-2)] disabled:opacity-60 motion-reduce:hover:translate-y-0"
           disabled={loading}
         >
           {loading ? <PixelSpinner /> : "Ask"}
