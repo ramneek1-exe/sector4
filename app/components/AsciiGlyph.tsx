@@ -5,6 +5,7 @@ import { DriverGlyph } from "@/app/components/DriverGlyph";
 import { asciiRowsFor, sampleAscii, type AsciiGrid } from "@/app/lib/ascii";
 import { resolveGlyph } from "@/app/lib/glyph";
 import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
+import { scatterDelay } from "@/app/lib/scatter";
 
 const SS = 5; // off-screen supersample per ASCII cell
 const REVEAL_MS = 520; // window over which cells scatter in
@@ -85,7 +86,7 @@ export function AsciiGlyph({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Per-cell scatter offset for the dissolve (deterministic, no hydration risk).
-    const delayFor = (i: number) => (((i * 73) % 23) / 23) * REVEAL_MS;
+    const delayFor = (i: number) => scatterDelay(i, REVEAL_MS);
     // Coverage → square fill ratio. Biased dense so the helmet reads solid, with
     // smaller particles only at the soft edges.
     const fillRatio = (cov: number) => Math.min(1, 0.45 + cov * 0.85);
