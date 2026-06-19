@@ -1,21 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { visibleChips } from "./chips";
+import { nextIndex } from "./chips";
 
-describe("visibleChips", () => {
-  it("returns slotCount distinct example indices in range", () => {
-    const total = 7;
-    for (let cycle = 0; cycle < 20; cycle++) {
-      const v = visibleChips(cycle, 3, total);
-      expect(v.length).toBe(3);
-      expect(new Set(v).size).toBe(3); // no slot shows the same example as another
-      v.forEach((idx) => {
-        expect(idx).toBeGreaterThanOrEqual(0);
-        expect(idx).toBeLessThan(total);
-      });
+describe("nextIndex", () => {
+  it("returns an in-range index that differs from the previous one", () => {
+    for (let prev = 0; prev < 9; prev++) {
+      for (let t = 0; t < 50; t++) {
+        const n = nextIndex(prev, 9);
+        expect(n).toBeGreaterThanOrEqual(0);
+        expect(n).toBeLessThan(9);
+        expect(n).not.toBe(prev); // never repeats the immediately previous spot
+      }
     }
   });
 
-  it("advances across cycles (rotation, not static)", () => {
-    expect(visibleChips(0, 3, 7)).not.toEqual(visibleChips(1, 3, 7));
+  it("covers every other index over many draws (not stuck on one spot)", () => {
+    const seen = new Set<number>();
+    for (let t = 0; t < 300; t++) seen.add(nextIndex(0, 9));
+    expect(seen.size).toBe(8); // all indices except prev (0)
+  });
+
+  it("returns 0 when there is only one option", () => {
+    expect(nextIndex(0, 1)).toBe(0);
   });
 });

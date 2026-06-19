@@ -1,9 +1,11 @@
 /**
- * Which example index shows in each of `slotCount` slots at a given `cycle`. Each slot
- * is offset around the example ring so the visible chips stay distinct, and the whole set
- * advances one step per cycle (drifting rotation). Assumes total >= slotCount.
+ * A uniformly random index in `[0, count)` that differs from `prev` (when count > 1).
+ * Used to drop each suggested-query chip in a fresh spot, never repeating the spot it
+ * just left. Picks over the `count - 1` other slots, then skips `prev` to stay uniform.
  */
-export function visibleChips(cycle: number, slotCount: number, total: number): number[] {
-  const stride = Math.max(1, Math.floor(total / slotCount));
-  return Array.from({ length: slotCount }, (_, slot) => (cycle + slot * stride) % total);
+export function nextIndex(prev: number, count: number): number {
+  if (count <= 1) return 0;
+  let next = Math.floor(Math.random() * (count - 1));
+  if (next >= prev) next += 1;
+  return next;
 }
