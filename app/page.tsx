@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
@@ -111,9 +111,62 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
   );
 }
 
+/** Compact, scrollable modal of every driver's predicted stops. Click the backdrop or
+ *  press Escape to dismiss; fixed-position so it never stretches the card or the fog. */
+function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Per-driver stop strategy for the ${strategy.year} ${strategy.gp}`}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex max-h-[80vh] w-full max-w-xl flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl"
+      >
+        <div className="flex items-center justify-between border-b border-ink/10 px-5 py-3">
+          <div className="font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
+            {strategy.year} {strategy.gp} · per-driver stops
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full px-2 py-1 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-x-3 gap-y-5 overflow-y-auto p-5 sm:grid-cols-4">
+          {strategy.drivers.map((d) => (
+            <div key={d.driver} className="flex flex-col items-center gap-1">
+              <AsciiGlyph code={d.driver} team={d.team} size={52} />
+              <div className="font-grotesk text-xs font-bold text-ink">{d.driver}</div>
+              <div className="font-mono text-xs font-semibold text-ink/85">
+                {d.n_stops}-stop<span className="font-medium text-ink/55"> · {Math.round(d.confidence * 100)}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Strategy answer: race-level stop call first, then deg->stops narrative, SC caveat, secondary per-driver. */
 function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrative: string }) {
   const dom = strategy.dominant;
+  const [open, setOpen] = useState(false);
   return (
     <div className="fog-in flex flex-col items-center gap-7 text-center">
       <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
@@ -130,24 +183,15 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
       <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
       <p className={`max-w-lg font-grotesk text-[11px] text-amber-700 ${LEGIBLE} px-3 py-1.5`}>{strategy.sc_caveat}</p>
       {strategy.drivers.length > 0 && (
-        <details className="group mt-1 flex w-full max-w-lg flex-col items-center text-center">
-          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-ink/25 bg-white/90 px-4 py-2 font-grotesk text-xs font-semibold uppercase tracking-wide text-ink/75 shadow-sm backdrop-blur transition hover:border-accent hover:text-ink [&::-webkit-details-marker]:hidden">
-            <span aria-hidden className="transition-transform group-open:rotate-180">▾</span>
-            Per-driver detail
-          </summary>
-          <div className="mt-5 flex flex-wrap items-end justify-center gap-5">
-            {strategy.drivers.map((d) => (
-              <div key={d.driver} className="flex flex-col items-center gap-1">
-                <AsciiGlyph code={d.driver} team={d.team} size={64} />
-                <div className="font-grotesk text-sm font-bold text-ink">{d.driver}</div>
-                <div className={`font-mono text-sm font-semibold text-ink/85 ${LEGIBLE} px-2 py-0.5`}>
-                  {d.n_stops}-stop<span className="font-medium text-ink/55"> · {Math.round(d.confidence * 100)}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </details>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-ink/25 bg-white/90 px-4 py-2 font-grotesk text-xs font-semibold uppercase tracking-wide text-ink/75 shadow-sm backdrop-blur transition hover:border-accent hover:text-ink"
+        >
+          Per-driver detail
+        </button>
       )}
+      {open && <DriverStopsModal strategy={strategy} onClose={() => setOpen(false)} />}
     </div>
   );
 }
