@@ -1,7 +1,7 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-20.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-21.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
@@ -17,7 +17,13 @@
 > stop-count trust anchor (nb 06) reproduces verbatim, whole-branch review fix-then-merge (2
 > minors fixed), and verified on a live Vercel preview before merge. Branch
 > `m4-telemetry-differentiators` merged `--no-ff` (merge `986a422`) and DELETED (local + remote).
-> **Next milestone: M5 — private beta at a real 2026 weekend (the forcing function).**
+>
+> **M5 — private beta at a real 2026 weekend: IN PROGRESS on branch `m5-private-beta`
+> (NOT merged).** Data/ML core is DONE + validated; delivery layer is platform-staged.
+> See §6 below for full M5 status, the hybrid-staged architecture, and the exact next
+> command. Spec `docs/superpowers/specs/2026-06-21-m5-private-beta-design.md`; plan
+> `docs/superpowers/plans/2026-06-21-m5-private-beta.md` (with a "REVISION" section);
+> SDD ledger `.superpowers/sdd/progress.md`.
 
 ## 🎯 1. Current Goal & Status
 
@@ -347,3 +353,67 @@ invariants when extending: inference must never import fastf1; all training must
 output; keep all logic in `src/`; on the frontend keep the ASCII rendering on canvas (the
 `shaders` pkg can't ASCII-ify DOM) and gate all motion behind `prefers-reduced-motion`; and
 do not oversell predictions in any code, copy, or UI.
+
+## 🏁 6. M5 — Private beta (IN PROGRESS, branch `m5-private-beta`, NOT merged)
+
+**Goal:** issue predictions for a real 2026 weekend before quali, sharpen after, send to
+testers, log outcomes. Rolling beta: **Austrian GP (race 2026-06-28, non-sprint)** first,
+then **British GP (2026-07-05, sprint)**. Spec/plan/ledger paths in the header above.
+
+### De-risk gate (PASSED, `scripts/derisk_2026.py`)
+2026 is REAL in fastf1: 22 rounds, **Austria = round 8**, **7 rounds completed** with
+results (Australia, China, Japan, Miami, Canada, Monaco, Barcelona — note: no Bahrain/Saudi/
+Imola at the front this season; 2026 has BOTH "Barcelona GP" round 7 AND "Spanish GP"/Madrid
+later, as distinct keys). **Austria FP is pending** (weekend runs ~Jun 26) → telemetry lights
+up at issuance; podium is buildable now. Prior Austria (2024/2025) loads fine.
+
+### Architecture pivot (locked with owner): hybrid-staged
+A plan gap surfaced: the backtest builders derive a weekend's row from COMPLETED sessions
+(race pace + finish + grid), so they **cannot predict a future weekend**. Resolution:
+- **Podium = runtime target-row construction, no fastf1, no redeploy.** `src/inference/
+  upcoming.py` builds the Austria target row from `season_results` (standings/form) +
+  bundled historical pace (`prior_track_pace`) + entry list + optional grid (None → Friday
+  mode, filled → Saturday). `predict_upcoming_podium` appends it to history and runs
+  `predict_podium`. **This is the "issue before quali, sharpen after" mechanism.**
+- **Telemetry = scheduled GitHub Actions fastf1 job → Vercel Blob** (the "right after"
+  stage); `api/{pace,strategy}` read FP features from Blob. fastf1 NEVER runs serverless.
+- **Cron snapshots** the runtime predictions to Blob at checkpoints; `/weekend` reads latest.
+
+### DONE this session (18 commits; 137 pytest + 64 vitest + clean tsc)
+- Real 2026 calendar (`RACE_CALENDAR`, full `GP_TO_EVENT`; `calendar_order()` default now
+  flattens it). Austria + Britain curated track facts. `circuits.ts` 2026 normalization +
+  `DEFAULT_YEAR=2026` (orchestrate uses it).
+- **Recency-weighted training** (`src/inference/weights.py`, wired into pace + stop-count
+  `half_life_years=2.0`). **Re-validated: +0.070 stop-count edge holds with weights**
+  (`scripts/validate_recency_weights.py`, `notebooks/M5_RECENCY_RESULTS.md`). NOTE: the
+  plan's first validation script used the wrong model/metric (0.507) — the committed one
+  faithfully reproduces nb06's regressor+round anchor (0.641 baseline / 0.711 / +0.070).
+- **`src/inference/upcoming.py`** — target-row builder + runtime upcoming-podium (gap fixed:
+  real ranked bands, Fri→Sat sharpening; bands stay `calibrated:false`).
+- `load_results` gained `refresh_year` (live-season staleness).
+- Pure delivery cores: `app/lib/{snapshot,weekend-schedule,actuals,build-snapshot}.ts`
+  (schema/keys, checkpoint resolver, Brier+top-3 scoring, snapshot builder) +
+  `app/data/weekend-schedule.json` (Austria session times — UPDATE per weekend).
+
+### EXACT NEXT STEP — run R8 (heavy fastf1 batch, LOCAL, ~tens of minutes)
+```
+PYTHONPATH=. .venv/bin/python scripts/build_2026.py
+# then the cp lines it prints:
+cp data/pace_features.parquet data/strategy_features.parquet data/team_map.parquet data/season_results.parquet api/
+cp data/podium_features.parquet api/podium_features.parquet
+```
+Then smoke-test the runtime podium for Austria:
+```
+PYTHONPATH=. .venv/bin/python -c "import pandas as pd; from src.inference.upcoming import predict_upcoming_podium; \
+h=pd.read_parquet('api/podium_features.parquet'); sr=pd.read_parquet('api/season_results.parquet'); \
+pace=pd.read_parquet('api/pace_features.parquet'); \
+print(predict_upcoming_podium(h, sr, pace, 2026, 'Austria')['drivers'][:3])"
+```
+
+### REMAINING (platform-staged — live Vercel env + GitHub Actions; see ledger for the list)
+R11-glue (`api/podium.py` → `predict_upcoming_podium` + optional grid), `app/lib/blob.ts`
+(`@vercel/blob`), cron route `app/api/cron/snapshot/route.ts` + `api/results.py`
+(finishing-order) + `vercel.json` crons, `app/weekend/page.tsx`, R17 GitHub Actions
+telemetry job. Provision Vercel Blob; env `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`,
+`BLOB_PUBLIC_BASE_URL`, `SELF_BASE_URL` on Preview + Prod. Then deploy + live-verify.
+**Phase C (sprint-aware podium for British GP) is a separate later plan.**
