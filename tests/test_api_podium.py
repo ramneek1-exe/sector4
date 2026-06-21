@@ -32,3 +32,9 @@ def test_podium_unknown_circuit_is_qualitative_not_error():
     assert status == 200
     assert payload["qualitative"] is True
     assert payload["drivers"] == []
+
+
+def test_podium_handler_includes_team():
+    status, payload = podium_response({"year": 2024, "gp": "Italy"})
+    assert status == 200
+    assert "team" in payload["drivers"][0]

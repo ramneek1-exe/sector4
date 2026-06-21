@@ -1,3 +1,131 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* ASCII / Dither ramp, dark -> light (PRD §8 reference image) */
+  --ramp-0: #0b1e6b;
+  --ramp-1: #1e3fd0;
+  --ramp-2: #2e8bff;
+  --ramp-3: #59c8ff;
+  --ramp-4: #b8e2ff;
+  --ramp-5: #eef6ff;
+}
+
+body {
+  background: #fafafa;
+  color: #0b1020;
+}
+
+/* Content emerges from the fog — fade + rise. Disabled for reduced motion. */
+@keyframes fogIn {
+  from { opacity: 0; transform: translateY(10px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.fog-in {
+  animation: fogIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fog-in {
+    animation: none;
+  }
+}
+
+
+/* Suggested-query chips: fade in at a spot, linger, fade out as the rotation advances.
+   Chips are edge-anchored (no X-centring), so animate only opacity + a small Y drift. */
+@keyframes chip-drift {
+  0% { opacity: 0; transform: translateY(6px); }
+  14% { opacity: 1; transform: translateY(0); }
+  86% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+.chip-drift {
+  animation: chip-drift 2.6s ease-in-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-drift {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Query bar: soft breathing underglow while focused. Sits BELOW the bar, full width,
+   behind the (opaque) input — so it only shows under the bar, never through it. */
+/* Breathing loop starts at the focus opacity (0.85) so it picks up seamlessly
+   where the fade-in transition lands — no snap. */
+@keyframes bar-glow {
+  0%, 100% { opacity: 0.85; transform: scaleX(0.97); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+.bar-shell {
+  position: relative;
+}
+.bar-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin-top: -8px;
+  height: 16px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--ramp-1), var(--ramp-3));
+  filter: blur(12px);
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+.bar-shell:focus-within::after {
+  opacity: 0.85;
+  /* Delay the breathing loop until the fade-in transition has landed at 0.85,
+     so the glow eases in rather than snapping. */
+  animation: bar-glow 2.8s ease-in-out 0.35s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar-shell:focus-within::after {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Ask-button tyre: rolls in from the left edge, then spins in place. */
+@keyframes tyre-rollin {
+  from { transform: translateX(-240%); }
+  to { transform: translateX(0); }
+}
+@keyframes tyre-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes tyre-rollout {
+  from { transform: translateX(0); }
+  to { transform: translateX(240%); }
+}
+.tyre-rollin {
+  animation: tyre-rollin 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.tyre-rollout {
+  animation: tyre-rollout 0.45s cubic-bezier(0.55, 0, 0.67, 0.2) both;
+}
+.tyre-spin {
+  animation: tyre-spin 0.85s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tyre-rollin,
+  .tyre-rollout,
+  .tyre-spin {
+    animation: none;
+  }
+}
+
+/* Text legibility wash over the fog — a feathered white radial that fades to transparent.
+   No border, no defined shape (edgeless, like the ascii fog). Padding gives the feather room. */
+.legible {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(250, 250, 250, 0.92) 0%,
+    rgba(250, 250, 250, 0.85) 50%,
+    rgba(250, 250, 250, 0) 82%
+  );
+}

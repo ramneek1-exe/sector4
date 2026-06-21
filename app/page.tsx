@@ -1,78 +1,118 @@
 "use client";
 
 import { useState } from "react";
-import { Reveal } from "@/app/components/Reveal";
+import { AsciiFog } from "@/app/components/AsciiFog";
+import { AsciiGlyph } from "@/app/components/AsciiGlyph";
+import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
+import { TyreSpinner } from "@/app/components/TyreSpinner";
+import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts } from "@/app/lib/narrative";
+import type { PodiumFacts, StatFacts } from "@/app/lib/narrative";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
 
-const BAND_STYLE: Record<string, string> = {
-  strong: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-  "in contention": "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  "outside shot": "bg-zinc-500/10 text-zinc-400 border-zinc-600/40",
+const BAND_TEXT: Record<string, string> = {
+  strong: "text-emerald-600",
+  "in contention": "text-amber-600",
+  "outside shot": "text-slate-400",
 };
 
-function PodiumCard({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
+const EXAMPLES = [
+  "Who is likely to podium at the 2024 Italian Grand Prix?",
+  "Monza 2025 podium",
+  "How much time is lost in the pit lane at Monaco?",
+  "Who podiums at the 2024 Abu Dhabi Grand Prix?",
+  "Bahrain 2024 podium odds",
+  "Las Vegas 2024 podium",
+  "How much time is lost in the pit lane at Monza?",
+];
+
+// Subtle white backing so text stays legible over the fog — feathered to transparent,
+// no defined shape/border (edgeless, like the fog itself). See `.legible` in globals.css.
+const LEGIBLE = "legible";
+
+/** Top-4 podium as a horizontal helmet lineup — ASCII helmet + code under each. No box. */
+function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
   return (
-    <div className="rounded border border-zinc-800 p-5">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-xl font-bold tracking-tight">
-          {podium.year} {podium.gp} — podium odds
-        </h2>
-        {podium.mode && (
-          <span className="text-xs uppercase tracking-wide text-zinc-500">{podium.mode}</span>
-        )}
+    <div className="fog-in flex flex-col items-center gap-9 text-center">
+      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
+        {podium.year} {podium.gp} · podium odds
+        {podium.mode ? ` · ${podium.mode}` : ""}
       </div>
 
       {podium.drivers.length > 0 ? (
-        <ol className="mt-4 space-y-1.5">
-          {podium.drivers.slice(0, 6).map((d) => (
-            <li key={d.driver} className="flex items-center gap-3">
-              <span className="w-5 text-right text-sm tabular-nums text-zinc-500">{d.rank}</span>
-              <span className="w-12 font-mono text-sm font-semibold">{d.driver}</span>
-              <span
-                className={`rounded border px-2 py-0.5 text-xs font-medium ${
-                  BAND_STYLE[d.band] ?? BAND_STYLE["outside shot"]
+        <div className="flex items-end justify-center gap-6 sm:gap-10">
+          {podium.drivers.slice(0, 4).map((d) => (
+            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+              <AsciiGlyph code={d.driver} team={d.team} size={96} />
+              <div className="mt-2 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
+              <div
+                className={`font-grotesk text-[11px] font-semibold uppercase tracking-wide ${
+                  BAND_TEXT[d.band] ?? BAND_TEXT["outside shot"]
                 }`}
               >
                 {d.band}
-              </span>
-              <span className="ml-auto text-xs tabular-nums text-zinc-600">p≈{d.p_podium}</span>
-            </li>
+              </div>
+              <div className="font-mono text-[11px] text-muted">p≈{d.p_podium}</div>
+            </div>
           ))}
-        </ol>
+        </div>
       ) : (
-        <p className="mt-4 text-zinc-400">
-          {podium.reason ?? "Not enough data for this weekend yet."}
-        </p>
+        <p className="text-muted">{podium.reason ?? "Not enough data for this weekend yet."}</p>
       )}
 
-      <p className="mt-4 text-zinc-300">{narrative}</p>
-      <p className="mt-3 text-xs text-zinc-600">
-        Honest bands, not precise %s — the p values are the model’s raw probabilities and are
-        <span className="text-zinc-500"> not yet calibrated</span>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
+        Honest bands, not precise %s — the p values are the model’s raw probabilities and are not yet
+        calibrated
         {typeof podium.n_train_races === "number" && ` · trained on ${podium.n_train_races} prior weekends`}.
       </p>
     </div>
   );
 }
 
+/** Computed-stat answer (e.g. pit-loss). No box. */
+function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
+  return (
+    <div className="fog-in flex flex-col items-center gap-4 text-center">
+      <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
+        {facts.value}
+        <span className="ml-1 text-3xl text-muted">{facts.units}</span>
+      </div>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <p className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>Source: {facts.source}</p>
+    </div>
+  );
+}
+
+/** Pre-query state: a hint + example queries, sitting in the same fog as the answers. */
+function EmptyState({ onPick }: { onPick: (q: string) => void }) {
+  return (
+    <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
+      <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
+        Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
+      </p>
+      <QueryChips examples={EXAMPLES} onPick={onPick} />
+    </div>
+  );
+}
+
 export default function Home() {
-  const [query, setQuery] = useState("How much time is lost in the pit lane at Monaco?");
+  const [query, setQuery] = useState(EXAMPLES[0]);
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
-  async function ask(e: React.FormEvent) {
-    e.preventDefault();
+  async function run(q: string) {
     setLoading(true);
+    setLoadingLine(pickLoadingLine());
     setAnswer(null);
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: q }),
       });
       setAnswer(await res.json());
     } catch {
@@ -83,41 +123,74 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">SECTOR 4</h1>
-      <form onSubmit={ask} className="flex gap-2">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm outline-none focus:border-zinc-400"
-          placeholder="Ask about a race weekend…"
-        />
-        <button className="rounded bg-zinc-100 px-4 py-2 text-sm font-medium text-black" disabled={loading}>
-          {loading ? "…" : "Ask"}
+    <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void run(query);
+        }}
+        className="flex w-full max-w-xl gap-2"
+      >
+        <div className="bar-shell flex-1">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-12 w-full rounded-full border border-ink/15 bg-white px-5 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
+            placeholder="Ask about a race weekend…"
+          />
+        </div>
+        <button
+          className={`relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-7 font-grotesk text-lg font-medium shadow-sm transition duration-200 motion-reduce:hover:translate-y-0 ${
+            loading
+              ? "bg-[#f3f3f3] text-ink"
+              : "bg-accent text-white hover:-translate-y-px hover:bg-[#1b39b0]"
+          }`}
+          disabled={loading}
+          aria-busy={loading}
+        >
+          {/* Label stays in the DOM (invisible while loading) to hold the button width. */}
+          <span className={`block transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}>
+            Ask
+          </span>
+          <TyreSpinner active={loading} size={30} />
         </button>
       </form>
 
-      <div className="mt-10">
-        <Reveal active={loading || answer !== null}>
-          {answer && "supported" in answer && answer.supported && "facts" in answer && (
-            <div className="rounded border border-zinc-800 p-5">
-              <div className="text-4xl font-bold">
-                {answer.facts.value}
-                <span className="ml-1 text-lg text-zinc-400">{answer.facts.units}</span>
-              </div>
-              <p className="mt-3 text-zinc-300">{answer.narrative}</p>
-              <p className="mt-3 text-xs text-zinc-600">Source: {answer.facts.source}</p>
-            </div>
-          )}
-          {answer && "supported" in answer && answer.supported && "podium" in answer && (
-            <PodiumCard podium={answer.podium} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && !answer.supported && (
-            <p className="text-zinc-400">{answer.message}</p>
-          )}
-          {answer && "error" in answer && <p className="text-red-400">Error: {answer.error}</p>}
-        </Reveal>
-      </div>
+      {/* Action zone — the ONLY place the living ASCII fog animates, directly under the bar. */}
+      <section className="relative flex min-h-[600px] w-full items-center justify-center">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-screen max-w-[1500px] -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(ellipse_70%_64%_at_50%_50%,black_0%,transparent_72%)]">
+          <AsciiFog className="h-full w-full" />
+        </div>
+        {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_46%_50%_at_50%_50%,rgba(250,250,250,0.74),rgba(250,250,250,0.3)_55%,transparent_75%)]"
+        />
+
+        {!answer && !loading && (
+          <EmptyState
+            onPick={(q) => {
+              setQuery(q);
+              void run(q);
+            }}
+          />
+        )}
+        {loading && (
+          <p className={`fog-in font-pixel text-3xl tracking-wide text-ink/75 ${LEGIBLE} px-4 py-2`}>{loadingLine}</p>
+        )}
+        {answer && "supported" in answer && answer.supported && "facts" in answer && (
+          <StatAnswer facts={answer.facts} narrative={answer.narrative} />
+        )}
+        {answer && "supported" in answer && answer.supported && "podium" in answer && (
+          <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
+        )}
+        {answer && "supported" in answer && !answer.supported && (
+          <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
+        )}
+        {answer && "error" in answer && (
+          <p className={`fog-in text-center font-grotesk text-red-600 ${LEGIBLE} px-4 py-2`}>Error: {answer.error}</p>
+        )}
+      </section>
     </main>
   );
 }

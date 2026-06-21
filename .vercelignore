@@ -1,10 +1,12 @@
 # Keep deploy uploads lean — exclude local-only dirs Vercel rebuilds or never needs.
+# Root-anchor cache/ and data/ (leading slash) so they DON'T also strip app/data/*
+# (the glyph source-of-truth JSON) or any future app/cache — same semantics as .gitignore.
 .venv/
 venv/
 __pycache__/
 .pytest_cache/
-cache/
-data/
+/cache/
+/data/
 .next/
 node_modules/
 notebooks/

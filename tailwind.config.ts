@@ -2,7 +2,25 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}"],
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      colors: {
+        bg: "#FAFAFA",
+        ink: "#0B1020",
+        accent: "#2348E0",
+        "accent-bright": "#2E8BFF",
+        muted: "#5B6B8C",
+      },
+      fontFamily: {
+        bebas: ["var(--font-bebas)", "sans-serif"],
+        grotesk: ["var(--font-grotesk)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
+        lastik: ["var(--font-lastik)", "serif"],
+        "pixel-serif": ["var(--font-pixel-serif)", "serif"],
+        pixel: ["var(--font-pixel)", "monospace"],
+      },
+    },
+  },
   plugins: [],
 };
 export default config;

@@ -62,9 +62,11 @@ def predict_podium(year: int, gp: str, mode: str = "auto",
     model.fit(prior[cols], prior["podium"])
     proba = model.predict_proba(target[cols])[:, 1]
 
+    teams = target["team"] if "team" in target else [None] * len(target)
     drivers = [
-        {"driver": d, "band": band_for(float(p)), "p_podium": round(float(p), 2)}
-        for d, p in zip(target["Driver"], proba)
+        {"driver": d, "team": (None if pd.isna(t) else t),
+         "band": band_for(float(p)), "p_podium": round(float(p), 2)}
+        for d, p, t in zip(target["Driver"], proba, teams)
     ]
     drivers.sort(key=lambda r: r["p_podium"], reverse=True)
     for i, d in enumerate(drivers, start=1):
