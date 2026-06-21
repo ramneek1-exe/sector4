@@ -21,7 +21,9 @@ export async function buildSnapshot(
   const fetchPrediction =
     deps?.fetchPrediction ??
     (async (path, body) => {
-      const base = process.env.SELF_BASE_URL ?? "";
+      // On Vercel, a function calls its own deployment via VERCEL_URL (host only).
+      const host = process.env.VERCEL_URL ?? process.env.SELF_BASE_URL;
+      const base = host ? (host.startsWith("http") ? host : `https://${host}`) : "";
       const res = await fetch(`${base}${path}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
