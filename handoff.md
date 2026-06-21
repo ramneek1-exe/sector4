@@ -407,16 +407,32 @@ RUSSELL,LEC,VER in contention; full-grid request → `saturday`. 144 pytest + 64
 clean. To rebuild tables (e.g. after a new round): rerun `build_2026.py` then the `cp` lines
 it prints.
 
-### EXACT NEXT STEP — the delivery layer (platform-staged, needs live Vercel + Blob)
-1. `app/lib/blob.ts` — `@vercel/blob` `putJson`/`getJson` (the pure schema/keys, schedule
-   resolver, calibration math, and snapshot builder are already done + tested in `app/lib/`).
-2. `app/api/cron/snapshot/route.ts` (idempotent, reads `app/data/weekend-schedule.json` via
-   `dueCheckpoint`, calls `buildSnapshot`, writes Blob) + `api/results.py` (finishing order)
-   + `vercel.json` `crons`.
-3. `app/weekend/page.tsx` — reads latest snapshot from Blob; reuse the prediction cards.
-4. R17 GitHub Actions fastf1→Blob telemetry job + `api/{pace,strategy}` read Blob.
-5. Provision Vercel Blob; env `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, `BLOB_PUBLIC_BASE_URL`,
-   `SELF_BASE_URL` (Preview + Prod); deploy + live-verify `/api/podium {2026,Austria}` and
-   `/api/ask` "who podiums in Austria?".
+### Delivery layer — BUILT + LIVE-VERIFIED on preview (branch `m5-private-beta`, PR #4)
+`app/lib/blob.ts` (`@vercel/blob` putJson/getJson), `app/api/cron/snapshot/route.ts`
+(idempotent, CRON_SECRET-auth, dueCheckpoint→buildSnapshot→Blob; final→actuals→calibration),
+`api/results.py` (finishing order), `app/weekend/page.tsx` (reads latest snapshot),
+`vercel.json` crons. Verified live on preview `sector4-git-m5-private-beta-…vercel.app`:
+`/api/podium {2026,Austria}`→HAM strong 0.68 friday; `/api/ask`→grounded narrative;
+`/api/results`→order; `/api/cron/snapshot` (authed, force-test)→snapshotted; `/weekend`
+rendered the frozen Blob snapshot. **Full cron→Blob→/weekend loop confirmed.**
+
+**Deploy gotchas learned (load-bearing):** (a) **Hobby plan allows only DAILY crons** —
+`vercel.json` cron MUST be daily (`0 6 * * *`); a sub-daily expr makes EVERY deploy fail
+silently (no deployment record). (b) **Blob store must be PUBLIC** — `putJson` uses
+`access:"public"` and `/weekend` reads via plain fetch; a private store throws "Cannot use
+public access on a private store". (c) `BLOB_READ_WRITE_TOKEN` is the var the SDK needs
+(not BLOB_STORE_ID/BLOB_WEBHOOK_PUBLIC_KEY) — on Prod+Preview. (d) env changes need a
+redeploy to take effect.
+
+### REMAINING
+1. **OWNER cleanup from the force-test:** delete test blobs `weekends/2026-Austria/
+   {pre-quali,latest}.json` (else idempotency skips the real Jun-26 snapshot); rotate
+   `CRON_SECRET` off the throwaway `s4-cron-test` back to a random sensitive value (redeploy).
+2. **R17** — GitHub Actions fastf1→Blob telemetry job + `api/{pace,strategy}` overlay Blob FP
+   features (pace/stop-count currently return qualitative for Austria until FP exists).
+3. **Polish** — reuse the glyph cards + grounded narratives on `/weekend` (currently a
+   functional list).
+4. **Merge decision** — PR #4 → `main` (production cron fires daily; prod env already has the
+   keys). Update `weekend-schedule.json` per weekend before each beta round.
 
 **Phase C (sprint-aware podium for British GP) is a separate later plan.**
