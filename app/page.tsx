@@ -115,13 +115,26 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
 /** Compact, scrollable modal of every driver's predicted stops. Click the backdrop or
  *  press Escape to dismiss; fixed-position so it never stretches the card or the fog. */
 function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onClose: () => void }) {
+  // `show` drives the enter/exit transition; closing fades out THEN unmounts (via onClose).
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setShow(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  const close = () => {
+    setShow(false);
+    window.setTimeout(onClose, 180); // matches the transition duration
+  };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (typeof document === "undefined") return null;
 
@@ -130,12 +143,16 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
       role="dialog"
       aria-modal="true"
       aria-label={`Per-driver stop strategy for the ${strategy.year} ${strategy.gp}`}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm"
+      onClick={close}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none ${
+        show ? "opacity-100" : "opacity-0"
+      }`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[70vh] w-full max-w-sm flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl"
+        className={`relative flex max-h-[70vh] w-full max-w-sm flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl transition duration-200 ease-out motion-reduce:transition-none ${
+          show ? "scale-100 opacity-100" : "scale-95 opacity-0"
+        }`}
       >
         <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
           <div className="font-grotesk text-[11px] font-semibold uppercase tracking-wide text-muted">
@@ -143,7 +160,7 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={close}
             aria-label="Close"
             className="rounded-full px-2 py-0.5 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
           >
@@ -155,7 +172,7 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
             <div key={d.driver} className="flex flex-col items-center gap-0.5">
               <AsciiGlyph code={d.driver} team={d.team} size={42} />
               <div className="font-grotesk text-[11px] font-bold text-ink">{d.driver}</div>
-              <div className="font-mono text-[11px] font-semibold text-ink/85">
+              <div className="font-mono text-[11px] font-semibold leading-tight text-ink/85">
                 {d.n_stops}-stop<span className="font-medium text-ink/55"> · {Math.round(d.confidence * 100)}%</span>
               </div>
             </div>
