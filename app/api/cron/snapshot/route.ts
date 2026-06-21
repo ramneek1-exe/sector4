@@ -48,11 +48,8 @@ export async function GET(req: Request) {
   try {
     return await run();
   } catch (e) {
-    // TEMP diagnostic (force-test): surface the failure instead of a blank 500.
-    return NextResponse.json(
-      { error: "snapshot failed", detail: String(e), hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN },
-      { status: 500 },
-    );
+    console.error("cron snapshot failed", e);
+    return NextResponse.json({ error: "snapshot failed" }, { status: 500 });
   }
 }
 
