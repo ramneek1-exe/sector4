@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
@@ -122,7 +123,9 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
@@ -132,34 +135,35 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[80vh] w-full max-w-xl flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl"
+        className="relative flex max-h-[70vh] w-full max-w-sm flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl"
       >
-        <div className="flex items-center justify-between border-b border-ink/10 px-5 py-3">
-          <div className="font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
+        <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
+          <div className="font-grotesk text-[11px] font-semibold uppercase tracking-wide text-muted">
             {strategy.year} {strategy.gp} · per-driver stops
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full px-2 py-1 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
+            className="rounded-full px-2 py-0.5 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
           >
             ✕
           </button>
         </div>
-        <div className="grid grid-cols-3 gap-x-3 gap-y-5 overflow-y-auto p-5 sm:grid-cols-4">
+        <div className="grid min-h-0 grid-cols-3 gap-x-2 gap-y-4 overflow-y-auto p-4 sm:grid-cols-4">
           {strategy.drivers.map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-1">
-              <AsciiGlyph code={d.driver} team={d.team} size={52} />
-              <div className="font-grotesk text-xs font-bold text-ink">{d.driver}</div>
-              <div className="font-mono text-xs font-semibold text-ink/85">
+            <div key={d.driver} className="flex flex-col items-center gap-0.5">
+              <AsciiGlyph code={d.driver} team={d.team} size={42} />
+              <div className="font-grotesk text-[11px] font-bold text-ink">{d.driver}</div>
+              <div className="font-mono text-[11px] font-semibold text-ink/85">
                 {d.n_stops}-stop<span className="font-medium text-ink/55"> · {Math.round(d.confidence * 100)}%</span>
               </div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
