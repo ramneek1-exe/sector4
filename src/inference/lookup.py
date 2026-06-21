@@ -9,7 +9,7 @@ from __future__ import annotations
 import pandas as pd
 
 from src import store
-from src.features.track import track_features
+from src.features.track import CURATED_TRACKS, track_features
 
 PIT_LOSS = "pit_loss"
 TYRE_DEG = "tyre_deg"
@@ -19,6 +19,9 @@ STINT_LENGTH = "stint_length"
 def lookup_stat(stat: str, gp: str, table: pd.DataFrame | None = None) -> dict:
     """Return a computed stat for a circuit as a typed, rounded dict."""
     if stat == PIT_LOSS:
+        if gp not in CURATED_TRACKS:
+            return {"stat": stat, "gp": gp, "value": None, "units": None,
+                    "source": "not available for this circuit"}
         tf = track_features(gp)
         return {"stat": stat, "gp": gp, "value": round(float(tf["pit_loss_s"]), 1),
                 "units": "s", "source": "curated track features"}

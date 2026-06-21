@@ -49,3 +49,16 @@ def test_pit_loss_monaco_is_curated():
     assert out["value"] == 19.5
     assert out["units"] == "s"
     assert out["source"] == "curated track features"
+
+
+def test_pit_loss_non_curated_circuit_is_honestly_unavailable():
+    out = lookup_stat("pit_loss", "Imola")
+    assert out["value"] is None
+    assert out["units"] is None
+    assert out["source"] == "not available for this circuit"
+
+
+def test_pit_loss_curated_circuit_still_returns_value():
+    out = lookup_stat("pit_loss", "Spain")
+    assert out["value"] == 21.0
+    assert out["source"] == "curated track features"

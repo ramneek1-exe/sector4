@@ -22,3 +22,10 @@ def test_unknown_track_returns_neutral_defaults_not_crash():
     feats = track_features("Nowhere GP")
     for col in TRACK_FEATURE_COLS:
         assert col in feats
+
+
+def test_curated_tracks_are_the_explicit_track_keys():
+    from src.features.track import CURATED_TRACKS, _TRACKS
+    assert CURATED_TRACKS == frozenset(_TRACKS)
+    assert "Monaco" in CURATED_TRACKS
+    assert "Imola" not in CURATED_TRACKS
