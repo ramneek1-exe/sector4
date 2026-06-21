@@ -146,8 +146,23 @@ def build_podium_table(pace_df: pd.DataFrame, results: pd.DataFrame,
     return df
 
 
+def build_team_map(results: pd.DataFrame, gp_to_event: dict = GP_TO_EVENT) -> pd.DataFrame:
+    """Year-correct driver->team map keyed on the SHORT gp (glyph metadata, no I/O).
+
+    `results.gp` holds the fastf1 EventName ("Italian Grand Prix"); map it back to the
+    short feature-table key ("Italy") and drop events outside the curated slice.
+    """
+    event_to_gp = {event: short for short, event in gp_to_event.items()}
+    tm = results.rename(columns={"gp": "event"})[["year", "event", "Driver", "team"]].copy()
+    tm["gp"] = tm["event"].map(event_to_gp)
+    tm = tm.dropna(subset=["gp"]).drop_duplicates(subset=["year", "gp", "Driver"])
+    return tm[["year", "gp", "Driver", "team"]].reset_index(drop=True)
+
+
 def build_all() -> None:
-    """Build and persist both feature tables to the store paths."""
+    """Build and persist the feature tables + team map to the store paths."""
     store.write_table(build_pace_table(), store.PACE_TABLE)
     store.write_table(build_strategy_table(), store.STRATEGY_TABLE)
     logger.info("Wrote %s and %s", store.PACE_TABLE, store.STRATEGY_TABLE)
+    store.write_table(build_team_map(store.read_table(store.SEASON_RESULTS)), store.TEAM_MAP)
+    logger.info("Wrote %s", store.TEAM_MAP)
