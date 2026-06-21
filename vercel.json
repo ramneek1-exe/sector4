@@ -11,6 +11,12 @@
     },
     "api/strategy.py": {
       "includeFiles": "{src/**,api/strategy_features.parquet,api/team_map.parquet}"
+    },
+    "api/results.py": {
+      "includeFiles": "{src/**,api/season_results.parquet}"
     }
-  }
+  },
+  "crons": [
+    { "path": "/api/cron/snapshot", "schedule": "0 */2 * * *" }
+  ]
 }
