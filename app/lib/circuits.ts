@@ -4,7 +4,11 @@
 // Scope is deliberately the 8 circuits we have data for — anything else returns null
 // and the caller surfaces an honest "not in this slice" message (no fake number).
 
+// The live beta season — used when the parser omits a year.
+export const DEFAULT_YEAR = 2026;
+
 export const CANONICAL_CIRCUITS = [
+  // validated dry set (2023-25)
   "Bahrain",
   "Saudi Arabia",
   "Spain",
@@ -13,6 +17,15 @@ export const CANONICAL_CIRCUITS = [
   "Mexico City",
   "Las Vegas",
   "Abu Dhabi",
+  // 2026 calendar circuits (through Austria + the next, Britain)
+  "Australia",
+  "China",
+  "Japan",
+  "Miami",
+  "Canada",
+  "Monaco",
+  "Austria",
+  "Great Britain",
 ] as const;
 
 // Common aliases (lowercased) → canonical key. Includes the country/circuit/city
@@ -42,6 +55,36 @@ const ALIASES: Record<string, string> = {
   vegas: "Las Vegas",
   "abu dhabi": "Abu Dhabi",
   "yas marina": "Abu Dhabi",
+  // 2026 calendar circuits. NOTE: "barcelona"/"catalunya" stay mapped to "Spain"
+  // (the historical dry-set key); 2026 also has a distinct "Barcelona Grand Prix"
+  // (round 7) used only as training history, never a query target, so the collision
+  // is harmless for the beta. Revisit if full-calendar querying needs both keys.
+  australia: "Australia",
+  australian: "Australia",
+  melbourne: "Australia",
+  "albert park": "Australia",
+  china: "China",
+  chinese: "China",
+  shanghai: "China",
+  japan: "Japan",
+  japanese: "Japan",
+  suzuka: "Japan",
+  miami: "Miami",
+  canada: "Canada",
+  canadian: "Canada",
+  montreal: "Canada",
+  monaco: "Monaco",
+  "monte carlo": "Monaco",
+  montecarlo: "Monaco",
+  austria: "Austria",
+  austrian: "Austria",
+  "red bull ring": "Austria",
+  spielberg: "Austria",
+  britain: "Great Britain",
+  british: "Great Britain",
+  "great britain": "Great Britain",
+  silverstone: "Great Britain",
+  uk: "Great Britain",
 };
 
 const STOPWORDS = new Set(["grand", "grands", "prix", "circuit", "gp", "the"]);

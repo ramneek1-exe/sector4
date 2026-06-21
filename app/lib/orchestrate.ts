@@ -1,10 +1,8 @@
 import type { ParsedQuery } from "./parser";
 import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts } from "./narrative";
-import { normalizeCircuit, normalizeLookupCircuit } from "./circuits";
+import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 
-// Year used when a prediction question names no season. 2024 has all 8 circuits with a
-// real (non-warmup) prediction, so it's the safest default for this historical slice.
-const DEFAULT_YEAR = 2024;
+// Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
 
 export type AnswerDeps = {
@@ -32,8 +30,8 @@ const UNSUPPORTED =
   "degradation, or stint length) for one of the supported circuits.";
 
 const unsupportedSlice = (raw: string) =>
-  `Predictions cover these 8 circuits for 2024–25: Bahrain, Saudi Arabia, Spain, Hungary, ` +
-  `Italy, Mexico City, Las Vegas, Abu Dhabi. “${raw}” isn’t one of them yet.`;
+  `Predictions cover the validated dry-weekend circuits plus the live 2026 calendar; ` +
+  `“${raw}” isn’t one of the supported circuits yet.`;
 
 const unsupportedLookup = (raw: string) =>
   `That stat isn’t available for “${raw}” yet — supported circuits are the 8 dry-weekend ` +
