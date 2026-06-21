@@ -14,10 +14,12 @@
 > stint-length lookups and a pit-loss honesty fix (non-curated circuits → honest "not
 > available", never the 21.0 default). 121 pytest + 51 vitest pass, `npm run build` clean,
 > the +0.070 stop-count trust anchor (nb 06) reproduces verbatim, and a whole-branch code
-> review came back fix-then-merge (only 2 minors, both fixed). **REMAINING: live preview
-> deploy verification (the Next↔Python hop only works on a real deploy — set
-> `ANTHROPIC_API_KEY` on the Preview env) then merge. Next milestone after M4: M5 — private
-> beta at a real 2026 weekend (the forcing function).**
+> review came back fix-then-merge (only 2 minors, both fixed). **VERIFIED ON A LIVE VERCEL
+> PREVIEW** (branch push → git-integration build `dpl_J1vBUr4NGQpaX5iJk5uhDmVJQxx5`, READY,
+> 4 Python lambdas): `/api/pace`, `/api/strategy`, deg/stint lookups, non-curated pit-loss
+> (honest `null`), and `/api/ask` end-to-end (pace/strategy/deg, circuit aliases normalized,
+> grounded narratives) all return correctly. **REMAINING: merge the branch (owner decision).
+> Next milestone after M4: M5 — private beta at a real 2026 weekend (the forcing function).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -315,8 +317,12 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      "from src.pipeline import build_all; build_all()"` then `cp data/{pace,strategy}_
      features.parquet data/team_map.parquet api/`.
    - **VERIFIED locally:** 121 pytest + 51 vitest pass, `npm run build` clean, nb 06 trust
-     anchor +0.070 verbatim. **REMAINING (Task 14): live preview deploy + browser check
-     (set `ANTHROPIC_API_KEY` on Preview), then merge the branch.**
+     anchor +0.070 verbatim. **VERIFIED on a live Vercel preview** (`sector4-j0tvoxvt6-…
+     vercel.app`, deploy `dpl_J1vBUr4NGQpaX5iJk5uhDmVJQxx5`): all four Python lambdas built;
+     `/api/pace`, `/api/strategy`, deg/stint lookups, non-curated pit-loss (honest `null`),
+     and `/api/ask` end-to-end (pace/strategy/deg, aliases normalized, grounded narratives)
+     all correct. **REMAINING: merge the branch (owner decision). Optional: owner browser
+     eyeball of the PaceCard/StrategyCard visuals.**
    Then **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
    M7 breadth+polish. See PRD §11.
 
