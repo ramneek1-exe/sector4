@@ -186,32 +186,44 @@ RACE_CALENDAR: dict[int, list[str]] = {
     2023: DRY_CIRCUITS,
     2024: DRY_CIRCUITS,
     2025: DRY_CIRCUITS,
-    # FILL from scripts/derisk_2026.py output (real 2026 round order up to Austria):
-    2026: ["Bahrain", "Saudi Arabia", "Australia", "Japan", "China",
-           "Miami", "Emilia Romagna", "Monaco", "Canada", "Spain", "Austria"],
+    # REAL 2026 round order through Austria, from scripts/derisk_2026.py (rounds 1-8;
+    # round 8 Austria is the upcoming target, rounds 1-7 completed). NOTE: 2026 has both
+    # "Barcelona Grand Prix" (round 7, Catalunya) AND "Spanish Grand Prix" (Madrid, later)
+    # — keep them as DISTINCT keys. No Bahrain/Saudi at the front this season.
+    2026: ["Australia", "China", "Japan", "Miami", "Canada", "Monaco",
+           "Barcelona", "Austria"],
 }
 
-# Extend the event map to every circuit RACE_CALENDAR references.
+# Extend the event map to every circuit RACE_CALENDAR references. 2026 event names are
+# the REAL fastf1 strings from the de-risk probe.
 GP_TO_EVENT = {
+    # validation dry set (2023-25 short keys)
     "Bahrain": "Bahrain Grand Prix",
     "Saudi Arabia": "Saudi Arabian Grand Prix",
-    "Australia": "Australian Grand Prix",
-    "Japan": "Japanese Grand Prix",
-    "China": "Chinese Grand Prix",
-    "Miami": "Miami Grand Prix",
-    "Emilia Romagna": "Emilia Romagna Grand Prix",
-    "Monaco": "Monaco Grand Prix",
-    "Canada": "Canadian Grand Prix",
     "Spain": "Spanish Grand Prix",
-    "Austria": "Austrian Grand Prix",
     "Hungary": "Hungarian Grand Prix",
     "Italy": "Italian Grand Prix",
     "Mexico City": "Mexico City Grand Prix",
     "Las Vegas": "Las Vegas Grand Prix",
     "Abu Dhabi": "Abu Dhabi Grand Prix",
+    # 2026 calendar circuits (real fastf1 EventNames)
+    "Australia": "Australian Grand Prix",
+    "China": "Chinese Grand Prix",
+    "Japan": "Japanese Grand Prix",
+    "Miami": "Miami Grand Prix",
+    "Canada": "Canadian Grand Prix",
+    "Monaco": "Monaco Grand Prix",
+    "Barcelona": "Barcelona Grand Prix",
+    "Austria": "Austrian Grand Prix",
     "Great Britain": "British Grand Prix",
 }
 ```
+
+> Real 2026 schedule (round order) from the probe: Australia, China, Japan, Miami,
+> Canada, Monaco, Barcelona, **Austria** (round 8, upcoming), British, Belgian,
+> Hungarian, Dutch, Italian, Spanish (Madrid), Azerbaijan, Singapore, United States,
+> Mexico City, São Paulo, Las Vegas, Qatar, Abu Dhabi. Validate short-key spelling
+> against fastf1 when extending past Austria (esp. the Barcelona vs Spanish split).
 
 ```python
 def calendar_order(seasons: list[int] | None = None,
