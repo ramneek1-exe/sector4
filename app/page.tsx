@@ -9,15 +9,10 @@ import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
+import { BAND_TEXT } from "@/app/lib/bands";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
-
-const BAND_TEXT: Record<string, string> = {
-  strong: "text-emerald-600",
-  "in contention": "text-amber-600",
-  "outside shot": "text-slate-400",
-};
 
 // Interleaved by kind (podium → strategy → pace → lookup, repeating) so consecutive
 // chips are always a different type — the picker cycles this array in order.

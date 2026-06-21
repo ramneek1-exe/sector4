@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveGlyph } from "./glyph";
+import { resolveGlyph, driverName } from "./glyph";
 import drivers from "@/app/data/drivers.json";
 import teams from "@/app/data/teams.json";
 
@@ -38,5 +38,14 @@ describe("data integrity", () => {
       expect(t.primary, `${name} primary`).toMatch(/^#([0-9A-Fa-f]{6})$/);
       expect(t.secondary, `${name} secondary`).toMatch(/^#([0-9A-Fa-f]{6})$/);
     }
+  });
+});
+
+describe("driverName", () => {
+  it("resolves a known driver code to a full name", () => {
+    expect(driverName("VER")).toBe("Max Verstappen");
+  });
+  it("falls back to the code for an unknown driver", () => {
+    expect(driverName("ZZZ")).toBe("ZZZ");
   });
 });
