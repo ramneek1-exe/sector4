@@ -2,8 +2,12 @@
 import numpy as np
 import pandas as pd
 
-from src.calendar import race_id
-from src.inference.upcoming import build_podium_target
+from src.calendar import DRY_CIRCUITS, race_id
+from src.inference.upcoming import (
+    build_podium_target,
+    latest_entry_list,
+    predict_upcoming_podium,
+)
 
 
 def _season_results():
@@ -69,3 +73,48 @@ def test_no_history_driver_gets_imputed_features_not_nan():
     for col in ("champ_points_before", "champ_rank_before", "form_finish_avg3",
                 "prior_track_pace"):
         assert not pd.isna(row[col])
+
+
+def test_latest_entry_list_is_the_most_recent_round_drivers():
+    drivers = latest_entry_list(_season_results(), 2026)
+    assert set(drivers) == {"VER", "NOR", "SAR"}
+
+
+def _podium_history():
+    # >= 8 prior weekends (2023 + 2024 dry set) so predict_podium isn't a warmup band;
+    # VER/NOR podium, LEC/SAR not -> two label classes. Feature cols only.
+    rows = []
+    for year in (2023, 2024):
+        for gp in DRY_CIRCUITS:
+            for drv, rank, pts, podium, finish, gridpos in [
+                ("VER", 1, 200, 1, 1, 1), ("NOR", 2, 150, 1, 3, 2),
+                ("LEC", 5, 80, 0, 8, 5), ("SAR", 18, 0, 0, 16, 18),
+            ]:
+                rows.append({
+                    "race_id": race_id(year, gp), "year": year, "gp": gp, "Driver": drv,
+                    "champ_rank_before": rank, "champ_points_before": pts,
+                    "form_finish_avg3": finish, "prior_track_pace": -0.1 if podium else 0.2,
+                    "grid_position": gridpos, "podium": podium, "finish_pos": finish,
+                })
+    return pd.DataFrame(rows)
+
+
+def test_predict_upcoming_podium_future_weekend_is_not_qualitative():
+    out = predict_upcoming_podium(
+        _podium_history(), _season_results(), _pace_hist(), 2026, "Austria",
+        entry_drivers=["VER", "NOR", "SAR"],
+    )
+    # The future-weekend gap is fixed: a real ranked podium, not the empty-target band.
+    assert out["qualitative"] is True  # bands are the product surface (calibrated:false)
+    assert out["calibrated"] is False
+    assert out["mode"] == "friday"  # no grid -> pre-quali
+    assert [d["driver"] for d in out["drivers"][:1]] == ["VER"]
+    assert all("band" in d for d in out["drivers"])
+
+
+def test_predict_upcoming_podium_sharpens_to_saturday_with_grid():
+    out = predict_upcoming_podium(
+        _podium_history(), _season_results(), _pace_hist(), 2026, "Austria",
+        entry_drivers=["VER", "NOR", "SAR"], grid={"VER": 1, "NOR": 2, "SAR": 3},
+    )
+    assert out["mode"] == "saturday"

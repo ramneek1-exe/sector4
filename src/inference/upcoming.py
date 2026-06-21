@@ -23,6 +23,7 @@ from src.features.friday import (
     standings_before,
     trailing_finish_avg,
 )
+from src.inference.podium import predict_podium
 
 
 def build_podium_target(
@@ -79,3 +80,36 @@ def build_podium_target(
     df["form_finish_avg3"] = df["form_finish_avg3"].fillna(NEUTRAL_POS)
     df["prior_track_pace"] = df["prior_track_pace"].fillna(0.0)
     return df
+
+
+def latest_entry_list(season_results: pd.DataFrame, year: int) -> list[str]:
+    """Drivers in the most recent completed round of `year` (the entry list proxy)."""
+    sy = season_results[season_results["year"] == year]
+    if sy.empty:
+        return []
+    last_date = sy["date"].max()
+    return sy[sy["date"] == last_date]["Driver"].tolist()
+
+
+def predict_upcoming_podium(
+    history: pd.DataFrame,
+    season_results: pd.DataFrame,
+    pace_hist: pd.DataFrame,
+    year: int,
+    gp: str,
+    grid: dict[str, int] | None = None,
+    entry_drivers: list[str] | None = None,
+    mode: str = "auto",
+) -> dict:
+    """Predict an UPCOMING weekend's podium by constructing its target row at runtime.
+
+    Appends the built target row to the bundled `history` table and runs the existing
+    predict_podium (which trains on strictly-prior weekends via the leakage chokepoint).
+    `grid=None` -> Friday mode (pre-quali); a grid map -> Saturday (sharpened). Defaults
+    the entry list to the latest completed round when not given.
+    """
+    if entry_drivers is None:
+        entry_drivers = latest_entry_list(season_results, year)
+    target = build_podium_target(season_results, pace_hist, year, gp, entry_drivers, grid)
+    table = pd.concat([history, target], ignore_index=True)
+    return predict_podium(year, gp, mode=mode, table=table)
