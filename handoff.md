@@ -5,13 +5,21 @@
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
-> PRODUCTION (`sector4-zeta.vercel.app`): `predict_podium` ships honest bands that sharpen
-> Friday→Saturday, rendered as colour-retaining ASCII helmets with legible numbers over a
-> confined cursor-reactive ASCII fog, with the full polish pass (scattered helmet reveal,
-> animated suggested-query chips, F1-radio loading lines, spinning racing-tyre Ask-button
-> loader, eased query-bar underglow). Branch `m3-frontend-glyph-system` was merged `--no-ff`
-> (merge `d8a559d`) and DELETED (local + remote). Next milestone: M4 — telemetry
-> differentiators (pace-gap context + stop-count strategy). The next session resumes there.**
+> PRODUCTION (`sector4-zeta.vercel.app`).**
+>
+> **M4 — telemetry differentiators: IMPLEMENTATION COMPLETE on branch
+> `m4-telemetry-differentiators`, locally verified, NOT yet deployed or merged.** Pace-gap
+> context (Model A, supporting) + stop-count strategy (Model B, race-level call leads, SC
+> caveat always on, deg→stops teachable narrative) are wired end-to-end, plus tyre-deg/
+> stint-length lookups and a pit-loss honesty fix (non-curated circuits → honest "not
+> available", never the 21.0 default). 121 pytest + 51 vitest pass, `npm run build` clean,
+> the +0.070 stop-count trust anchor (nb 06) reproduces verbatim, and a whole-branch code
+> review came back fix-then-merge (only 2 minors, both fixed). **VERIFIED ON A LIVE VERCEL
+> PREVIEW** (branch push → git-integration build `dpl_J1vBUr4NGQpaX5iJk5uhDmVJQxx5`, READY,
+> 4 Python lambdas): `/api/pace`, `/api/strategy`, deg/stint lookups, non-curated pit-loss
+> (honest `null`), and `/api/ask` end-to-end (pace/strategy/deg, circuit aliases normalized,
+> grounded narratives) all return correctly. **REMAINING: merge the branch (owner decision).
+> Next milestone after M4: M5 — private beta at a real 2026 weekend (the forcing function).**
 
 ## 🎯 1. Current Goal & Status
 
@@ -276,8 +284,46 @@ tests, and `notebooks/*_RESULTS.md` evidence are on `main`.
      hover callouts (M6), favicon (M7), live-2026.
    - **A future LANDING PAGE** fronting the product is an owner goal (saved to memory) — reuses this
      glyph system + palette; separate effort, not M3.
-5. **M4 — Telemetry differentiators** (pace-gap context + stop-count strategy), then
-   **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
+5. **M4 — Telemetry differentiators (IMPLEMENTATION COMPLETE on branch
+   `m4-telemetry-differentiators`; spec+plan in `docs/superpowers/{specs,plans}/
+   2026-06-20-m4-*`; SDD ledger in `.superpowers/sdd/progress.md`). Shipped architecture:**
+   - **Three Python serverless fns mirror `api/podium.py`:** `api/pace.py`
+     (`predict_pace_gaps`, ships `pace_features.parquet`+`team_map.parquet`+sklearn),
+     `api/strategy.py` (`predict_stop_counts`, ships `strategy_features.parquet`+
+     `team_map.parquet`+sklearn), and the SLIM `api/inference.py` (now also serves
+     `tyre_deg`/`stint_length` from the bundled `strategy_features.parquet`, still
+     sklearn-free — guarded). `vercel.json` `includeFiles` updated for all four fns.
+   - **`predict_stop_counts` gained an additive race-level `dominant` summary** (modal
+     n_stops + share + n_drivers; `None` in the qualitative branches) so the StrategyCard
+     leads with the track-level call. Per-driver detail is secondary (owner: teams differ,
+     strategy is track/conditions-driven). `SC_CAVEAT` always present + rendered.
+   - **Team colour for non-podium helmets:** new `src/pipeline.py:build_team_map` (pure
+     transform from `season_results` via `GP_TO_EVENT`, keyed on short gp) → `data/team_map
+     .parquet`; new `src/inference/teams.py:attach_teams` joins team at the serverless
+     boundary (team is glyph metadata, NEVER a model input). New store paths
+     `store.SEASON_RESULTS` + `store.TEAM_MAP`; `build_all` writes the team map too.
+   - **Honesty fix:** `src/features/track.py:CURATED_TRACKS`; `lookup_stat` pit_loss returns
+     `value None`/"not available for this circuit" for non-curated GPs (the `_DEFAULTS` 21.0
+     prior stays for the FEATURE pipeline only). `StatAnswer` skips the number block on null.
+   - **Frontend:** `circuits.ts` adds `normalizeLookupCircuit(raw, stat)` (pit_loss = 8 +
+     Monaco; deg/stint = the 8); `parser.ts` tool descriptions tightened (intents already
+     existed); `orchestrate.ts` adds `predict_pace`/`predict_strategy` branches + deg/stint
+     lookups (`Answer` union + `AnswerDeps` extended); `narrative.ts` adds grounded
+     `generatePaceNarrative` (supporting-not-podium) + `generateStrategyNarrative`
+     (deg→stops, SC caveat); `app/api/ask/route.ts` dispatches via a `postJson` helper;
+     `app/page.tsx` adds `PaceCard` + `StrategyCard`.
+   - **Feature tables regenerated** via `build_all()` (8 dry circuits, 2023–25; from the
+     local fastf1 cache) and copied into `api/`. Regen: `PYTHONPATH=. .venv/bin/python -c
+     "from src.pipeline import build_all; build_all()"` then `cp data/{pace,strategy}_
+     features.parquet data/team_map.parquet api/`.
+   - **VERIFIED locally:** 121 pytest + 51 vitest pass, `npm run build` clean, nb 06 trust
+     anchor +0.070 verbatim. **VERIFIED on a live Vercel preview** (`sector4-j0tvoxvt6-…
+     vercel.app`, deploy `dpl_J1vBUr4NGQpaX5iJk5uhDmVJQxx5`): all four Python lambdas built;
+     `/api/pace`, `/api/strategy`, deg/stint lookups, non-curated pit-loss (honest `null`),
+     and `/api/ask` end-to-end (pace/strategy/deg, aliases normalized, grounded narratives)
+     all correct. **REMAINING: merge the branch (owner decision). Optional: owner browser
+     eyeball of the PaceCard/StrategyCard visuals.**
+   Then **M5 private beta at a real 2026 weekend (forcing function)**, M6 learning layer,
    M7 breadth+polish. See PRD §11.
 
 **Open questions / uncertainties to validate later:**

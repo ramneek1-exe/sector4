@@ -30,6 +30,12 @@ describe("parseQuery", () => {
     expect(out).toEqual({ intent: "predict_podium", gp: "Italy" });
   });
 
+  it("documents pace, strategy, and deg/stint routing in the tool schema", () => {
+    const props: any = ROUTE_TOOL.input_schema.properties;
+    expect(props.intent.description).toMatch(/predict_strategy/);
+    expect(props.stat.description).toMatch(/tyre_deg/);
+  });
+
   it("forces the route_query tool", async () => {
     let seen: any;
     const client = {

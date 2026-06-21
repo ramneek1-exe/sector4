@@ -37,6 +37,11 @@ _TRACKS: dict[str, dict[str, float]] = {
 # Neutral fallback so an unseen circuit degrades gracefully instead of crashing.
 _DEFAULTS = {"length_km": 5.0, "n_corners": 15, "abrasiveness": 3, "pit_loss_s": 21.0}
 
+# The circuits we have a real curated pit-loss for. The _DEFAULTS prior stays as a
+# graceful fallback for the FEATURE pipeline, but must NEVER be surfaced to a user
+# as a curated fact — lookups guard on this set.
+CURATED_TRACKS = frozenset(_TRACKS)
+
 
 def track_features(gp_key: str) -> dict[str, float]:
     """Return the track-intrinsic feature dict for a GP identifier."""

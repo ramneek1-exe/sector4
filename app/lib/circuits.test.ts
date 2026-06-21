@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeCircuit } from "./circuits";
+import { normalizeCircuit, normalizeLookupCircuit } from "./circuits";
 
 describe("normalizeCircuit", () => {
   it("maps the canonical name to itself", () => {
@@ -19,5 +19,21 @@ describe("normalizeCircuit", () => {
     expect(normalizeCircuit("Monaco")).toBeNull();
     expect(normalizeCircuit("Silverstone")).toBeNull();
     expect(normalizeCircuit(undefined)).toBeNull();
+  });
+});
+
+describe("normalizeLookupCircuit", () => {
+  it("resolves aliases for pit_loss including Monaco", () => {
+    expect(normalizeLookupCircuit("Monaco", "pit_loss")).toBe("Monaco");
+    expect(normalizeLookupCircuit("Monza", "pit_loss")).toBe("Italy");
+  });
+
+  it("excludes Monaco for deg/stint (strategy-table circuits only)", () => {
+    expect(normalizeLookupCircuit("Monaco", "tyre_deg")).toBeNull();
+    expect(normalizeLookupCircuit("Bahrain", "stint_length")).toBe("Bahrain");
+  });
+
+  it("returns null for an unknown circuit", () => {
+    expect(normalizeLookupCircuit("Narnia", "pit_loss")).toBeNull();
   });
 });

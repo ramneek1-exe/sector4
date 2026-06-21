@@ -37,6 +37,25 @@ def test_predict_stop_counts_returns_stops_confidence_and_caveat():
     assert d0["confidence"] == round(d0["confidence"], 3)
 
 
+def test_dominant_summary_is_modal_stop_count_and_share():
+    out = predict_stop_counts(2024, "Bahrain", table=_strategy_table())
+    dom = out["dominant"]
+    assert dom["n_drivers"] == 4
+    assert isinstance(dom["n_stops"], int)
+    assert 0.0 <= dom["share"] <= 1.0
+    assert dom["share"] == round(dom["share"], 3)
+    # all four target drivers are high-deg Bahrain -> model leans the same way
+    assert dom["share"] >= 0.5
+
+
+def test_dominant_is_none_in_sparse_prior_branch():
+    one_race = _strategy_table()
+    one_race = one_race[one_race["race_id"].isin(["2023-Bahrain", "2024-Bahrain"])]
+    out = predict_stop_counts(2024, "Bahrain", table=one_race)
+    assert out["qualitative"] is True
+    assert out["dominant"] is None
+
+
 def test_sparse_prior_returns_qualitative_band_with_caveat():
     one_race = _strategy_table()
     one_race = one_race[one_race["race_id"].isin(["2023-Bahrain", "2024-Bahrain"])]

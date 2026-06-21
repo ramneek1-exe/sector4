@@ -52,6 +52,23 @@ def test_lookup_path_does_not_import_sklearn_or_fastf1():
     assert result.returncode == 0, result.stderr
 
 
+def test_deg_lookup_path_does_not_import_sklearn_or_fastf1():
+    # The deg/stint lookup reads the strategy parquet but must stay sklearn/fastf1-free.
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    code = (
+        "import sys, pandas as pd\n"
+        "from src.inference.lookup import lookup_stat\n"
+        "t = pd.DataFrame({'gp':['Bahrain'],'deg_overall':[0.1],'feas_max_stint':[20]})\n"
+        "lookup_stat('tyre_deg', 'Bahrain', table=t)\n"
+        "bad = [m for m in sys.modules if m.split('.')[0] in ('sklearn', 'fastf1')]\n"
+        "assert not bad, bad\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=repo_root, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr
+
+
 def test_podium_path_does_not_import_fastf1():
     # Fresh interpreter: importing + calling the podium path must not pull fastf1.
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

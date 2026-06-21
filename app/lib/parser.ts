@@ -27,12 +27,17 @@ export const ROUTE_TOOL = {
           "explain_concept",
         ],
         description:
-          "Use predict_podium for who-will-finish-on-the-podium / top-3 / who-will-win questions.",
+          "predict_podium for who-will-finish-on-the-podium / top-3 / who-will-win. " +
+          "predict_pace for long-run / race-pace gap questions (who is fastest over a stint). " +
+          "predict_strategy for how-many-pit-stops / one-stop-or-two questions. " +
+          "lookup_stat for a single computed circuit stat. explain_concept for 'what is …' questions.",
       },
       stat: {
         type: "string",
         enum: ["pit_loss", "tyre_deg", "stint_length"],
-        description: "Only set for lookup_stat queries.",
+        description:
+          "For lookup_stat only: pit_loss (pit-lane time loss), tyre_deg (how fast tyres wear), " +
+          "or stint_length (how many laps a stint lasts).",
       },
       gp: {
         type: "string",

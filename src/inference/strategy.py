@@ -8,6 +8,8 @@ accuracy is lower. Numbers rounded at the boundary. (design §7)
 """
 from __future__ import annotations
 
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
@@ -37,14 +39,14 @@ def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None) -
     if target.empty:
         return {"year": year, "gp": gp, "qualitative": True,
                 "reason": "no feature row for target weekend",
-                "sc_caveat": SC_CAVEAT, "drivers": []}
+                "sc_caveat": SC_CAVEAT, "dominant": None, "drivers": []}
 
     prior = store.prior_weekends(table, year, gp)
     n_train = int(prior["race_id"].nunique())
     if n_train < MIN_TRAIN_RACES or prior["n_stops"].nunique() < 2:
         return {"year": year, "gp": gp, "qualitative": True, "n_train_races": n_train,
                 "reason": "too few prior weekends / classes for a stop-count model",
-                "sc_caveat": SC_CAVEAT, "drivers": []}
+                "sc_caveat": SC_CAVEAT, "dominant": None, "drivers": []}
 
     clf = _classifier()
     clf.fit(prior[STRATEGY_FEATURES], prior["n_stops"])
@@ -57,5 +59,10 @@ def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None) -
         {"driver": d, "n_stops": int(p), "confidence": round(float(c), 3)}
         for d, p, c in zip(target["Driver"], preds, conf)
     ]
+    pred_counts = Counter(int(p) for p in preds)
+    mode_stops, mode_n = pred_counts.most_common(1)[0]
+    dominant = {"n_stops": int(mode_stops),
+                "share": round(mode_n / len(preds), 3),
+                "n_drivers": int(len(preds))}
     return {"year": year, "gp": gp, "qualitative": False, "n_train_races": n_train,
-            "sc_caveat": SC_CAVEAT, "drivers": drivers}
+            "sc_caveat": SC_CAVEAT, "dominant": dominant, "drivers": drivers}

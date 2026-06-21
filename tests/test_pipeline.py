@@ -23,11 +23,37 @@ def test_build_all_writes_both_tables(tmp_path, monkeypatch):
     strat_path = str(tmp_path / "strat.parquet")
     monkeypatch.setattr(store, "PACE_TABLE", pace_path)
     monkeypatch.setattr(store, "STRATEGY_TABLE", strat_path)
+    # Redirect the team-map read/write to tmp so build_all has no repo side effects.
+    results = pd.DataFrame({"year": [2023], "gp": ["Bahrain Grand Prix"],
+                            "Driver": ["VER"], "team": ["Red Bull Racing"]})
+    results_path = str(tmp_path / "results.parquet")
+    store.write_table(results, results_path)
+    monkeypatch.setattr(store, "SEASON_RESULTS", results_path)
+    team_path = str(tmp_path / "team.parquet")
+    monkeypatch.setattr(store, "TEAM_MAP", team_path)
 
     pipeline.build_all()
 
     pd.testing.assert_frame_equal(store.read_table(pace_path), pace)
     pd.testing.assert_frame_equal(store.read_table(strat_path), strat)
+    assert store.read_table(team_path)["team"].tolist() == ["Red Bull Racing"]
+
+
+def test_build_team_map_keys_on_short_gp():
+    from src.pipeline import build_team_map
+    results = pd.DataFrame({
+        "Driver": ["VER", "NOR"],
+        "team": ["Red Bull Racing", "McLaren"],
+        "year": [2024, 2024],
+        "gp": ["Italian Grand Prix", "Italian Grand Prix"],
+    })
+    tm = build_team_map(results)
+    assert list(tm.columns) == ["year", "gp", "Driver", "team"]
+    assert set(tm["gp"]) == {"Italy"}  # EventName -> short key
+    # an event outside GP_TO_EVENT is dropped
+    other = pd.DataFrame({"Driver": ["VER"], "team": ["Red Bull Racing"],
+                          "year": [2024], "gp": ["Japanese Grand Prix"]})
+    assert build_team_map(other).empty
 
 
 def _pace_df():

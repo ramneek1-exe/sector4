@@ -4,10 +4,24 @@ import { parseQuery } from "@/app/lib/parser";
 import {
   generateNarrative,
   generatePodiumNarrative,
+  generatePaceNarrative,
+  generateStrategyNarrative,
   type StatFacts,
   type PodiumFacts,
+  type PaceFacts,
+  type StrategyFacts,
 } from "@/app/lib/narrative";
 import { answerQuery } from "@/app/lib/orchestrate";
+
+async function postJson<T>(origin: string, path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${origin}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`${path} returned ${res.status}`);
+  return (await res.json()) as T;
+}
 
 export async function POST(req: Request) {
   let query: string;
@@ -27,26 +41,14 @@ export async function POST(req: Request) {
     const answer = await answerQuery(
       {
         parse: (q) => parseQuery(client, q),
-        lookup: async (stat, gp): Promise<StatFacts> => {
-          const res = await fetch(`${origin}/api/inference`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ stat, gp }),
-          });
-          if (!res.ok) throw new Error(`inference endpoint returned ${res.status}`);
-          return (await res.json()) as StatFacts;
-        },
+        lookup: (stat, gp) => postJson<StatFacts>(origin, "/api/inference", { stat, gp }),
         narrate: (facts) => generateNarrative(client, facts),
-        predictPodium: async (year, gp): Promise<PodiumFacts> => {
-          const res = await fetch(`${origin}/api/podium`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ year, gp }),
-          });
-          if (!res.ok) throw new Error(`podium endpoint returned ${res.status}`);
-          return (await res.json()) as PodiumFacts;
-        },
+        predictPodium: (year, gp) => postJson<PodiumFacts>(origin, "/api/podium", { year, gp }),
         narratePodium: (facts) => generatePodiumNarrative(client, facts),
+        predictPace: (year, gp) => postJson<PaceFacts>(origin, "/api/pace", { year, gp }),
+        narratePace: (facts) => generatePaceNarrative(client, facts),
+        predictStrategy: (year, gp) => postJson<StrategyFacts>(origin, "/api/strategy", { year, gp }),
+        narrateStrategy: (facts) => generateStrategyNarrative(client, facts),
       },
       query,
     );
