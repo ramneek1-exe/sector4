@@ -46,15 +46,38 @@ const ALIASES: Record<string, string> = {
 
 const STOPWORDS = new Set(["grand", "grands", "prix", "circuit", "gp", "the"]);
 
-/** Free-text circuit name → canonical podium-table key, or null if not one of the 8. */
-export function normalizeCircuit(raw: string | undefined): string | null {
-  if (!raw) return null;
-  const cleaned = raw
+function clean(raw: string): string {
+  return raw
     .toLowerCase()
     .replace(/[^a-z\s]/g, " ")
     .split(/\s+/)
     .filter((w) => w && !STOPWORDS.has(w))
     .join(" ")
     .trim();
-  return ALIASES[cleaned] ?? null;
+}
+
+/** Free-text circuit name → canonical podium-table key, or null if not one of the 8. */
+export function normalizeCircuit(raw: string | undefined): string | null {
+  if (!raw) return null;
+  return ALIASES[clean(raw)] ?? null;
+}
+
+// Pit-loss is curated for the 8 podium circuits PLUS Monaco; deg/stint only have data
+// for the 8 strategy-table circuits.
+const LOOKUP_ALIASES: Record<string, string> = {
+  ...ALIASES,
+  monaco: "Monaco",
+  "monte carlo": "Monaco",
+};
+
+/** Free-text circuit → canonical key for a lookup_stat, scoped by stat, or null. */
+export function normalizeLookupCircuit(
+  raw: string | undefined,
+  stat: string,
+): string | null {
+  if (!raw) return null;
+  const c = LOOKUP_ALIASES[clean(raw)] ?? null;
+  if (!c) return null;
+  if (stat === "pit_loss") return c; // 8 + Monaco
+  return c === "Monaco" ? null : c; // deg / stint: strategy-table 8 only
 }
