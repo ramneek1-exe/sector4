@@ -50,10 +50,10 @@ describe("answerQuery", () => {
     expect(out).toEqual({ supported: true, facts: FACTS, narrative: "Monaco loses about 19.5s." });
   });
 
-  it("returns an honest unsupported message for other intents", async () => {
-    const out = await answerQuery(deps({ parse: async () => ({ intent: "predict_pace" }) }), "who wins?");
+  it("returns an honest unsupported message for unhandled intents", async () => {
+    const out = await answerQuery(deps({ parse: async () => ({ intent: "predict_compound" }) }), "what compound?");
     expect(out.supported).toBe(false);
-    if (!out.supported) expect(out.message).toMatch(/pit-lane/i);
+    if (!out.supported) expect(out.message).toMatch(/podium prediction/i);
   });
 
   it("does not call lookup or narrate when unsupported", async () => {

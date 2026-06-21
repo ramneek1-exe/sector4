@@ -151,10 +151,12 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
 function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
-      <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-        {facts.value}
-        <span className="ml-1 text-3xl text-muted">{facts.units}</span>
-      </div>
+      {facts.value !== null && (
+        <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
+          {facts.value}
+          <span className="ml-1 text-3xl text-muted">{facts.units}</span>
+        </div>
+      )}
       <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
       <p className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>Source: {facts.source}</p>
     </div>
