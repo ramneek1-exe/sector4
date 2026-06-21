@@ -395,25 +395,28 @@ A plan gap surfaced: the backtest builders derive a weekend's row from COMPLETED
   (schema/keys, checkpoint resolver, Brier+top-3 scoring, snapshot builder) +
   `app/data/weekend-schedule.json` (Austria session times — UPDATE per weekend).
 
-### EXACT NEXT STEP — run R8 (heavy fastf1 batch, LOCAL, ~tens of minutes)
-```
-PYTHONPATH=. .venv/bin/python scripts/build_2026.py
-# then the cp lines it prints:
-cp data/pace_features.parquet data/strategy_features.parquet data/team_map.parquet data/season_results.parquet api/
-cp data/podium_features.parquet api/podium_features.parquet
-```
-Then smoke-test the runtime podium for Austria:
-```
-PYTHONPATH=. .venv/bin/python -c "import pandas as pd; from src.inference.upcoming import predict_upcoming_podium; \
-h=pd.read_parquet('api/podium_features.parquet'); sr=pd.read_parquet('api/season_results.parquet'); \
-pace=pd.read_parquet('api/pace_features.parquet'); \
-print(predict_upcoming_podium(h, sr, pace, 2026, 'Austria')['drivers'][:3])"
-```
+### R8 (data build) + R11-glue: DONE + verified on real data
+`scripts/build_2026.py` ran clean (after a load fix — `load_session` now returns None when
+a session loads but has no laps; fastf1 doesn't raise for future races). Tables rebuilt +
+copied to `api/` (incl. NEW `api/season_results.parquet`). 2026 has **22 drivers/round**
+(11 teams — reg reset). `api/podium.py` now routes: historical → `predict_podium`; KNOWN
+upcoming circuit (in `GP_TO_EVENT`, no table row) → `predict_upcoming_podium` (optional
+`grid` in body); unknown → empty qualitative. **VERIFIED:** `predict_upcoming_podium(2026,
+Austria)` → mode `friday`, 29 train weekends, bands HAM strong 0.68 / ANTONELLI,PIASTRI,
+RUSSELL,LEC,VER in contention; full-grid request → `saturday`. 144 pytest + 64 vitest + tsc
+clean. To rebuild tables (e.g. after a new round): rerun `build_2026.py` then the `cp` lines
+it prints.
 
-### REMAINING (platform-staged — live Vercel env + GitHub Actions; see ledger for the list)
-R11-glue (`api/podium.py` → `predict_upcoming_podium` + optional grid), `app/lib/blob.ts`
-(`@vercel/blob`), cron route `app/api/cron/snapshot/route.ts` + `api/results.py`
-(finishing-order) + `vercel.json` crons, `app/weekend/page.tsx`, R17 GitHub Actions
-telemetry job. Provision Vercel Blob; env `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`,
-`BLOB_PUBLIC_BASE_URL`, `SELF_BASE_URL` on Preview + Prod. Then deploy + live-verify.
+### EXACT NEXT STEP — the delivery layer (platform-staged, needs live Vercel + Blob)
+1. `app/lib/blob.ts` — `@vercel/blob` `putJson`/`getJson` (the pure schema/keys, schedule
+   resolver, calibration math, and snapshot builder are already done + tested in `app/lib/`).
+2. `app/api/cron/snapshot/route.ts` (idempotent, reads `app/data/weekend-schedule.json` via
+   `dueCheckpoint`, calls `buildSnapshot`, writes Blob) + `api/results.py` (finishing order)
+   + `vercel.json` `crons`.
+3. `app/weekend/page.tsx` — reads latest snapshot from Blob; reuse the prediction cards.
+4. R17 GitHub Actions fastf1→Blob telemetry job + `api/{pace,strategy}` read Blob.
+5. Provision Vercel Blob; env `BLOB_READ_WRITE_TOKEN`, `CRON_SECRET`, `BLOB_PUBLIC_BASE_URL`,
+   `SELF_BASE_URL` (Preview + Prod); deploy + live-verify `/api/podium {2026,Austria}` and
+   `/api/ask` "who podiums in Austria?".
+
 **Phase C (sprint-aware podium for British GP) is a separate later plan.**
