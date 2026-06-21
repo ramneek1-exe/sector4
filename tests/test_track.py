@@ -29,3 +29,18 @@ def test_curated_tracks_are_the_explicit_track_keys():
     assert CURATED_TRACKS == frozenset(_TRACKS)
     assert "Monaco" in CURATED_TRACKS
     assert "Imola" not in CURATED_TRACKS
+
+
+def test_austria_curated():
+    from src.features.track import CURATED_TRACKS
+    assert "Austria" in CURATED_TRACKS
+    f = track_features("Austria")
+    assert f["length_km"] == 4.318
+    assert f["pit_loss_s"] == 21.0
+
+
+def test_britain_curated():
+    from src.features.track import CURATED_TRACKS
+    assert "Great Britain" in CURATED_TRACKS
+    f = track_features("Great Britain")
+    assert f["length_km"] == 5.891
