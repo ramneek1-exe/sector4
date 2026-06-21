@@ -71,14 +71,24 @@ body {
   }
 }
 
-/* /weekend side fog strips: fade toward the centre so the content nests between them. */
+/* /weekend side fog strips: confined to the MIDDLE of each vertical edge — fade toward
+   the centre (horizontal) AND toward the top/bottom (vertical) so they never reach the
+   corners or interfere with the wordmark. The two gradients are intersected. */
 .weekend-fog-left {
-  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.9), transparent);
-  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.9), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000, transparent),
+    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, #000, transparent),
+    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
+  mask-composite: intersect;
 }
 .weekend-fog-right {
-  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.9), transparent);
-  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.9), transparent);
+  -webkit-mask-image: linear-gradient(to left, #000, transparent),
+    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to left, #000, transparent),
+    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
+  mask-composite: intersect;
 }
 
 

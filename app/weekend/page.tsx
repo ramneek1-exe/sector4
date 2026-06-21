@@ -40,13 +40,13 @@ function SideFog() {
     <>
       <div
         aria-hidden
-        className="weekend-fog-left pointer-events-none fixed inset-y-0 left-0 -z-10 w-[16vw]"
+        className="weekend-fog-left pointer-events-none fixed left-0 top-1/2 -z-10 h-[55vh] w-[15vw] -translate-y-1/2"
       >
         <AsciiFog className="h-full w-full" />
       </div>
       <div
         aria-hidden
-        className="weekend-fog-right pointer-events-none fixed inset-y-0 right-0 -z-10 w-[16vw]"
+        className="weekend-fog-right pointer-events-none fixed right-0 top-1/2 -z-10 h-[55vh] w-[15vw] -translate-y-1/2"
       >
         <AsciiFog className="h-full w-full" />
       </div>
@@ -57,23 +57,30 @@ function SideFog() {
 export default async function WeekendPage() {
   const snap = await getJson<WeekendSnapshot>(latestKey(schedule.year, schedule.gp));
 
-  if (!snap) {
-    const upcomingFacts = getCircuitFacts(schedule.gp);
+  // After the race (Monday onwards — ~18h past the Sunday `final`), stop showing the
+  // finished weekend and look forward to the next round, even if its snapshot still
+  // exists in Blob. `nextGp` bridges the gap until the owner rolls weekend-schedule.json
+  // to the next race (after which the no-snapshot branch takes over for the new gp).
+  const concluded = Date.now() > new Date(schedule.final).getTime() + 18 * 3600 * 1000;
+
+  if (!snap || concluded) {
+    const upcomingGp = concluded ? schedule.nextGp ?? schedule.gp : schedule.gp;
+    const upcomingFacts = getCircuitFacts(upcomingGp);
     return (
       <>
         <SideFog />
         <main className={`legible weekend-reveal relative z-10 ${SHELL}`}>
           <p className="font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted">
-            {schedule.gp} Grand Prix {schedule.year}
+            Next up
           </p>
           <h1 className="mt-4 font-pixel text-5xl leading-[1.05] tracking-tight sm:text-6xl">
-            We&apos;re still setting up our garage at {getCircuitName(schedule.gp)}…
+            We&apos;re still setting up our garage at {getCircuitName(upcomingGp)}…
           </h1>
           <p className="mt-4 font-grotesk text-base text-muted">Check back Saturday.</p>
 
           {upcomingFacts.length > 0 && (
             <section className="mt-12">
-              <h2 className={SECTION_LABEL}>About {schedule.gp}</h2>
+              <h2 className={SECTION_LABEL}>About {upcomingGp}</h2>
               <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">
                 {upcomingFacts.map((f) => (
                   <li key={f} className="border-l-2 border-ink/15 pl-3">
@@ -99,7 +106,7 @@ export default async function WeekendPage() {
       <SideFog />
       <main className={`legible weekend-reveal relative z-10 ${SHELL}`}>
         <header className="mb-8">
-          <h1 className="font-pixel text-6xl tracking-tight">
+          <h1 className="font-pixel-serif text-6xl tracking-tight">
             {snap.gp} Grand Prix {snap.year}
           </h1>
           <p className="mt-1 font-grotesk text-sm text-muted">
