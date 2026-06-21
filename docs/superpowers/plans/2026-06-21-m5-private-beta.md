@@ -10,6 +10,65 @@
 
 **Spec:** `docs/superpowers/specs/2026-06-21-m5-private-beta-design.md`. Phase C (sprint-aware podium for the British GP) is a **separate later plan**, written after Austria ships.
 
+---
+
+## ⚠️ REVISION (2026-06-21, after Task 7) — hybrid-staged data architecture
+
+During Task 8 a plan gap surfaced: the backtest builders (`build_pace_table` →
+`build_podium_table`) derive the **target row** from *completed* sessions (race-pace
+delta + finish_pos + grid). A **future** weekend (Austria 2026) has none of those yet —
+even on Friday only FP exists. So predicting an upcoming weekend needs a target row
+constructed from pre-race signals, NOT from the backtest pipeline. Owner decision
+(brainstorm): **hybrid, staged** — no per-weekend manual rebuild/deploy.
+
+**Revised architecture (supersedes Tasks 8–14 below for the remaining work):**
+
+- **Podium = runtime construction, no fastf1, no redeploy.** `api/podium.py` builds the
+  target row at request time from: (a) `season_results` (standings/form — bundled now,
+  refreshed by the CI job across the season), (b) bundled historical pace for
+  `prior_track_pace`, (c) the entry list (latest 2026 round's drivers), (d) the grid
+  (passed in the request when known; null pre-quali → Friday mode, filled post-quali →
+  sharpened). Reuses `src/features/friday.py`. **Austria's Friday issue needs no fresh
+  weekend data** — it's computable now from bundled data.
+- **Telemetry = scheduled CI fastf1 job → Blob.** A GitHub Actions cron runs the fastf1
+  batch (FP-derived pace/strategy features for the live weekend) and writes compact rows
+  to Vercel Blob; `api/pace` + `api/strategy` overlay them at runtime. fastf1 never runs
+  serverless. Until this lands, telemetry cards return qualitative (graceful). **Staged
+  AFTER the podium-runtime path** (the June-26 headline).
+- **Cron + /weekend + calibration log** unchanged in intent (Phase B), but the cron
+  snapshots the *runtime* predictions (podium live; telemetry once Blob is populated).
+
+**Revised remaining task list (replaces original Tasks 8–14):**
+
+- **R8 — Bundle base data + results refresh hook.** `load_results` gains `refresh_year`
+  (live-season staleness). Build & bundle: `season_results` for 2023–2026, and add
+  Austria 2024/2025 + the 2026 rounds 1–7 to the pace table (for `prior_track_pace` +
+  podium training rows). Copy to `api/`. *Heavy fastf1 batch — owner-run/CI; the inference
+  layer stays fastf1-free.*
+- **R9 — Frontend 2026 circuit normalization** (unchanged from original Task 9).
+- **R10 — Upcoming-weekend target-row builder** (`src/inference/upcoming.py`,
+  fastf1-free, unit-tested): `build_podium_target(season_results, pace_hist, year, gp,
+  entry_drivers, grid=None) -> pd.DataFrame` producing podium feature rows
+  (`champ_rank_before`, `champ_points_before`, `form_finish_avg3`, `prior_track_pace`,
+  `grid_position`, `team`, `Driver`, `race_id`, `year`, `gp`) via `friday.py`. This is the
+  core "issue before quali, sharpen after" mechanism.
+- **R11 — Runtime podium in `api/podium.py`**: assemble [bundled history + R10 target row]
+  and call `predict_podium`; accept an optional `grid` map in the request body
+  (null → Friday mode, present → Saturday). fastf1-free.
+- **R12 — Blob helper + snapshot schema** (= original Task 10).
+- **R13 — Snapshot builder** (= original Task 11), calling the runtime api.
+- **R14 — Schedule resolver** (= original Task 12).
+- **R15 — Cron snapshot route + actuals/calibration** (= original Task 13); grid + actuals
+  sourced from the results data (CI/Blob) rather than a rebuild.
+- **R16 — `/weekend` page** (= original Task 14).
+- **R17 — CI fastf1 → Blob telemetry job** (GitHub Actions) + `api/{pace,strategy}` read
+  FP features from Blob. The "right after" stage; may land post-June-26.
+
+**Inline-now vs platform-staged:** R10 + R11 (target builder + runtime podium logic) are
+pure/unit-testable and built inline now. R8 (heavy fastf1 batch), R12–R17 (Blob, cron, CI,
+deploy) require the live Vercel env + GitHub Actions and are verified on the platform with
+the owner. The original Tasks 8–14 below remain as reference for the unchanged pieces.
+
 ## Global Constraints
 
 Every task implicitly includes these (from the spec + CLAUDE.md):
