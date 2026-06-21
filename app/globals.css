@@ -31,6 +31,56 @@ body {
   }
 }
 
+/* /weekend page opening reveal — content rises + sharpens in once. */
+@keyframes weekendReveal {
+  from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(8px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.weekend-reveal {
+  animation: weekendReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .weekend-reveal {
+    animation: none;
+  }
+}
+
+/* CTA: blue underline that grows left→right on hover and retracts on leave. */
+.cta-grow {
+  position: relative;
+}
+.cta-grow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  height: 2px;
+  width: 100%;
+  background: var(--ramp-1, #1e3fd0);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.cta-grow:hover::after,
+.cta-grow:focus-visible::after {
+  transform: scaleX(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-grow::after {
+    transition: none;
+  }
+}
+
+/* /weekend side fog strips: fade toward the centre so the content nests between them. */
+.weekend-fog-left {
+  -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.9), transparent);
+  mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.9), transparent);
+}
+.weekend-fog-right {
+  -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.9), transparent);
+  mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.9), transparent);
+}
+
 
 /* Suggested-query chips: fade in at a spot, linger, fade out as the rotation advances.
    Chips are edge-anchored (no X-centring), so animate only opacity + a small Y drift. */

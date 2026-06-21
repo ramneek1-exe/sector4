@@ -269,7 +269,7 @@ export default function Home() {
     <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
       <Link
         href="/weekend"
-        className="fixed right-6 top-5 z-20 font-grotesk text-xs font-semibold uppercase tracking-wide text-ink/70 underline-offset-4 transition-colors duration-200 hover:text-ink hover:underline motion-reduce:transition-none"
+        className="cta-grow fixed right-6 top-5 z-20 font-grotesk text-base font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none"
       >
         Upcoming weekend odds →
       </Link>
