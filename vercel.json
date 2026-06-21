@@ -1,10 +1,16 @@
 {
   "functions": {
     "api/inference.py": {
-      "includeFiles": "src/**"
+      "includeFiles": "{src/**,api/strategy_features.parquet}"
     },
     "api/podium.py": {
       "includeFiles": "{src/**,api/podium_features.parquet}"
+    },
+    "api/pace.py": {
+      "includeFiles": "{src/**,api/pace_features.parquet,api/team_map.parquet}"
+    },
+    "api/strategy.py": {
+      "includeFiles": "{src/**,api/strategy_features.parquet,api/team_map.parquet}"
     }
   }
 }
