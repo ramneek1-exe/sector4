@@ -7,19 +7,17 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
-> **M4 — telemetry differentiators: IMPLEMENTATION COMPLETE on branch
-> `m4-telemetry-differentiators`, locally verified, NOT yet deployed or merged.** Pace-gap
-> context (Model A, supporting) + stop-count strategy (Model B, race-level call leads, SC
-> caveat always on, deg→stops teachable narrative) are wired end-to-end, plus tyre-deg/
-> stint-length lookups and a pit-loss honesty fix (non-curated circuits → honest "not
-> available", never the 21.0 default). 121 pytest + 51 vitest pass, `npm run build` clean,
-> the +0.070 stop-count trust anchor (nb 06) reproduces verbatim, and a whole-branch code
-> review came back fix-then-merge (only 2 minors, both fixed). **VERIFIED ON A LIVE VERCEL
-> PREVIEW** (branch push → git-integration build `dpl_J1vBUr4NGQpaX5iJk5uhDmVJQxx5`, READY,
-> 4 Python lambdas): `/api/pace`, `/api/strategy`, deg/stint lookups, non-curated pit-loss
-> (honest `null`), and `/api/ask` end-to-end (pace/strategy/deg, circuit aliases normalized,
-> grounded narratives) all return correctly. **REMAINING: merge the branch (owner decision).
-> Next milestone after M4: M5 — private beta at a real 2026 weekend (the forcing function).**
+> **M4 — telemetry differentiators: MERGED to `main` and live on PRODUCTION
+> (`sector4-zeta.vercel.app`).** Pace-gap context (Model A, supporting) + stop-count strategy
+> (Model B, race-level call leads, SC caveat always on, deg→stops teachable narrative) are
+> wired end-to-end, plus tyre-deg/stint-length lookups and a pit-loss honesty fix (non-curated
+> circuits → honest "not available", never the 21.0 default), with legibility/UX polish (bigger
+> number labels, interleaved suggested-query chips, a portalled compact per-driver stops modal
+> with fade+scale transition). 121 pytest + 51 vitest pass, `npm run build` clean, the +0.070
+> stop-count trust anchor (nb 06) reproduces verbatim, whole-branch review fix-then-merge (2
+> minors fixed), and verified on a live Vercel preview before merge. Branch
+> `m4-telemetry-differentiators` merged `--no-ff` (merge `986a422`) and DELETED (local + remote).
+> **Next milestone: M5 — private beta at a real 2026 weekend (the forcing function).**
 
 ## 🎯 1. Current Goal & Status
 
