@@ -430,9 +430,20 @@ redeploy to take effect.
    `CRON_SECRET` off the throwaway `s4-cron-test` back to a random sensitive value (redeploy).
 2. **R17** — GitHub Actions fastf1→Blob telemetry job + `api/{pace,strategy}` overlay Blob FP
    features (pace/stop-count currently return qualitative for Austria until FP exists).
-3. **Polish** — reuse the glyph cards + grounded narratives on `/weekend` (currently a
-   functional list).
+3. **Polish — DONE this pass:** `/weekend` now renders a styled podium-odds **table** with
+   ASCII helmet glyphs (`AsciiGlyph`) + driver names + band colours, an "About <circuit>"
+   facts block, and the home page has a top-right **CTA** → `/weekend`. Spec/plan
+   `docs/superpowers/{specs,plans}/2026-06-21-m5-weekend-visual-upgrade*`. Still optional:
+   grounded narratives on `/weekend` (snapshots don't carry narratives yet).
 4. **Merge decision** — PR #4 → `main` (production cron fires daily; prod env already has the
    keys). Update `weekend-schedule.json` per weekend before each beta round.
+
+### M6 hand-off note (fun facts)
+`/weekend` "About <circuit>" facts are a **curated hand-authored stopgap**
+(`app/data/circuit-facts.json` + `app/lib/circuit-facts.ts`; seeded Austria + Great Britain,
+added by hand per weekend). **M6's learning layer must replace them** with the entity-what
+pipeline: allowlist source → Haiku original paraphrase → inline citation + link → cache
+(per-type TTL) → auto "drafted, unverified" badge + corrections form; hard facts from
+`drivers.json`. The `getCircuitFacts(gp)` seam stays; swap its implementation.
 
 **Phase C (sprint-aware podium for British GP) is a separate later plan.**
