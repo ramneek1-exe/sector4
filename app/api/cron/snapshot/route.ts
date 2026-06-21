@@ -1,7 +1,11 @@
-// Schedule-aware, idempotent snapshot job (M5). Vercel Cron hits this on a cadence; it
-// fires each checkpoint exactly once (guarded by whether the snapshot already exists),
-// snapshots the live runtime predictions to Blob, and on the final checkpoint pulls the
-// actual finishing order to score the issued podium into the season calibration record.
+// Schedule-aware, idempotent snapshot job (M5). Vercel Cron hits this DAILY (Hobby plan
+// allows only daily crons; 0 6 * * *). `dueCheckpoint` returns the latest checkpoint
+// whose time has passed, so for a conventional weekend (checkpoints ~23h apart) a single
+// daily fire still lands each one in-window; idempotency (snapshot already exists) makes
+// extra fires no-ops. Snapshots the live runtime predictions to Blob, and on the final
+// checkpoint pulls the actual finishing order to score the podium into the calibration
+// record. (For tighter timing / clustered sprint weekends: Pro plan or drive snapshots
+// from the GitHub Actions job — R17.)
 import { NextResponse } from "next/server";
 import schedule from "@/app/data/weekend-schedule.json";
 import { dueCheckpoint, type SessionSchedule } from "@/app/lib/weekend-schedule";
