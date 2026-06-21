@@ -52,9 +52,11 @@ body {
 
 /* Query bar: soft breathing underglow while focused. Sits BELOW the bar, full width,
    behind the (opaque) input — so it only shows under the bar, never through it. */
+/* Breathing loop starts at the focus opacity (0.85) so it picks up seamlessly
+   where the fade-in transition lands — no snap. */
 @keyframes bar-glow {
-  0%, 100% { opacity: 0.5; transform: scaleX(0.97); }
-  50% { opacity: 0.95; transform: scaleX(1); }
+  0%, 100% { opacity: 0.85; transform: scaleX(0.97); }
+  50% { opacity: 1; transform: scaleX(1); }
 }
 .bar-shell {
   position: relative;
@@ -73,11 +75,13 @@ body {
   opacity: 0;
   z-index: -1;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.35s ease;
 }
 .bar-shell:focus-within::after {
   opacity: 0.85;
-  animation: bar-glow 2.8s ease-in-out infinite;
+  /* Delay the breathing loop until the fade-in transition has landed at 0.85,
+     so the glow eases in rather than snapping. */
+  animation: bar-glow 2.8s ease-in-out 0.35s infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .bar-shell:focus-within::after {
