@@ -13,12 +13,12 @@ def _pace_table(n_prior_races=4):
     for gp in circuits[:n_prior_races]:
         for d in ["VER", "HAM", "LEC", "NOR"]:
             slow = rng.normal(0, 0.3)
-            rows.append({"race_id": f"2023-{gp}", "gp": gp, "Driver": d,
+            rows.append({"race_id": f"2023-{gp}", "year": 2023, "gp": gp, "Driver": d,
                          "fp_pace_delta": slow, "fp_deg_slope": 0.05 + slow * 0.1,
                          "length_km": 5.0, "n_corners": 15, "abrasiveness": 3,
                          "pit_loss_s": 21.0, "race_pace_delta": slow})
     for d, fp in [("VER", -0.4), ("HAM", -0.1), ("LEC", 0.2), ("NOR", 0.3)]:
-        rows.append({"race_id": "2024-Bahrain", "gp": "Bahrain", "Driver": d,
+        rows.append({"race_id": "2024-Bahrain", "year": 2024, "gp": "Bahrain", "Driver": d,
                      "fp_pace_delta": fp, "fp_deg_slope": 0.05, "length_km": 5.4,
                      "n_corners": 15, "abrasiveness": 5, "pit_loss_s": 23.0,
                      "race_pace_delta": fp})
@@ -49,3 +49,14 @@ def test_sparse_prior_returns_qualitative_band():
 def test_missing_target_row_is_qualitative():
     out = predict_pace_gaps(2025, "Monaco", table=_pace_table())
     assert out["qualitative"] is True
+
+
+def test_recency_weighted_fit_runs_and_preserves_shape():
+    # half_life_years kwarg threads a sample_weight through the RF fit; output shape,
+    # rounding, and sort order are unchanged.
+    out = predict_pace_gaps(2024, "Bahrain", table=_pace_table(), half_life_years=1.0)
+    assert out["qualitative"] is False
+    assert len(out["drivers"]) == 4
+    assert set(out["drivers"][0]) == {"driver", "pace_delta_s", "uncertainty_s"}
+    deltas = [d["pace_delta_s"] for d in out["drivers"]]
+    assert deltas == sorted(deltas)
