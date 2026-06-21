@@ -9,7 +9,7 @@ import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { driverName } from "@/app/lib/glyph";
-import { getCircuitFacts } from "@/app/lib/circuit-facts";
+import { getCircuitFacts, getCircuitName } from "@/app/lib/circuit-facts";
 
 export const dynamic = "force-dynamic";
 
@@ -58,16 +58,31 @@ export default async function WeekendPage() {
   const snap = await getJson<WeekendSnapshot>(latestKey(schedule.year, schedule.gp));
 
   if (!snap) {
+    const upcomingFacts = getCircuitFacts(schedule.gp);
     return (
       <>
         <SideFog />
         <main className={`legible weekend-reveal relative z-10 ${SHELL}`}>
-          <h1 className="font-pixel text-6xl tracking-tight">
+          <p className="font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted">
             {schedule.gp} Grand Prix {schedule.year}
-          </h1>
-          <p className="mt-4 text-muted">
-            No prediction issued yet — check back after Friday practice.
           </p>
+          <h1 className="mt-4 font-pixel text-5xl leading-[1.05] tracking-tight sm:text-6xl">
+            We&apos;re still setting up our garage at {getCircuitName(schedule.gp)}…
+          </h1>
+          <p className="mt-4 font-grotesk text-base text-muted">Check back Saturday.</p>
+
+          {upcomingFacts.length > 0 && (
+            <section className="mt-12">
+              <h2 className={SECTION_LABEL}>About {schedule.gp}</h2>
+              <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">
+                {upcomingFacts.map((f) => (
+                  <li key={f} className="border-l-2 border-ink/15 pl-3">
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </main>
       </>
     );

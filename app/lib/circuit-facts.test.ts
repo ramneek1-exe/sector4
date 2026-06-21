@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getCircuitFacts } from "./circuit-facts";
+import { getCircuitFacts, getCircuitName } from "./circuit-facts";
 
 describe("getCircuitFacts", () => {
   it("returns curated facts for a seeded circuit", () => {
@@ -9,5 +9,14 @@ describe("getCircuitFacts", () => {
   });
   it("returns an empty array for a circuit with no curated facts", () => {
     expect(getCircuitFacts("Narnia")).toEqual([]);
+  });
+});
+
+describe("getCircuitName", () => {
+  it("returns the track name for a seeded circuit", () => {
+    expect(getCircuitName("Austria")).toBe("the Red Bull Ring");
+  });
+  it("falls back to the gp key for an unknown circuit", () => {
+    expect(getCircuitName("Narnia")).toBe("Narnia");
   });
 });
