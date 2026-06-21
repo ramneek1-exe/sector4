@@ -45,7 +45,18 @@ export async function GET(req: Request) {
   if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  try {
+    return await run();
+  } catch (e) {
+    // TEMP diagnostic (force-test): surface the failure instead of a blank 500.
+    return NextResponse.json(
+      { error: "snapshot failed", detail: String(e), hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN },
+      { status: 500 },
+    );
+  }
+}
 
+async function run() {
   const s = schedule as SessionSchedule;
   const due = dueCheckpoint(new Date(), s);
   if (!due) return NextResponse.json({ status: "no checkpoint due" });
