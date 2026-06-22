@@ -1,20 +1,32 @@
-"""M5 R8 — build & bundle the 2026 feature tables for the live beta.
+"""M5 R8/R17 — refresh the bundled feature tables with live 2026 data.
 
-Heavy fastf1 batch (network + time): fetches FP + race sessions across seasons. Run
-LOCALLY (not in CI/serverless). Builds the historical/training tables + season results
-that the runtime podium reads; the upcoming Austria TARGET row is constructed at request
-time (src/inference/upcoming.py), so a not-yet-run weekend correctly produces no table
-row here.
+INCREMENTAL by design: the 2023-25 history (and any already-built 2026 rounds) is read
+from the committed tables in api/, and only the LIVE season (2026) is fetched from fastf1
+and merged in. This is what lets the refresh run in CI (GitHub Actions has no warm fastf1
+cache, and fastf1 cannot fetch *old* sessions fresh — only recent ones), and it is much
+faster locally too.
 
-Run:  PYTHONPATH=. .venv/bin/python scripts/build_2026.py
-Then the printed `cp` line copies the tables into api/ for the serverless fns.
+Telemetry (pace/stop-count) for the upcoming weekend lights up automatically once that
+weekend's FP has run and this refresh picks up its rows. Podium is unaffected by the
+strategy/pace tables.
+
+Run:  PYTHONPATH=. python scripts/build_2026.py
+(then the api/ copies happen automatically at the end.)
+
+NOTE: for the live weekend, the strategy table's cross-season `hist_modal_stops` is
+derived from the live season only (a minor feature approximation for the supporting,
+caveated stop-count card). Refine later if needed; the podium headline does not use it.
 """
 from __future__ import annotations
 
 import logging
+import os
+import shutil
+
+import pandas as pd
 
 from src import store
-from src.calendar import DRY_CIRCUITS, RACE_CALENDAR
+from src.calendar import RACE_CALENDAR
 from src.data.results import load_results
 from src.pipeline import (
     build_pace_table,
@@ -25,42 +37,65 @@ from src.pipeline import (
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
+LIVE_SEASON = 2026
 SEASONS = [2023, 2024, 2025, 2026]
-# Dry validation set + every 2026 calendar circuit built so far (gives Austria its
-# prior-year track pace and the 2026 rounds their training rows).
-CIRCUITS = sorted(set(DRY_CIRCUITS) | {gp for c in RACE_CALENDAR.values() for gp in c})
+LIVE_CIRCUITS = RACE_CALENDAR[LIVE_SEASON]  # only the live season's circuits are fetched
+API_DIR, DATA_DIR = "api", "data"
+TABLES = [
+    "pace_features.parquet",
+    "strategy_features.parquet",
+    "team_map.parquet",
+    "season_results.parquet",
+    "podium_features.parquet",
+]
+
+
+def _seed_data_from_api() -> None:
+    """Copy committed api/ tables into data/ so history is reused, not re-fetched."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    for t in TABLES:
+        dst, src = os.path.join(DATA_DIR, t), os.path.join(API_DIR, t)
+        if not os.path.exists(dst) and os.path.exists(src):
+            shutil.copy(src, dst)
+            print(f"  seeded {dst} from {src}")
+
+
+def _merge_live(base_path: str, fresh: pd.DataFrame) -> pd.DataFrame:
+    """Replace the LIVE_SEASON rows in the committed base table with freshly-built ones."""
+    base = pd.read_parquet(base_path) if os.path.exists(base_path) else pd.DataFrame()
+    if not base.empty and "year" in base:
+        base = base[base["year"] != LIVE_SEASON]
+    frames = [df for df in (base, fresh) if df is not None and not df.empty]
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
 def main() -> None:
-    print(f"Seasons: {SEASONS}\nCircuits ({len(CIRCUITS)}): {CIRCUITS}\n")
+    _seed_data_from_api()
 
-    print("1/5 season_results (light; refreshing 2026 live season)...")
-    results = load_results(SEASONS, refresh_year=2026)
+    print(f"1/5 season_results — refresh {LIVE_SEASON}, reuse cached history...")
+    results = load_results(SEASONS, refresh_year=LIVE_SEASON)
     store.write_table(results, store.SEASON_RESULTS)
     print(f"    {len(results)} rows, years {sorted(results['year'].unique())}")
 
-    print("2/5 pace table (FP + race per weekend)...")
-    pace = build_pace_table(SEASONS, CIRCUITS)
+    print(f"2/5 pace — fetch {LIVE_SEASON} only, merge with committed history...")
+    pace = _merge_live(store.PACE_TABLE, build_pace_table([LIVE_SEASON], LIVE_CIRCUITS))
     store.write_table(pace, store.PACE_TABLE)
     print(f"    {len(pace)} rows, {pace['race_id'].nunique()} weekends")
 
-    print("3/5 strategy table...")
-    strategy = build_strategy_table(SEASONS, CIRCUITS)
-    store.write_table(strategy, store.STRATEGY_TABLE)
-    print(f"    {len(strategy)} rows, {strategy['race_id'].nunique()} weekends")
+    print(f"3/5 strategy — fetch {LIVE_SEASON} only, merge...")
+    strat = _merge_live(store.STRATEGY_TABLE,
+                        build_strategy_table([LIVE_SEASON], LIVE_CIRCUITS))
+    store.write_table(strat, store.STRATEGY_TABLE)
+    print(f"    {len(strat)} rows, {strat['race_id'].nunique()} weekends")
 
-    print("4/5 podium table (Friday features + prior-track-pace)...")
-    podium = build_podium_table(pace, results)
-    store.write_table(podium, store.PODIUM_TABLE)
-    print(f"    {len(podium)} rows")
-
-    print("5/5 team map...")
+    print("4/5 podium table (pure transform)...")
+    store.write_table(build_podium_table(pace, results), store.PODIUM_TABLE)
+    print("5/5 team map (pure transform)...")
     store.write_table(build_team_map(results), store.TEAM_MAP)
 
-    print("\nDONE. Now copy into api/ for the serverless fns:")
-    print("  cp data/pace_features.parquet data/strategy_features.parquet "
-          "data/team_map.parquet data/season_results.parquet api/")
-    print("  cp data/podium_features.parquet api/podium_features.parquet")
+    for t in TABLES:
+        shutil.copy(os.path.join(DATA_DIR, t), os.path.join(API_DIR, t))
+    print("DONE — feature tables refreshed and copied into api/.")
 
 
 if __name__ == "__main__":
