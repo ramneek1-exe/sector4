@@ -30,7 +30,7 @@ type Podium = { mode?: string; drivers?: PodiumDriver[]; reason?: string };
 type Strategy = { dominant?: { n_stops: number; share: number } | null; sc_caveat?: string };
 type Pace = { drivers?: { driver: string; pace_delta_s: number }[] };
 
-const SHELL = "mx-auto max-w-3xl px-6 py-12";
+const SHELL = "mx-auto max-w-3xl px-6 pb-12 pt-20";
 const SECTION_LABEL =
   "mb-3 font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted";
 
@@ -38,18 +38,29 @@ const SECTION_LABEL =
 function SideFog() {
   return (
     <>
+      {/* Desktop: animated ASCII fog in the gutters. Hidden on mobile — a fixed canvas
+          repaints on every mobile address-bar resize, which glitches during scroll. */}
       <div
         aria-hidden
-        className="weekend-fog-left pointer-events-none fixed inset-y-0 left-0 -z-10 w-[max(1.75rem,calc((100vw-48rem)/2))]"
+        className="weekend-fog-left pointer-events-none fixed inset-y-0 left-0 -z-10 hidden w-[max(1.75rem,calc((100vw-48rem)/2))] sm:block"
       >
         <AsciiFog className="h-full w-full" />
       </div>
       <div
         aria-hidden
-        className="weekend-fog-right pointer-events-none fixed inset-y-0 right-0 -z-10 w-[max(1.75rem,calc((100vw-48rem)/2))]"
+        className="weekend-fog-right pointer-events-none fixed inset-y-0 right-0 -z-10 hidden w-[max(1.75rem,calc((100vw-48rem)/2))] sm:block"
       >
         <AsciiFog className="h-full w-full" />
       </div>
+      {/* Mobile: a static CSS inner-glow on each edge — sticky, no canvas, no scroll glitch. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-y-0 left-0 -z-10 w-10 bg-gradient-to-r from-[#1e3fd0]/15 to-transparent sm:hidden"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-y-0 right-0 -z-10 w-10 bg-gradient-to-l from-[#1e3fd0]/15 to-transparent sm:hidden"
+      />
     </>
   );
 }
