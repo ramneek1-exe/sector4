@@ -34,8 +34,12 @@
 > **OWNER TODO before the real Austria weekend (June 26):** (1) **delete the test blobs**
 > `weekends/2026-Austria/{pre-quali,latest}.json` or the cron skips the real pre-quali
 > snapshot; (2) rotate the PREVIEW `CRON_SECRET` off `s4-cron-test` (prod still holds the
-> original secure value); (3) **activate R17** — move `docs/ops/refresh-weekend-data.yml`
-> to `.github/workflows/` (needs a `workflow`-scoped token) to auto-refresh data/telemetry.
+> original secure value). **R17 is now LIVE** — `.github/workflows/refresh-weekend-data.yml`
+> runs green (verified); it auto-refreshes live data + telemetry each weekend and deploys.
+> `scripts/build_2026.py` is now INCREMENTAL (reuses committed history, fetches only the live
+> season) — required because CI has no fastf1 cache and old sessions aren't fetchable fresh.
+> Minor wart: parquet isn't byte-deterministic, so R17 commits/deploys every scheduled run
+> even with no data change (harmless; tighten with a content check later).
 > Next milestone after the beta runs: **M6 — learning layer** (incl. replacing the curated
 > `/weekend` facts with the entity-what pipeline).
 
