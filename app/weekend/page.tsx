@@ -40,13 +40,13 @@ function SideFog() {
     <>
       <div
         aria-hidden
-        className="weekend-fog-left pointer-events-none fixed left-0 top-1/2 -z-10 h-[60vh] w-[max(0px,calc((100vw-48rem)/2))] -translate-y-1/2"
+        className="weekend-fog-left pointer-events-none fixed inset-y-0 left-0 -z-10 w-[max(1.75rem,calc((100vw-48rem)/2))]"
       >
         <AsciiFog className="h-full w-full" />
       </div>
       <div
         aria-hidden
-        className="weekend-fog-right pointer-events-none fixed right-0 top-1/2 -z-10 h-[60vh] w-[max(0px,calc((100vw-48rem)/2))] -translate-y-1/2"
+        className="weekend-fog-right pointer-events-none fixed inset-y-0 right-0 -z-10 w-[max(1.75rem,calc((100vw-48rem)/2))]"
       >
         <AsciiFog className="h-full w-full" />
       </div>
@@ -126,7 +126,7 @@ export default async function WeekendPage() {
                   <th className="py-2 pr-2 font-medium">#</th>
                   <th className="py-2 pr-2 font-medium"></th>
                   <th className="py-2 pr-3 font-medium">Driver</th>
-                  <th className="py-2 pr-3 font-medium">Team</th>
+                  <th className="hidden py-2 pr-3 font-medium sm:table-cell">Team</th>
                   <th className="py-2 pr-3 font-medium">Chance</th>
                   <th className="py-2 text-right font-medium">p≈</th>
                 </tr>
@@ -140,9 +140,9 @@ export default async function WeekendPage() {
                     </td>
                     <td className="py-2 pr-3 align-middle">
                       <span className="font-bold tracking-wide">{d.driver}</span>{" "}
-                      <span className="text-muted">{driverName(d.driver)}</span>
+                      <span className="hidden text-muted sm:inline">{driverName(d.driver)}</span>
                     </td>
-                    <td className="py-2 pr-3 align-middle text-muted">{d.team ?? ""}</td>
+                    <td className="hidden py-2 pr-3 align-middle text-muted sm:table-cell">{d.team ?? ""}</td>
                     <td
                       className={`py-2 pr-3 align-middle font-semibold uppercase tracking-wide ${
                         BAND_TEXT[d.band ?? "outside shot"] ?? BAND_TEXT["outside shot"]

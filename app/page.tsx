@@ -46,9 +46,9 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
       </div>
 
       {podium.drivers.length > 0 ? (
-        <div className="flex items-end justify-center gap-6 sm:gap-10">
+        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
           {podium.drivers.slice(0, 4).map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
               <AsciiGlyph code={d.driver} team={d.team} size={96} />
               <div className="mt-2 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
               <div
@@ -84,9 +84,9 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
         {pace.year} {pace.gp} · long-run pace gaps
       </div>
       {pace.drivers.length > 0 ? (
-        <div className="flex items-end justify-center gap-6 sm:gap-10">
+        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
           {pace.drivers.slice(0, 5).map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
               <AsciiGlyph code={d.driver} team={d.team} size={88} />
               <div className="mt-2 font-grotesk text-lg font-bold tracking-wide text-ink">{d.driver}</div>
               <div className={`font-mono text-sm font-semibold text-ink/85 ${LEGIBLE} px-2 py-0.5`}>
