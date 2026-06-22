@@ -16,7 +16,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* Top nav bar — the wordmark lives here (the ONLY use of Bebas Neue). Has a
             translucent backing so scrolled content passes UNDER it instead of bleeding
             through the logo. Reusable for future nav items. */}
-        <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center bg-bg/85 px-6 backdrop-blur-sm">
+        <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center bg-bg/95 px-6 backdrop-blur-sm">
           <span className="font-bebas text-3xl leading-none tracking-wide text-ink">
             SECTOR4
           </span>
