@@ -428,8 +428,16 @@ redeploy to take effect.
 1. **OWNER cleanup from the force-test:** delete test blobs `weekends/2026-Austria/
    {pre-quali,latest}.json` (else idempotency skips the real Jun-26 snapshot); rotate
    `CRON_SECRET` off the throwaway `s4-cron-test` back to a random sensitive value (redeploy).
-2. **R17** — GitHub Actions fastf1→Blob telemetry job + `api/{pace,strategy}` overlay Blob FP
-   features (pace/stop-count currently return qualitative for Austria until FP exists).
+2. **R17 — SCAFFOLDED (verify at the first real weekend).** `.github/workflows/refresh-
+   weekend-data.yml`: scheduled (Fri/Sat/Sun) + manual GH Actions job runs
+   `scripts/build_2026.py`, copies tables into `api/`, commits, and pushes → Vercel
+   auto-deploys. Telemetry (pace/stop-count) lights up automatically once Austria's FP rows
+   exist in the rebuilt tables (the bundled-parquet API already returns qualitative until a
+   target row exists — no api changes needed). **Deliberate simplification of the spec's
+   "fastf1→Blob overlay"** (commit+deploy reuses the working bundled path, no Blob upload
+   from Python, no extra secret). UNVERIFIED until live 2026 FP (June 26); caveats in the
+   workflow header (fastf1-in-CI is slow; parquet-in-git grows history; needs Actions
+   contents:write + Vercel Git deploy-on-push, both already in place).
 3. **Polish — DONE this pass:** `/weekend` now renders a styled podium-odds **table** with
    ASCII helmet glyphs (`AsciiGlyph`) + driver names + band colours, an "About <circuit>"
    facts block, and the home page has a top-right **CTA** → `/weekend`. Spec/plan
