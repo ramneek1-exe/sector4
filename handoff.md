@@ -428,8 +428,13 @@ redeploy to take effect.
 1. **OWNER cleanup from the force-test:** delete test blobs `weekends/2026-Austria/
    {pre-quali,latest}.json` (else idempotency skips the real Jun-26 snapshot); rotate
    `CRON_SECRET` off the throwaway `s4-cron-test` back to a random sensitive value (redeploy).
-2. **R17 — SCAFFOLDED (verify at the first real weekend).** `.github/workflows/refresh-
-   weekend-data.yml`: scheduled (Fri/Sat/Sun) + manual GH Actions job runs
+2. **R17 — SCAFFOLDED as a TEMPLATE (activate + verify at the first real weekend).**
+   **ACTIVATION (owner):** the workflow lives at `docs/ops/refresh-weekend-data.yml` because
+   the controller's git/gh token lacked GitHub's `workflow` scope (can't push under
+   `.github/workflows/`). To enable it: copy that file to
+   `.github/workflows/refresh-weekend-data.yml` and push with a token that has `workflow`
+   scope (or paste it via the GitHub web "Add file" UI). Then it's a
+   scheduled (Fri/Sat/Sun) + manual GH Actions job that runs
    `scripts/build_2026.py`, copies tables into `api/`, commits, and pushes → Vercel
    auto-deploys. Telemetry (pace/stop-count) lights up automatically once Austria's FP rows
    exist in the rebuilt tables (the bundled-parquet API already returns qualitative until a
