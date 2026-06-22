@@ -52,14 +52,15 @@ function SideFog() {
       >
         <AsciiFog className="h-full w-full" />
       </div>
-      {/* Mobile: a static CSS inner-glow on each edge — sticky, no canvas, no scroll glitch. */}
+      {/* Mobile: a static CSS inner-glow on each edge — sticky, no canvas, no scroll
+          glitch. Runs past the bottom of the screen (h > viewport) so it never cuts off. */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-y-0 left-0 -z-10 w-10 bg-gradient-to-r from-[#1e3fd0]/15 to-transparent sm:hidden"
+        className="pointer-events-none fixed left-0 top-0 -z-10 h-[130vh] w-10 bg-gradient-to-r from-[#1e3fd0]/15 to-transparent sm:hidden"
       />
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-y-0 right-0 -z-10 w-10 bg-gradient-to-l from-[#1e3fd0]/15 to-transparent sm:hidden"
+        className="pointer-events-none fixed right-0 top-0 -z-10 h-[130vh] w-10 bg-gradient-to-l from-[#1e3fd0]/15 to-transparent sm:hidden"
       />
     </>
   );
