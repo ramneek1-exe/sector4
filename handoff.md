@@ -18,12 +18,20 @@
 > minors fixed), and verified on a live Vercel preview before merge. Branch
 > `m4-telemetry-differentiators` merged `--no-ff` (merge `986a422`) and DELETED (local + remote).
 >
-> **M5 — private beta at a real 2026 weekend: IN PROGRESS on branch `m5-private-beta`
-> (NOT merged).** Data/ML core is DONE + validated; delivery layer is platform-staged.
-> See §6 below for full M5 status, the hybrid-staged architecture, and the exact next
-> command. Spec `docs/superpowers/specs/2026-06-21-m5-private-beta-design.md`; plan
-> `docs/superpowers/plans/2026-06-21-m5-private-beta.md` (with a "REVISION" section);
-> SDD ledger `.superpowers/sdd/progress.md`.
+> **M5 — private beta: MERGED to `main` and LIVE on PRODUCTION** (`sector4-zeta.vercel.app`;
+> merge `4bced64`, branch `m5-private-beta` deleted). Runtime calibrated podium for live
+> 2026 weekends (HAM strong 0.68 for Austria, verified on prod), snapshot/cron/Blob
+> delivery loop, `/weekend` issued-artifact page, telemetry differentiators, mobile +
+> visual polish. See §6 for architecture + the OWNER TODO list below. Spec/plan in
+> `docs/superpowers/{specs,plans}/2026-06-21-m5-*`.
+>
+> **OWNER TODO before the real Austria weekend (June 26):** (1) **delete the test blobs**
+> `weekends/2026-Austria/{pre-quali,latest}.json` or the cron skips the real pre-quali
+> snapshot; (2) rotate the PREVIEW `CRON_SECRET` off `s4-cron-test` (prod still holds the
+> original secure value); (3) **activate R17** — move `docs/ops/refresh-weekend-data.yml`
+> to `.github/workflows/` (needs a `workflow`-scoped token) to auto-refresh data/telemetry.
+> Next milestone after the beta runs: **M6 — learning layer** (incl. replacing the curated
+> `/weekend` facts with the entity-what pipeline).
 
 ## 🎯 1. Current Goal & Status
 
