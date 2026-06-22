@@ -1,7 +1,7 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-20.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-21.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
@@ -17,7 +17,13 @@
 > stop-count trust anchor (nb 06) reproduces verbatim, whole-branch review fix-then-merge (2
 > minors fixed), and verified on a live Vercel preview before merge. Branch
 > `m4-telemetry-differentiators` merged `--no-ff` (merge `986a422`) and DELETED (local + remote).
-> **Next milestone: M5 — private beta at a real 2026 weekend (the forcing function).**
+>
+> **M5 — private beta at a real 2026 weekend: IN PROGRESS on branch `m5-private-beta`
+> (NOT merged).** Data/ML core is DONE + validated; delivery layer is platform-staged.
+> See §6 below for full M5 status, the hybrid-staged architecture, and the exact next
+> command. Spec `docs/superpowers/specs/2026-06-21-m5-private-beta-design.md`; plan
+> `docs/superpowers/plans/2026-06-21-m5-private-beta.md` (with a "REVISION" section);
+> SDD ledger `.superpowers/sdd/progress.md`.
 
 ## 🎯 1. Current Goal & Status
 
@@ -347,3 +353,110 @@ invariants when extending: inference must never import fastf1; all training must
 output; keep all logic in `src/`; on the frontend keep the ASCII rendering on canvas (the
 `shaders` pkg can't ASCII-ify DOM) and gate all motion behind `prefers-reduced-motion`; and
 do not oversell predictions in any code, copy, or UI.
+
+## 🏁 6. M5 — Private beta (IN PROGRESS, branch `m5-private-beta`, NOT merged)
+
+**Goal:** issue predictions for a real 2026 weekend before quali, sharpen after, send to
+testers, log outcomes. Rolling beta: **Austrian GP (race 2026-06-28, non-sprint)** first,
+then **British GP (2026-07-05, sprint)**. Spec/plan/ledger paths in the header above.
+
+### De-risk gate (PASSED, `scripts/derisk_2026.py`)
+2026 is REAL in fastf1: 22 rounds, **Austria = round 8**, **7 rounds completed** with
+results (Australia, China, Japan, Miami, Canada, Monaco, Barcelona — note: no Bahrain/Saudi/
+Imola at the front this season; 2026 has BOTH "Barcelona GP" round 7 AND "Spanish GP"/Madrid
+later, as distinct keys). **Austria FP is pending** (weekend runs ~Jun 26) → telemetry lights
+up at issuance; podium is buildable now. Prior Austria (2024/2025) loads fine.
+
+### Architecture pivot (locked with owner): hybrid-staged
+A plan gap surfaced: the backtest builders derive a weekend's row from COMPLETED sessions
+(race pace + finish + grid), so they **cannot predict a future weekend**. Resolution:
+- **Podium = runtime target-row construction, no fastf1, no redeploy.** `src/inference/
+  upcoming.py` builds the Austria target row from `season_results` (standings/form) +
+  bundled historical pace (`prior_track_pace`) + entry list + optional grid (None → Friday
+  mode, filled → Saturday). `predict_upcoming_podium` appends it to history and runs
+  `predict_podium`. **This is the "issue before quali, sharpen after" mechanism.**
+- **Telemetry = scheduled GitHub Actions fastf1 job → Vercel Blob** (the "right after"
+  stage); `api/{pace,strategy}` read FP features from Blob. fastf1 NEVER runs serverless.
+- **Cron snapshots** the runtime predictions to Blob at checkpoints; `/weekend` reads latest.
+
+### DONE this session (18 commits; 137 pytest + 64 vitest + clean tsc)
+- Real 2026 calendar (`RACE_CALENDAR`, full `GP_TO_EVENT`; `calendar_order()` default now
+  flattens it). Austria + Britain curated track facts. `circuits.ts` 2026 normalization +
+  `DEFAULT_YEAR=2026` (orchestrate uses it).
+- **Recency-weighted training** (`src/inference/weights.py`, wired into pace + stop-count
+  `half_life_years=2.0`). **Re-validated: +0.070 stop-count edge holds with weights**
+  (`scripts/validate_recency_weights.py`, `notebooks/M5_RECENCY_RESULTS.md`). NOTE: the
+  plan's first validation script used the wrong model/metric (0.507) — the committed one
+  faithfully reproduces nb06's regressor+round anchor (0.641 baseline / 0.711 / +0.070).
+- **`src/inference/upcoming.py`** — target-row builder + runtime upcoming-podium (gap fixed:
+  real ranked bands, Fri→Sat sharpening; bands stay `calibrated:false`).
+- `load_results` gained `refresh_year` (live-season staleness).
+- Pure delivery cores: `app/lib/{snapshot,weekend-schedule,actuals,build-snapshot}.ts`
+  (schema/keys, checkpoint resolver, Brier+top-3 scoring, snapshot builder) +
+  `app/data/weekend-schedule.json` (Austria session times — UPDATE per weekend).
+
+### R8 (data build) + R11-glue: DONE + verified on real data
+`scripts/build_2026.py` ran clean (after a load fix — `load_session` now returns None when
+a session loads but has no laps; fastf1 doesn't raise for future races). Tables rebuilt +
+copied to `api/` (incl. NEW `api/season_results.parquet`). 2026 has **22 drivers/round**
+(11 teams — reg reset). `api/podium.py` now routes: historical → `predict_podium`; KNOWN
+upcoming circuit (in `GP_TO_EVENT`, no table row) → `predict_upcoming_podium` (optional
+`grid` in body); unknown → empty qualitative. **VERIFIED:** `predict_upcoming_podium(2026,
+Austria)` → mode `friday`, 29 train weekends, bands HAM strong 0.68 / ANTONELLI,PIASTRI,
+RUSSELL,LEC,VER in contention; full-grid request → `saturday`. 144 pytest + 64 vitest + tsc
+clean. To rebuild tables (e.g. after a new round): rerun `build_2026.py` then the `cp` lines
+it prints.
+
+### Delivery layer — BUILT + LIVE-VERIFIED on preview (branch `m5-private-beta`, PR #4)
+`app/lib/blob.ts` (`@vercel/blob` putJson/getJson), `app/api/cron/snapshot/route.ts`
+(idempotent, CRON_SECRET-auth, dueCheckpoint→buildSnapshot→Blob; final→actuals→calibration),
+`api/results.py` (finishing order), `app/weekend/page.tsx` (reads latest snapshot),
+`vercel.json` crons. Verified live on preview `sector4-git-m5-private-beta-…vercel.app`:
+`/api/podium {2026,Austria}`→HAM strong 0.68 friday; `/api/ask`→grounded narrative;
+`/api/results`→order; `/api/cron/snapshot` (authed, force-test)→snapshotted; `/weekend`
+rendered the frozen Blob snapshot. **Full cron→Blob→/weekend loop confirmed.**
+
+**Deploy gotchas learned (load-bearing):** (a) **Hobby plan allows only DAILY crons** —
+`vercel.json` cron MUST be daily (`0 6 * * *`); a sub-daily expr makes EVERY deploy fail
+silently (no deployment record). (b) **Blob store must be PUBLIC** — `putJson` uses
+`access:"public"` and `/weekend` reads via plain fetch; a private store throws "Cannot use
+public access on a private store". (c) `BLOB_READ_WRITE_TOKEN` is the var the SDK needs
+(not BLOB_STORE_ID/BLOB_WEBHOOK_PUBLIC_KEY) — on Prod+Preview. (d) env changes need a
+redeploy to take effect.
+
+### REMAINING
+1. **OWNER cleanup from the force-test:** delete test blobs `weekends/2026-Austria/
+   {pre-quali,latest}.json` (else idempotency skips the real Jun-26 snapshot); rotate
+   `CRON_SECRET` off the throwaway `s4-cron-test` back to a random sensitive value (redeploy).
+2. **R17 — SCAFFOLDED as a TEMPLATE (activate + verify at the first real weekend).**
+   **ACTIVATION (owner):** the workflow lives at `docs/ops/refresh-weekend-data.yml` because
+   the controller's git/gh token lacked GitHub's `workflow` scope (can't push under
+   `.github/workflows/`). To enable it: copy that file to
+   `.github/workflows/refresh-weekend-data.yml` and push with a token that has `workflow`
+   scope (or paste it via the GitHub web "Add file" UI). Then it's a
+   scheduled (Fri/Sat/Sun) + manual GH Actions job that runs
+   `scripts/build_2026.py`, copies tables into `api/`, commits, and pushes → Vercel
+   auto-deploys. Telemetry (pace/stop-count) lights up automatically once Austria's FP rows
+   exist in the rebuilt tables (the bundled-parquet API already returns qualitative until a
+   target row exists — no api changes needed). **Deliberate simplification of the spec's
+   "fastf1→Blob overlay"** (commit+deploy reuses the working bundled path, no Blob upload
+   from Python, no extra secret). UNVERIFIED until live 2026 FP (June 26); caveats in the
+   workflow header (fastf1-in-CI is slow; parquet-in-git grows history; needs Actions
+   contents:write + Vercel Git deploy-on-push, both already in place).
+3. **Polish — DONE this pass:** `/weekend` now renders a styled podium-odds **table** with
+   ASCII helmet glyphs (`AsciiGlyph`) + driver names + band colours, an "About <circuit>"
+   facts block, and the home page has a top-right **CTA** → `/weekend`. Spec/plan
+   `docs/superpowers/{specs,plans}/2026-06-21-m5-weekend-visual-upgrade*`. Still optional:
+   grounded narratives on `/weekend` (snapshots don't carry narratives yet).
+4. **Merge decision** — PR #4 → `main` (production cron fires daily; prod env already has the
+   keys). Update `weekend-schedule.json` per weekend before each beta round.
+
+### M6 hand-off note (fun facts)
+`/weekend` "About <circuit>" facts are a **curated hand-authored stopgap**
+(`app/data/circuit-facts.json` + `app/lib/circuit-facts.ts`; seeded Austria + Great Britain,
+added by hand per weekend). **M6's learning layer must replace them** with the entity-what
+pipeline: allowlist source → Haiku original paraphrase → inline citation + link → cache
+(per-type TTL) → auto "drafted, unverified" badge + corrections form; hard facts from
+`drivers.json`. The `getCircuitFacts(gp)` seam stays; swap its implementation.
+
+**Phase C (sprint-aware podium for British GP) is a separate later plan.**

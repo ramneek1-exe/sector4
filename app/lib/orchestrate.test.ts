@@ -91,7 +91,7 @@ describe("answerQuery", () => {
     expect(out).toEqual({ supported: true, podium: PODIUM, narrative: "NOR is the strongest podium pick at Monza." });
   });
 
-  it("defaults the year to 2024 when the podium question names none", async () => {
+  it("defaults the year to the live 2026 season when the podium question names none", async () => {
     let askedYear = 0;
     await answerQuery(
       deps({
@@ -103,24 +103,24 @@ describe("answerQuery", () => {
       }),
       "who podiums at Monza?",
     );
-    expect(askedYear).toBe(2024);
+    expect(askedYear).toBe(2026);
   });
 
-  it("rejects a podium circuit outside the 8-circuit slice without calling inference", async () => {
+  it("rejects a podium circuit outside the calendar without calling inference", async () => {
     let called = false;
     const out = await answerQuery(
       deps({
-        parse: async () => ({ intent: "predict_podium", gp: "Monaco" }),
+        parse: async () => ({ intent: "predict_podium", gp: "Sochi" }),
         predictPodium: async () => {
           called = true;
           return PODIUM;
         },
       }),
-      "who podiums at Monaco?",
+      "who podiums at Sochi?",
     );
     expect(out.supported).toBe(false);
     expect(called).toBe(false);
-    if (!out.supported) expect(out.message).toMatch(/8 circuits/i);
+    if (!out.supported) expect(out.message).toMatch(/supported circuits/i);
   });
 
   it("routes a pace question to a supported pace answer (normalizing the circuit)", async () => {

@@ -51,13 +51,26 @@ def load_season_results(year: int) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)
 
 
-def load_results(years: list[int], cache_path: str = "data/season_results.parquet") -> pd.DataFrame:
-    """Load (and cache) all race results for the given seasons, sorted by date."""
-    if os.path.exists(cache_path):
-        cached = pd.read_parquet(cache_path)
-        if set(years).issubset(set(cached["year"].unique())):
-            return cached[cached["year"].isin(years)].reset_index(drop=True)
-    frames = [load_season_results(y) for y in years]
+def load_results(years: list[int], cache_path: str = "data/season_results.parquet",
+                 refresh_year: int | None = None) -> pd.DataFrame:
+    """Load (and cache) all race results for the given seasons, sorted by date.
+
+    `refresh_year` forces a re-pull of that one season — an in-progress season gains
+    rounds over time, so its cached slice goes stale; every other cached season is
+    reused. With no refresh and all years already cached, returns the cached subset.
+    """
+    cached = pd.read_parquet(cache_path) if os.path.exists(cache_path) else None
+    if (cached is not None and refresh_year is None
+            and set(years).issubset(set(cached["year"].unique()))):
+        return cached[cached["year"].isin(years)].reset_index(drop=True)
+
+    cached_years = set(cached["year"].unique()) if cached is not None else set()
+    frames = []
+    for y in years:
+        if cached is not None and y != refresh_year and y in cached_years:
+            frames.append(cached[cached["year"] == y])
+        else:
+            frames.append(load_season_results(y))
     out = pd.concat([f for f in frames if not f.empty], ignore_index=True)
     out = out.dropna(subset=["finish_pos"]).sort_values("date").reset_index(drop=True)
     out.to_parquet(cache_path)

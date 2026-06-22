@@ -14,6 +14,7 @@ import pandas as pd
 from src import store
 from src.calendar import race_id
 from src.features.track import TRACK_FEATURE_COLS
+from src.inference.weights import recency_weights
 from src.models.pace_model import default_model_factory
 
 # Pre-race, Friday-usable features only — no grid (quali-derived). Mirrors the
@@ -24,7 +25,8 @@ MIN_TRAIN_RACES = 3  # below this, no honest numeric band (design §7)
 
 
 def predict_pace_gaps(year: int, gp: str, table: pd.DataFrame | None = None,
-                      model_factory=default_model_factory) -> dict:
+                      model_factory=default_model_factory,
+                      half_life_years: float = 2.0) -> dict:
     """Per-driver predicted race-pace delta (lower = faster) + uncertainty band."""
     table = table if table is not None else store.read_table(store.PACE_TABLE)
     target = table[table["race_id"] == race_id(year, gp)]
@@ -39,7 +41,8 @@ def predict_pace_gaps(year: int, gp: str, table: pd.DataFrame | None = None,
                 "reason": "too few prior weekends for a calibrated gap", "drivers": []}
 
     model = model_factory()
-    model.fit(prior[PACE_INFER_COLS], prior["race_pace_delta"])
+    w = recency_weights(prior, year, half_life_years)
+    model.fit(prior[PACE_INFER_COLS], prior["race_pace_delta"], sample_weight=w)
     # Per-tree predict on a plain array: the wrapping forest is fit with a
     # DataFrame (feature names), but individual trees were fit on arrays, so
     # passing the DataFrame here emits a spurious sklearn feature-name warning.

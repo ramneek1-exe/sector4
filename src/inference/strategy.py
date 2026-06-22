@@ -16,6 +16,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from src import store
 from src.calendar import race_id
+from src.inference.weights import recency_weights
 
 BASE_TRACK = ["pit_loss_s", "abrasiveness", "track_temp", "hist_modal_stops"]
 FP_DEG = ["deg_overall", "deg_SOFT", "deg_MEDIUM", "deg_HARD", "feas_max_stint"]
@@ -32,7 +33,8 @@ def _classifier():
     return RandomForestClassifier(n_estimators=200, random_state=0)
 
 
-def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None) -> dict:
+def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None,
+                        half_life_years: float = 2.0) -> dict:
     """Per-driver predicted pit-stop count + confidence, with SC uncertainty caveat."""
     table = table if table is not None else store.read_table(store.STRATEGY_TABLE)
     target = table[table["race_id"] == race_id(year, gp)]
@@ -49,7 +51,8 @@ def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None) -
                 "sc_caveat": SC_CAVEAT, "dominant": None, "drivers": []}
 
     clf = _classifier()
-    clf.fit(prior[STRATEGY_FEATURES], prior["n_stops"])
+    w = recency_weights(prior, year, half_life_years)
+    clf.fit(prior[STRATEGY_FEATURES], prior["n_stops"], sample_weight=w)
     proba = clf.predict_proba(target[STRATEGY_FEATURES])
     classes = clf.classes_
     preds = classes[np.argmax(proba, axis=1)]

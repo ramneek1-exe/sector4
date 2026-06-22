@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
@@ -9,15 +10,10 @@ import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
+import { BAND_TEXT } from "@/app/lib/bands";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
-
-const BAND_TEXT: Record<string, string> = {
-  strong: "text-emerald-600",
-  "in contention": "text-amber-600",
-  "outside shot": "text-slate-400",
-};
 
 // Interleaved by kind (podium → strategy → pace → lookup, repeating) so consecutive
 // chips are always a different type — the picker cycles this array in order.
@@ -50,9 +46,9 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
       </div>
 
       {podium.drivers.length > 0 ? (
-        <div className="flex items-end justify-center gap-6 sm:gap-10">
+        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
           {podium.drivers.slice(0, 4).map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
               <AsciiGlyph code={d.driver} team={d.team} size={96} />
               <div className="mt-2 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
               <div
@@ -88,9 +84,9 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
         {pace.year} {pace.gp} · long-run pace gaps
       </div>
       {pace.drivers.length > 0 ? (
-        <div className="flex items-end justify-center gap-6 sm:gap-10">
+        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
           {pace.drivers.slice(0, 5).map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-1.5">
+            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
               <AsciiGlyph code={d.driver} team={d.team} size={88} />
               <div className="mt-2 font-grotesk text-lg font-bold tracking-wide text-ink">{d.driver}</div>
               <div className={`font-mono text-sm font-semibold text-ink/85 ${LEGIBLE} px-2 py-0.5`}>
@@ -246,12 +242,13 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
 }
 
 export default function Home() {
-  const [query, setQuery] = useState(EXAMPLES[0]);
+  const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
   async function run(q: string) {
+    if (!q.trim()) return; // ignore empty submits (the bar starts empty now)
     setLoading(true);
     setLoadingLine(pickLoadingLine());
     setAnswer(null);
@@ -271,6 +268,12 @@ export default function Home() {
 
   return (
     <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
+      <Link
+        href="/weekend"
+        className="cta-grow fixed right-6 top-4 z-40 font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
+      >
+        Upcoming weekend odds →
+      </Link>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -283,7 +286,7 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-12 w-full rounded-full border border-ink/15 bg-white px-5 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
-            placeholder="Ask about a race weekend…"
+            placeholder="What's on your mind this race weekend?"
           />
         </div>
         <button

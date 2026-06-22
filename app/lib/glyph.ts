@@ -16,6 +16,11 @@ export type ResolvedGlyph = {
 type Driver = { name: string; number: number; personalColor: string };
 type Team = { primary: string; secondary: string };
 
+/** Full driver name for a 3-letter code, or the code itself if unknown. Pure. */
+export function driverName(code: string): string {
+  return (drivers as Record<string, Driver>)[code]?.name ?? code;
+}
+
 /** Resolve a 3-letter code + team name to render-ready glyph values. Pure. */
 export function resolveGlyph(code: string, team: string | null): ResolvedGlyph {
   const d = (drivers as Record<string, Driver>)[code];

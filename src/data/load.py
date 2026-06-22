@@ -38,6 +38,14 @@ def load_session(year: int, gp: str, session: str, **load_kwargs):
     try:
         s = fastf1.get_session(year, gp, session)
         s.load(**kwargs)
+        # fastf1 does NOT raise for a future/unpublished race — load() completes with
+        # zero drivers and accessing .laps then raises. Force the check here so such a
+        # session degrades to None (the documented contract) instead of crashing a
+        # full-calendar build downstream. (The .laps access raises -> caught below.)
+        if kwargs.get("laps", True) and (s.laps is None or s.laps.empty):
+            logger.warning("Loaded %s %s %s but it has no laps; treating as unavailable",
+                           year, gp, session)
+            return None
         return s
     except Exception as e:  # noqa: BLE001 - want any failure to degrade gracefully
         logger.warning("Failed to load %s %s %s: %s", year, gp, session, e)

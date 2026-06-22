@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeCircuit, normalizeLookupCircuit } from "./circuits";
+import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 
 describe("normalizeCircuit", () => {
   it("maps the canonical name to itself", () => {
@@ -15,9 +15,22 @@ describe("normalizeCircuit", () => {
     expect(normalizeCircuit("mexico")).toBe("Mexico City");
   });
 
-  it("returns null for circuits outside the 8-circuit slice", () => {
-    expect(normalizeCircuit("Monaco")).toBeNull();
-    expect(normalizeCircuit("Silverstone")).toBeNull();
+  it("normalizes 2026 calendar circuits", () => {
+    expect(normalizeCircuit("Austrian Grand Prix")).toBe("Austria");
+    expect(normalizeCircuit("red bull ring")).toBe("Austria");
+    expect(normalizeCircuit("Spielberg")).toBe("Austria");
+    expect(normalizeCircuit("Silverstone")).toBe("Great Britain");
+    expect(normalizeCircuit("Suzuka")).toBe("Japan");
+    expect(normalizeCircuit("Montreal")).toBe("Canada");
+    expect(normalizeCircuit("Monaco")).toBe("Monaco");
+  });
+
+  it("defaults to the live beta season", () => {
+    expect(DEFAULT_YEAR).toBe(2026);
+  });
+
+  it("returns null for circuits outside the calendar", () => {
+    expect(normalizeCircuit("Sochi")).toBeNull();
     expect(normalizeCircuit(undefined)).toBeNull();
   });
 });

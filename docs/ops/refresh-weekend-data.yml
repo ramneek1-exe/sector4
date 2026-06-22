@@ -1,0 +1,70 @@
+# R17 — telemetry/data refresh automation (M5).
+#
+# Runs the fastf1 batch build on the race-weekend cadence and commits the refreshed
+# feature tables; the push to the production branch triggers Vercel's auto-deploy, so the
+# bundled-parquet API (api/{podium,pace,strategy,inference,results}.py) serves fresh data
+# WITHOUT any manual rebuild. Once the upcoming weekend's FP has run, the pace/stop-count
+# tables gain that weekend's rows and the telemetry cards light up automatically (the
+# inference layer already returns qualitative until a target row exists).
+#
+# NOTE (deliberate simplification of the spec's "fastf1 -> Blob overlay" R17): committing
+# refreshed parquet + auto-deploy reuses the working bundled-parquet path with no Blob
+# upload from Python and no api read-path changes. Revisit the Blob overlay only if a
+# redeploy per refresh becomes undesirable.
+#
+# UNVERIFIED until the first real weekend (needs live 2026 FP data). Caveats to confirm:
+#   - fastf1 fetching in CI (no warm cache) is slow — the full slice can take tens of
+#     minutes; scope to the target weekend later if CI minutes matter.
+#   - Pushing parquet to the repo each run grows history; consider git-LFS later.
+#   - Requires Actions to have contents:write (set below) and Vercel's Git integration to
+#     deploy on pushes to the production branch (it already does for this project).
+name: Refresh weekend data
+
+on:
+  workflow_dispatch: {} # manual trigger (use this for the first verification run)
+  schedule:
+    # Twice daily Fri/Sat/Sun (UTC) — covers practice, quali, and post-race windows.
+    - cron: "0 8,18 * * 5,6,0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-weekend-data
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Build feature tables (fastf1)
+        run: PYTHONPATH=. python scripts/build_2026.py
+
+      - name: Stage refreshed tables into api/
+        run: |
+          cp data/pace_features.parquet data/strategy_features.parquet \
+             data/team_map.parquet data/season_results.parquet api/
+          cp data/podium_features.parquet api/podium_features.parquet
+
+      - name: Commit & push if changed (triggers Vercel deploy)
+        run: |
+          git config user.name "sector4-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add api/*.parquet
+          if git diff --cached --quiet; then
+            echo "No data changes — nothing to deploy."
+          else
+            git commit -m "data: refresh weekend feature tables [skip ci]"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
