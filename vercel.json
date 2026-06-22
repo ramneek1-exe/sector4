@@ -18,13 +18,5 @@
   },
   "crons": [
     { "path": "/api/cron/snapshot", "schedule": "0 6 * * *" }
-  ],
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.sector4.net" }],
-      "destination": "https://sector4.net/:path*",
-      "permanent": true
-    }
   ]
 }
