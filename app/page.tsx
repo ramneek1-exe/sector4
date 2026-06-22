@@ -242,12 +242,13 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
 }
 
 export default function Home() {
-  const [query, setQuery] = useState(EXAMPLES[0]);
+  const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<Answer | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
   async function run(q: string) {
+    if (!q.trim()) return; // ignore empty submits (the bar starts empty now)
     setLoading(true);
     setLoadingLine(pickLoadingLine());
     setAnswer(null);
@@ -285,7 +286,7 @@ export default function Home() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-12 w-full rounded-full border border-ink/15 bg-white px-5 font-grotesk text-sm text-ink shadow-sm outline-none transition placeholder:text-muted hover:border-accent/70 hover:-translate-y-px focus:border-accent motion-reduce:hover:translate-y-0"
-            placeholder="Ask about a race weekend…"
+            placeholder="What's on your mind this race weekend?"
           />
         </div>
         <button

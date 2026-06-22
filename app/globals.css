@@ -45,10 +45,9 @@ body {
   }
 }
 
-/* CTA: blue underline that grows left→right on hover and retracts on leave. */
-.cta-grow {
-  position: relative;
-}
+/* CTA: blue underline that grows left→right on hover and retracts on leave. The element
+   itself is positioned by its `fixed` utility, so the ::after anchors to it — we must NOT
+   set position here or it would override `fixed` and drop the CTA into normal flow. */
 .cta-grow::after {
   content: "";
   position: absolute;
@@ -71,24 +70,16 @@ body {
   }
 }
 
-/* /weekend side fog strips: confined to the MIDDLE of each vertical edge — fade toward
-   the centre (horizontal) AND toward the top/bottom (vertical) so they never reach the
-   corners or interfere with the wordmark. The two gradients are intersected. */
+/* /weekend side fog strips: a soft radial mask anchored to the outer-middle of each edge
+   so the fog dissolves in every direction — no straight cut-off, no defined shape — and
+   fades out well before the centred content. */
 .weekend-fog-left {
-  -webkit-mask-image: linear-gradient(to right, #000, transparent),
-    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, #000, transparent),
-    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
-  mask-composite: intersect;
+  -webkit-mask-image: radial-gradient(125% 70% at 0% 50%, #000 28%, transparent 75%);
+  mask-image: radial-gradient(125% 70% at 0% 50%, #000 28%, transparent 75%);
 }
 .weekend-fog-right {
-  -webkit-mask-image: linear-gradient(to left, #000, transparent),
-    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to left, #000, transparent),
-    linear-gradient(to bottom, transparent, #000 28%, #000 72%, transparent);
-  mask-composite: intersect;
+  -webkit-mask-image: radial-gradient(125% 70% at 100% 50%, #000 28%, transparent 75%);
+  mask-image: radial-gradient(125% 70% at 100% 50%, #000 28%, transparent 75%);
 }
 
 

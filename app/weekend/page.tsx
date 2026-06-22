@@ -40,13 +40,13 @@ function SideFog() {
     <>
       <div
         aria-hidden
-        className="weekend-fog-left pointer-events-none fixed left-0 top-1/2 -z-10 h-[55vh] w-[15vw] -translate-y-1/2"
+        className="weekend-fog-left pointer-events-none fixed left-0 top-1/2 -z-10 h-[60vh] w-[max(0px,calc((100vw-48rem)/2))] -translate-y-1/2"
       >
         <AsciiFog className="h-full w-full" />
       </div>
       <div
         aria-hidden
-        className="weekend-fog-right pointer-events-none fixed right-0 top-1/2 -z-10 h-[55vh] w-[15vw] -translate-y-1/2"
+        className="weekend-fog-right pointer-events-none fixed right-0 top-1/2 -z-10 h-[60vh] w-[max(0px,calc((100vw-48rem)/2))] -translate-y-1/2"
       >
         <AsciiFog className="h-full w-full" />
       </div>
