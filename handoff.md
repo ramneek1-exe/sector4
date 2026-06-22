@@ -18,6 +18,12 @@
 > minors fixed), and verified on a live Vercel preview before merge. Branch
 > `m4-telemetry-differentiators` merged `--no-ff` (merge `986a422`) and DELETED (local + remote).
 >
+> **Production custom domain: `https://sector4.net`** (GoDaddy DNS: A `@`→76.76.21.21,
+> CNAME `www`→cname.vercel-dns.com; `www`→apex 308 redirect). GOTCHA: the www→apex redirect
+> lives in `next.config.mjs` `redirects()`, NOT `vercel.json` — **Vercel ignores
+> `vercel.json` redirects/rewrites/headers for Next.js projects** (use next.config). The
+> `*.vercel.app` URLs still work.
+>
 > **M5 — private beta: MERGED to `main` and LIVE on PRODUCTION** (`sector4-zeta.vercel.app`;
 > merge `4bced64`, branch `m5-private-beta` deleted). Runtime calibrated podium for live
 > 2026 weekends (HAM strong 0.68 for Austria, verified on prod), snapshot/cron/Blob
