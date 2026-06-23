@@ -23,6 +23,25 @@ SATURDAY_COLS = FRIDAY_COLS + ["grid_position"]
 MIN_TRAIN_RACES = 8  # the validated rolling-origin warmup (spec §2)
 
 
+def _driver_factors(row: pd.Series, saturday: bool) -> dict:
+    """The grounded signals behind one driver's band — the 'why' the narrative explains.
+
+    These are the model's own inputs (never race-derived for that race), surfaced so the
+    narrative can speak in real terms (standings, recent form, track history, grid) instead
+    of reciting probabilities. Conventions: champ_rank 1 = leader; recent_form_avg_finish is
+    the mean finishing position over the last 3 races (lower = better); track_pace_delta_s is
+    the driver's historical race-pace gap AT THIS TRACK (negative = faster than average).
+    """
+    f = {
+        "champ_rank": int(round(float(row["champ_rank_before"]))),
+        "recent_form_avg_finish": round(float(row["form_finish_avg3"]), 1),
+        "track_pace_delta_s": round(float(row["prior_track_pace"]), 2),
+    }
+    if saturday and pd.notna(row.get("grid_position")):
+        f["grid"] = int(round(float(row["grid_position"])))
+    return f
+
+
 def _resolve_mode(target: pd.DataFrame, mode: str) -> str:
     """Resolve the prediction mode against grid availability.
 
@@ -62,12 +81,15 @@ def predict_podium(year: int, gp: str, mode: str = "auto",
     model.fit(prior[cols], prior["podium"])
     proba = model.predict_proba(target[cols])[:, 1]
 
-    teams = target["team"] if "team" in target else [None] * len(target)
-    drivers = [
-        {"driver": d, "team": (None if pd.isna(t) else t),
-         "band": band_for(float(p)), "p_podium": round(float(p), 2)}
-        for d, p, t in zip(target["Driver"], proba, teams)
-    ]
+    target = target.reset_index(drop=True)
+    saturday = resolved == "saturday"
+    drivers = []
+    for (_, row), p in zip(target.iterrows(), proba):
+        t = row["team"] if "team" in target else None
+        drivers.append({
+            "driver": row["Driver"], "team": (None if pd.isna(t) else t),
+            "band": band_for(float(p)), "p_podium": round(float(p), 2),
+            "factors": _driver_factors(row, saturday)})
     drivers.sort(key=lambda r: r["p_podium"], reverse=True)
     for i, d in enumerate(drivers, start=1):
         d["rank"] = i

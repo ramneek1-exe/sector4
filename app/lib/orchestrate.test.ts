@@ -106,6 +106,51 @@ describe("answerQuery", () => {
     expect(askedYear).toBe(2026);
   });
 
+  it("resolves a relative 'next race' podium question to the upcoming weekend", async () => {
+    let askedYear = 0;
+    let askedGp = "";
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium", gp: "next race" }),
+        upcomingRace: () => ({ year: 2026, gp: "Austria" }),
+        predictPodium: async (year, gp) => { askedYear = year; askedGp = gp; return PODIUM; },
+      }),
+      "who's gonna be on the podium at the next race?",
+    );
+    expect(askedYear).toBe(2026);
+    expect(askedGp).toBe("Austria");
+    expect(out.supported).toBe(true);
+  });
+
+  it("attaches curated circuit context to the facts handed to the narrator", async () => {
+    let narrated: PodiumFacts | undefined;
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium", gp: "Red Bull Ring", year: 2026 }),
+        predictPodium: async () => ({ ...PODIUM, gp: "Austria" }),
+        narratePodium: async (facts) => { narrated = facts; return "grounded narrative"; },
+      }),
+      "who podiums in Austria?",
+    );
+    // Austria is authored in circuit-facts.json, so context flows through (capped at 2).
+    expect(narrated?.context?.length).toBe(2);
+    expect(out.supported).toBe(true);
+    if (out.supported && "podium" in out) expect(out.podium.context?.length).toBe(2);
+  });
+
+  it("falls back to the upcoming weekend when a prediction names no circuit", async () => {
+    let askedGp = "";
+    await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium" }),
+        upcomingRace: () => ({ year: 2026, gp: "Austria" }),
+        predictPodium: async (_y, gp) => { askedGp = gp; return PODIUM; },
+      }),
+      "who's gonna podium?",
+    );
+    expect(askedGp).toBe("Austria");
+  });
+
   it("rejects a podium circuit outside the calendar without calling inference", async () => {
     let called = false;
     const out = await answerQuery(

@@ -1,18 +1,27 @@
 import { HAIKU, type LlmClient } from "./anthropic";
 
+// `context` (on every facts type) is a short array of curated, allowlisted circuit
+// facts (app/data/circuit-facts.json) — the ONLY outside-the-numbers material a narrative
+// may draw on. The prompts let the model add at most one sentence FROM that array, never
+// from its own general knowledge, so explanations read smarter while staying grounded.
 export type StatFacts = {
   stat: string;
   gp: string;
   value: number | null;
   units: string | null;
   source: string;
+  year?: number | null; // season the value is from (pit_loss); latest by default
+  insights?: string[]; // grounded one-liners computed from our data (e.g. calendar ranking)
+  context?: string[];
 };
 
 const SYSTEM = [
-  "You write a two-sentence explanation for a single Formula 1 stat lookup.",
-  "You may use ONLY the facts in the JSON the user provides.",
+  "You write a short, insightful two-to-three-sentence explanation for a single Formula 1 stat lookup.",
+  "You may use ONLY the facts in the JSON the user provides (the stat, its value, units, year, any `insights`, and any `context`).",
   "Do not invent or estimate any numbers, drivers, teams, causes, or comparisons not present in that JSON.",
-  "State the value and circuit plainly; the second sentence may add brief, general context that does not introduce new facts.",
+  "State the value and circuit plainly, then make it smarter by working in the provided `insights` (grounded facts like how much of a pit stop is stationary time, or how the circuit ranks on the calendar).",
+  "If the JSON includes `context` (curated circuit facts), you MAY also weave in at most ONE short detail from it — only from the insights/context arrays, never your own outside knowledge.",
+  "If the value is null, say plainly that this stat isn't available for this circuit yet — do not guess a number.",
 ].join(" ");
 
 export async function generateNarrative(client: LlmClient, facts: StatFacts): Promise<string> {
@@ -29,7 +38,23 @@ export async function generateNarrative(client: LlmClient, facts: StatFacts): Pr
     .trim();
 }
 
-export type PodiumDriver = { driver: string; team: string | null; band: string; p_podium: number; rank: number };
+// factors = the grounded signals the model actually used, surfaced so the narrative can
+// explain the WHY (standings, recent form, track history, grid) instead of reciting odds.
+export type PodiumFactors = {
+  champ_rank: number; // championship position, 1 = leader
+  recent_form_avg_finish: number; // mean finish over the last 3 races, lower = better
+  track_pace_delta_s: number; // historical race-pace gap at THIS track, negative = faster
+  grid?: number; // starting position (Saturday only)
+};
+
+export type PodiumDriver = {
+  driver: string;
+  team: string | null;
+  band: string;
+  p_podium: number;
+  rank: number;
+  factors?: PodiumFactors;
+};
 
 export type PodiumFacts = {
   year: number;
@@ -40,13 +65,15 @@ export type PodiumFacts = {
   n_train_races?: number;
   reason?: string;
   drivers: PodiumDriver[];
+  context?: string[];
 };
 
 const PODIUM_SYSTEM = [
-  "You write a two-sentence, honest explanation of a Formula 1 podium-probability prediction.",
-  "You may use ONLY the facts in the JSON the user provides (driver codes, their bands, and p_podium values).",
-  "These are probabilities, not certainties: bands are 'strong', 'in contention', 'outside shot'.",
-  "Name the few strongest contenders by their three-letter code and band. NEVER say anyone 'will' podium — speak in terms of likelihood.",
+  "You write a short, honest, insightful explanation (2-3 sentences) of a Formula 1 podium-probability prediction.",
+  "Use ONLY the facts in the JSON. Each driver has a band, a p_podium probability, and `factors` — the real signals behind the call: champ_rank (championship position, 1 = leader), recent_form_avg_finish (mean finishing position over the last 3 races, lower = better), track_pace_delta_s (the driver's historical race-pace gap AT THIS TRACK in seconds, negative = faster than average), and grid (starting position, present once qualifying has happened).",
+  "Lead with the 2-3 strongest contenders by three-letter code and EXPLAIN WHY using their factors (e.g. 'leads on championship position and was quick here last year'), rather than just reciting probabilities.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short sentence drawn from it for color — only from that array, never your own outside knowledge.",
+  "These are probabilities, not certainties (bands: strong / in contention / outside shot). NEVER say anyone 'will' podium — speak in terms of likelihood.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not present in the JSON.",
   "If the JSON has no drivers (a qualitative/low-data state), say plainly that there isn't enough data for this weekend yet.",
 ].join(" ");
@@ -54,7 +81,7 @@ const PODIUM_SYSTEM = [
 export async function generatePodiumNarrative(client: LlmClient, facts: PodiumFacts): Promise<string> {
   const msg = await client.messages.create({
     model: HAIKU,
-    max_tokens: 220,
+    max_tokens: 280,
     system: PODIUM_SYSTEM,
     messages: [{ role: "user", content: JSON.stringify(facts) }],
   });
@@ -74,13 +101,16 @@ export type PaceFacts = {
   n_train_races?: number;
   reason?: string;
   drivers: PaceDriver[];
+  context?: string[];
 };
 
 const PACE_SYSTEM = [
-  "You write a two-sentence, honest explanation of a Formula 1 long-run PACE-GAP estimate.",
-  "You may use ONLY the facts in the JSON the user provides (driver codes, pace_delta_s where lower = faster, and uncertainty_s).",
+  "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 long-run PACE-GAP estimate.",
+  "You may use ONLY the facts in the JSON the user provides (driver codes, pace_delta_s where lower = faster, uncertainty_s, and any `context`).",
   "This is SUPPORTING CONTEXT about long-run pace gaps and how confident we are — it is NOT a podium or race-result prediction. Never say who will finish where.",
-  "Name the few fastest drivers by three-letter code and describe the gap in seconds and the uncertainty. Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON.",
+  "Name the few fastest drivers by three-letter code, describe the gap in seconds and the uncertainty, and explain what the gap means for the race (e.g. a tenth a lap over a stint).",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it — only from that array, never your own outside knowledge.",
+  "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON.",
   "If the JSON has no drivers (a qualitative/low-data state), say plainly there isn't enough data for this weekend yet.",
 ].join(" ");
 
@@ -105,13 +135,15 @@ export type StrategyFacts = {
   sc_caveat: string;
   dominant: { n_stops: number; share: number; n_drivers: number } | null;
   drivers: StrategyDriver[];
+  context?: string[];
 };
 
 const STRATEGY_SYSTEM = [
-  "You write a two-to-three-sentence, honest explanation of a Formula 1 STOP-COUNT strategy prediction.",
-  "You may use ONLY the facts in the JSON the user provides (the dominant stop call, per-driver n_stops + confidence, and sc_caveat).",
+  "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 STOP-COUNT strategy prediction.",
+  "You may use ONLY the facts in the JSON the user provides (the dominant stop call, per-driver n_stops + confidence, sc_caveat, and any `context`).",
   "Lead with the race-level / track-level call from `dominant` (e.g. mostly a one- or two-stop here) — strategy is driven more by the track and conditions than by individual teams, so keep per-driver detail secondary.",
   "Explain the teachable mechanism: higher tyre degradation pushes toward MORE stops. You MUST mention the safety-car caveat from sc_caveat.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it (e.g. a track trait that drives tyre wear) — only from that array, never your own outside knowledge.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON. Speak in terms of likelihood, never certainty.",
   "If the JSON has no drivers / dominant is null (a low-data state), say plainly there isn't enough data for this weekend yet.",
 ].join(" ");
