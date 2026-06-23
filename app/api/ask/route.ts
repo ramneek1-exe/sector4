@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const answer = await answerQuery(
       {
         parse: (q) => parseQuery(client, q),
-        lookup: (stat, gp) => postJson<StatFacts>(origin, "/api/inference", { stat, gp }),
+        lookup: (stat, gp, year) => postJson<StatFacts>(origin, "/api/inference", { stat, gp, year }),
         narrate: (facts) => generateNarrative(client, facts),
         predictPodium: (year, gp) => postJson<PodiumFacts>(origin, "/api/podium", { year, gp }),
         narratePodium: (facts) => generatePodiumNarrative(client, facts),

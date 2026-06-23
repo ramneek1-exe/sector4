@@ -27,17 +27,23 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.inference.lookup import lookup_stat  # noqa: E402
 
-# Strategy feature table for tyre_deg / stint_length lookups (pit_loss ignores it).
+# Bundled tables: strategy (tyre_deg / stint_length) + the derived pit-loss table.
 _STRATEGY = pd.read_parquet(Path(__file__).with_name("strategy_features.parquet"))
+_PIT_LOSS = pd.read_parquet(Path(__file__).with_name("pit_loss.parquet"))
 
 
 def lookup_response(body: dict) -> tuple[int, dict]:
-    """Map a request body to (status, json-serializable payload)."""
+    """Map a request body {stat, gp, year?} to (status, json-serializable payload)."""
     stat, gp = body.get("stat"), body.get("gp")
     if not stat or not gp:
         return 400, {"error": "stat and gp are required"}
+    year = body.get("year")
     try:
-        return 200, lookup_stat(stat, gp, table=_STRATEGY)
+        year = int(year) if year is not None else None
+    except (TypeError, ValueError):
+        return 400, {"error": "year must be an integer"}
+    try:
+        return 200, lookup_stat(stat, gp, table=_STRATEGY, pit_table=_PIT_LOSS, year=year)
     except ValueError as exc:
         return 400, {"error": str(exc)}
 

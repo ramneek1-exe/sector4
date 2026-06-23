@@ -1,13 +1,27 @@
 import type { ParsedQuery } from "./parser";
 import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts } from "./narrative";
 import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
+import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
+import { getCircuitFacts } from "./circuit-facts";
 
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
 
+// Curated, allowlisted circuit facts (app/data/circuit-facts.json) the narrative may draw
+// ONE detail from — the only outside-the-numbers material allowed (PRD: no invented facts).
+// Capped at 2 to keep the prompt tight; empty for circuits we haven't authored yet.
+const CONTEXT_LIMIT = 2;
+
+// Attach curated circuit context (if we have any) without mutating the source object.
+// No-op when none exists, so facts for un-authored circuits round-trip unchanged.
+function withContext<T extends { context?: string[] }>(facts: T, gp: string): T {
+  const context = getCircuitFacts(gp).slice(0, CONTEXT_LIMIT);
+  return context.length ? { ...facts, context } : facts;
+}
+
 export type AnswerDeps = {
   parse: (query: string) => Promise<ParsedQuery>;
-  lookup: (stat: string, gp: string) => Promise<StatFacts>;
+  lookup: (stat: string, gp: string, year?: number) => Promise<StatFacts>;
   narrate: (facts: StatFacts) => Promise<string>;
   predictPodium: (year: number, gp: string) => Promise<PodiumFacts>;
   narratePodium: (facts: PodiumFacts) => Promise<string>;
@@ -15,7 +29,26 @@ export type AnswerDeps = {
   narratePace: (facts: PaceFacts) => Promise<string>;
   predictStrategy: (year: number, gp: string) => Promise<StrategyFacts>;
   narrateStrategy: (facts: StrategyFacts) => Promise<string>;
+  // Resolves "the next race" / "this weekend" to a concrete upcoming GP. Injectable
+  // for deterministic tests; defaults to the live weekend schedule.
+  upcomingRace?: () => UpcomingRace;
 };
+
+// Resolve a prediction's target (year + canonical circuit). A relative reference
+// ("the next race") or a missing circuit on a prediction intent both resolve to the
+// upcoming weekend; a named circuit is normalized; an unknown named circuit -> null.
+function resolveTarget(
+  parsed: ParsedQuery,
+  upcoming: () => UpcomingRace,
+): { gp: string; year: number } | null {
+  if (!parsed.gp || isRelativeCircuit(parsed.gp)) {
+    const r = upcoming();
+    return { gp: r.gp, year: parsed.year ?? r.year };
+  }
+  const gp = normalizeCircuit(parsed.gp);
+  if (!gp) return null;
+  return { gp, year: parsed.year ?? DEFAULT_YEAR };
+}
 
 export type Answer =
   | { supported: true; facts: StatFacts; narrative: string }
@@ -39,35 +72,37 @@ const unsupportedLookup = (raw: string) =>
 
 export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answer> {
   const parsed = await deps.parse(query);
+  const upcoming = deps.upcomingRace ?? nextRace;
 
   if (parsed.intent === "lookup_stat" && parsed.stat && LOOKUP_STATS.includes(parsed.stat) && parsed.gp) {
     const gp = normalizeLookupCircuit(parsed.gp, parsed.stat);
     if (!gp) return { supported: false, message: unsupportedLookup(parsed.gp) };
-    const facts = await deps.lookup(parsed.stat, gp);
+    const base = await deps.lookup(parsed.stat, gp, parsed.year);
+    const facts = withContext(base, gp);
     const narrative = await deps.narrate(facts);
     return { supported: true, facts, narrative };
   }
 
-  if (parsed.intent === "predict_podium" && parsed.gp) {
-    const gp = normalizeCircuit(parsed.gp);
-    if (!gp) return { supported: false, message: unsupportedSlice(parsed.gp) };
-    const podium = await deps.predictPodium(parsed.year ?? DEFAULT_YEAR, gp);
+  if (parsed.intent === "predict_podium") {
+    const target = resolveTarget(parsed, upcoming);
+    if (!target) return { supported: false, message: unsupportedSlice(parsed.gp ?? "") };
+    const podium = withContext(await deps.predictPodium(target.year, target.gp), target.gp);
     const narrative = await deps.narratePodium(podium);
     return { supported: true, podium, narrative };
   }
 
-  if (parsed.intent === "predict_pace" && parsed.gp) {
-    const gp = normalizeCircuit(parsed.gp);
-    if (!gp) return { supported: false, message: unsupportedSlice(parsed.gp) };
-    const pace = await deps.predictPace(parsed.year ?? DEFAULT_YEAR, gp);
+  if (parsed.intent === "predict_pace") {
+    const target = resolveTarget(parsed, upcoming);
+    if (!target) return { supported: false, message: unsupportedSlice(parsed.gp ?? "") };
+    const pace = withContext(await deps.predictPace(target.year, target.gp), target.gp);
     const narrative = await deps.narratePace(pace);
     return { supported: true, pace, narrative };
   }
 
-  if (parsed.intent === "predict_strategy" && parsed.gp) {
-    const gp = normalizeCircuit(parsed.gp);
-    if (!gp) return { supported: false, message: unsupportedSlice(parsed.gp) };
-    const strategy = await deps.predictStrategy(parsed.year ?? DEFAULT_YEAR, gp);
+  if (parsed.intent === "predict_strategy") {
+    const target = resolveTarget(parsed, upcoming);
+    if (!target) return { supported: false, message: unsupportedSlice(parsed.gp ?? "") };
+    const strategy = withContext(await deps.predictStrategy(target.year, target.gp), target.gp);
     const narrative = await deps.narrateStrategy(strategy);
     return { supported: true, strategy, narrative };
   }

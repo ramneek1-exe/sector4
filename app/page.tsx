@@ -218,12 +218,31 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
       {facts.value !== null && (
-        <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-          {facts.value}
-          <span className="ml-1 text-3xl text-muted">{facts.units}</span>
+        <div className="flex flex-col items-center gap-1">
+          <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
+            {facts.value}
+            <span className="ml-1 text-3xl text-muted">{facts.units}</span>
+          </div>
+          {facts.year != null && (
+            <span className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>
+              {facts.gp} · {facts.year}
+            </span>
+          )}
         </div>
       )}
       <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      {facts.insights && facts.insights.length > 0 && (
+        <ul className="flex max-w-xl flex-col items-center gap-1">
+          {facts.insights.map((line) => (
+            <li
+              key={line}
+              className={`font-grotesk text-[12px] leading-snug text-ink/70 ${LEGIBLE} px-3 py-1`}
+            >
+              {line}
+            </li>
+          ))}
+        </ul>
+      )}
       <p className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>Source: {facts.source}</p>
     </div>
   );

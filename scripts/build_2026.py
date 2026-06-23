@@ -30,6 +30,7 @@ from src.calendar import RACE_CALENDAR
 from src.data.results import load_results
 from src.pipeline import (
     build_pace_table,
+    build_pit_loss,
     build_podium_table,
     build_strategy_table,
     build_team_map,
@@ -47,6 +48,7 @@ TABLES = [
     "team_map.parquet",
     "season_results.parquet",
     "podium_features.parquet",
+    "pit_loss.parquet",
 ]
 
 
@@ -72,25 +74,30 @@ def _merge_live(base_path: str, fresh: pd.DataFrame) -> pd.DataFrame:
 def main() -> None:
     _seed_data_from_api()
 
-    print(f"1/5 season_results — refresh {LIVE_SEASON}, reuse cached history...")
+    print(f"1/6 season_results — refresh {LIVE_SEASON}, reuse cached history...")
     results = load_results(SEASONS, refresh_year=LIVE_SEASON)
     store.write_table(results, store.SEASON_RESULTS)
     print(f"    {len(results)} rows, years {sorted(results['year'].unique())}")
 
-    print(f"2/5 pace — fetch {LIVE_SEASON} only, merge with committed history...")
+    print(f"2/6 pace — fetch {LIVE_SEASON} only, merge with committed history...")
     pace = _merge_live(store.PACE_TABLE, build_pace_table([LIVE_SEASON], LIVE_CIRCUITS))
     store.write_table(pace, store.PACE_TABLE)
     print(f"    {len(pace)} rows, {pace['race_id'].nunique()} weekends")
 
-    print(f"3/5 strategy — fetch {LIVE_SEASON} only, merge...")
+    print(f"3/6 strategy — fetch {LIVE_SEASON} only, merge...")
     strat = _merge_live(store.STRATEGY_TABLE,
                         build_strategy_table([LIVE_SEASON], LIVE_CIRCUITS))
     store.write_table(strat, store.STRATEGY_TABLE)
     print(f"    {len(strat)} rows, {strat['race_id'].nunique()} weekends")
 
-    print("4/5 podium table (pure transform)...")
+    print(f"4/6 pit-loss — fetch {LIVE_SEASON} only, merge...")
+    pit = _merge_live(store.PIT_LOSS, build_pit_loss([LIVE_SEASON], LIVE_CIRCUITS))
+    store.write_table(pit, store.PIT_LOSS)
+    print(f"    {len(pit)} rows, {pit['gp'].nunique()} circuits")
+
+    print("5/6 podium table (pure transform)...")
     store.write_table(build_podium_table(pace, results), store.PODIUM_TABLE)
-    print("5/5 team map (pure transform)...")
+    print("6/6 team map (pure transform)...")
     store.write_table(build_team_map(results), store.TEAM_MAP)
 
     for t in TABLES:

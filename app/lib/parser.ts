@@ -42,7 +42,8 @@ export const ROUTE_TOOL = {
       gp: {
         type: "string",
         description:
-          "Grand Prix / circuit. Prefer the country or city name, e.g. Italy, Mexico City, Las Vegas, Saudi Arabia.",
+          "Grand Prix / circuit. Prefer the country or city name, e.g. Italy, Mexico City, Las Vegas, Saudi Arabia. " +
+          "If the question refers to the upcoming race without naming a circuit (e.g. 'the next race', 'this weekend', 'the upcoming GP'), output the literal value 'next race'.",
       },
       year: {
         type: "integer",

@@ -19,6 +19,7 @@ from src.data.load import is_dry_session, load_session
 from src.features.assemble import build_dataset
 from src.features.friday import add_friday_features, prior_track_pace
 from src.features.pace import summarize_stints
+from src.features.pit_loss import derive_race_pit_loss
 from src.features.stints import long_run_stints
 from src.features.strategy import (
     add_history,
@@ -112,6 +113,38 @@ def build_strategy_table(seasons: list[int] = SEASONS,
     return driver_df
 
 
+# Every circuit the pit-loss lookup can be asked about (the dry-set 8 + Monaco + the live
+# 2026 calendar). Derived across all seasons we hold; the lookup defaults to the latest.
+PIT_LOSS_CIRCUITS = [
+    "Bahrain", "Saudi Arabia", "Spain", "Hungary", "Italy", "Mexico City", "Las Vegas",
+    "Abu Dhabi", "Monaco", "Australia", "China", "Japan", "Miami", "Canada", "Austria",
+    "Great Britain",
+]
+PIT_LOSS_SEASONS = [2023, 2024, 2025, 2026]
+
+
+def build_pit_loss(seasons: list[int] = PIT_LOSS_SEASONS,
+                   circuits: list[str] = PIT_LOSS_CIRCUITS) -> pd.DataFrame:
+    """Derive full pit-lane time loss per (year, gp) from race laps. Loads fastf1 (batch).
+
+    Skips weekends with no cached race or no clean stops (future/unraced rounds degrade
+    gracefully to absence, not a fake number). Loads via the full EventName so non-dry-set
+    circuits (e.g. Great Britain) resolve in fastf1.
+    """
+    rows = []
+    for year in seasons:
+        for gp in circuits:
+            race = load_session(year, GP_TO_EVENT.get(gp, gp), "R")
+            if race is None or race.laps.empty:
+                continue
+            value, n_stops = derive_race_pit_loss(race.laps)
+            if value is None:
+                continue
+            rows.append({"race_id": race_id(year, gp), "year": year, "gp": gp,
+                         "pit_loss_s": value, "n_stops": n_stops})
+    return pd.DataFrame(rows)
+
+
 def build_podium_table(pace_df: pd.DataFrame, results: pd.DataFrame,
                        gp_to_event: dict = GP_TO_EVENT) -> pd.DataFrame:
     """Per-driver-per-weekend podium feature table (pure transform; no I/O).
@@ -164,5 +197,7 @@ def build_all() -> None:
     store.write_table(build_pace_table(), store.PACE_TABLE)
     store.write_table(build_strategy_table(), store.STRATEGY_TABLE)
     logger.info("Wrote %s and %s", store.PACE_TABLE, store.STRATEGY_TABLE)
+    store.write_table(build_pit_loss(), store.PIT_LOSS)
+    logger.info("Wrote %s", store.PIT_LOSS)
     store.write_table(build_team_map(store.read_table(store.SEASON_RESULTS)), store.TEAM_MAP)
     logger.info("Wrote %s", store.TEAM_MAP)

@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/inference.py": {
-      "includeFiles": "{src/**,api/strategy_features.parquet}"
+      "includeFiles": "{src/**,api/strategy_features.parquet,api/pit_loss.parquet}"
     },
     "api/podium.py": {
       "includeFiles": "{src/**,api/podium_features.parquet,api/season_results.parquet,api/pace_features.parquet}"

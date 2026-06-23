@@ -36,7 +36,7 @@ def test_austria_curated():
     assert "Austria" in CURATED_TRACKS
     f = track_features("Austria")
     assert f["length_km"] == 4.318
-    assert f["pit_loss_s"] == 21.0
+    assert f["pit_loss_s"] == 20.3
 
 
 def test_britain_curated():

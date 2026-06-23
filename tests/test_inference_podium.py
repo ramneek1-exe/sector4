@@ -35,10 +35,13 @@ def test_predict_podium_returns_sorted_bands_and_flagged_proba():
     ps = [d["p_podium"] for d in out["drivers"]]
     assert ps == sorted(ps, reverse=True)      # sorted by probability desc
     top = out["drivers"][0]
-    assert set(top) == {"driver", "team", "band", "p_podium", "rank"}
+    assert set(top) == {"driver", "team", "band", "p_podium", "rank", "factors"}
     assert top["band"] in {"strong", "in contention", "outside shot"}
     assert top["p_podium"] == round(top["p_podium"], 2)
     assert top["rank"] == 1
+    # Saturday surfaces the grounded factors incl. grid (the model's own inputs).
+    assert set(top["factors"]) == {"champ_rank", "recent_form_avg_finish",
+                                   "track_pace_delta_s", "grid"}
 
 
 def test_mode_auto_picks_friday_when_no_grid():
@@ -91,4 +94,6 @@ def test_feature_columns_exclude_finish():
 def test_predict_podium_surfaces_team_per_driver():
     out = predict_podium(2024, "Bahrain", table=_podium_table())
     assert out["drivers"][0]["team"] == "TestTeam"
-    assert set(out["drivers"][0]) == {"driver", "team", "band", "p_podium", "rank"}
+    assert set(out["drivers"][0]) == {"driver", "team", "band", "p_podium", "rank", "factors"}
+    assert {"champ_rank", "recent_form_avg_finish", "track_pace_delta_s"} <= set(
+        out["drivers"][0]["factors"])

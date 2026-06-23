@@ -16,10 +16,20 @@ def _strategy_table():
     )
 
 
-def test_pit_loss_comes_from_curated_track_features():
-    out = lookup_stat("pit_loss", "Bahrain")
-    assert out["value"] == 23.0
+def _pit_table():
+    return pd.DataFrame(
+        [
+            {"race_id": "2025-Bahrain", "year": 2025, "gp": "Bahrain", "pit_loss_s": 23.4, "n_stops": 27},
+            {"race_id": "2024-Bahrain", "year": 2024, "gp": "Bahrain", "pit_loss_s": 22.9, "n_stops": 25},
+        ]
+    )
+
+
+def test_pit_loss_comes_from_derived_table():
+    out = lookup_stat("pit_loss", "Bahrain", pit_table=_pit_table())
+    assert out["value"] == 23.4  # latest season
     assert out["units"] == "s"
+    assert out["source"].startswith("derived")
 
 
 def test_tyre_deg_is_median_over_circuit_rows():
@@ -44,21 +54,8 @@ def test_unknown_stat_raises():
         lookup_stat("top_speed", "Bahrain", table=_strategy_table())
 
 
-def test_pit_loss_monaco_is_curated():
-    out = lookup_stat("pit_loss", "Monaco")
-    assert out["value"] == 19.5
-    assert out["units"] == "s"
-    assert out["source"] == "curated track features"
-
-
-def test_pit_loss_non_curated_circuit_is_honestly_unavailable():
-    out = lookup_stat("pit_loss", "Imola")
+def test_pit_loss_non_derived_circuit_is_honestly_unavailable():
+    out = lookup_stat("pit_loss", "Imola", pit_table=_pit_table())
     assert out["value"] is None
     assert out["units"] is None
-    assert out["source"] == "not available for this circuit"
-
-
-def test_pit_loss_curated_circuit_still_returns_value():
-    out = lookup_stat("pit_loss", "Spain")
-    assert out["value"] == 21.0
-    assert out["source"] == "curated track features"
+    assert out["source"] == "no race data for this circuit"

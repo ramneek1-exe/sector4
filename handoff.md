@@ -43,6 +43,46 @@
 > Next milestone after the beta runs: **M6 — learning layer** (incl. replacing the curated
 > `/weekend` facts with the entity-what pipeline).
 
+## ✨ Post-M5 fine-tuning (2026-06-22) — output quality, NOT M6
+
+Owner-directed tuning pass before the learning layer. Branch `fine-tune-output-pitloss`
+(committed, **not merged/deployed** — owner decision). 152 pytest + 78 vitest (+2 skipped
+live-smoke), `npm run build` + `tsc` clean. Four changes:
+
+1. **"Next race" resolves** (`app/lib/next-race.ts`). "Who's gonna be on the podium at the
+   next race?" used to error; now the parser emits `gp:"next race"` and the orchestrator
+   maps it (and a bare "who's gonna podium?") to the upcoming weekend from
+   `app/data/weekend-schedule.json` (Austria now, auto-rolls to `nextGp` once the race
+   finishes). Applies to podium/pace/strategy.
+2. **Pit-lane time loss is now DATA-DERIVED for ALL circuits** (`src/features/pit_loss.py` →
+   `build_pit_loss` → `data/pit_loss.parquet`, bundled to `api/`; read by `lookup_stat`
+   with a `pit_table`/`year`). Replaces the curated spike estimates AND the null fallback.
+   The number is the FULL stop cost INCLUDING the ~2.5s stationary change (the F1-website
+   convention — owner + web-confirmed). **Red Bull Ring → 20.8s (2025)** vs F1's 20.3 (within
+   margin; owner accepted derived-with-margin over exact curated). **Year-aware**: defaults
+   to the latest season held; `year` threads parser→orchestrate→`/api/inference`. Carries
+   grounded **insights** (the ~2.5s stationary share + calendar ranking "shortest/longest
+   pit-lane loss", computed from our own table). Caveat: single-sample 2026 circuits are
+   noisy (China 15.4, n=7). NOT shipped: per-track fastest-stop record + team (fastf1 has no
+   reliable stationary/stop duration — owner accepted the longest/shortest pit-lane facts as
+   the alternative). `track.py` Austria curated prior also corrected 21.0→20.3 (feature-only).
+3. **Smarter narratives ACROSS the platform** (podium, pace, strategy, stat lookups).
+   `predict_podium` now surfaces per-driver `factors` (champ_rank, recent_form_avg_finish,
+   track_pace_delta_s, grid) so the narrative explains the *why* ("leads on championship
+   position, quick here last year") not just odds. All four `*_SYSTEM` prompts rewritten to
+   be insightful + grounded, and may use ≤1 sentence from an **allowlisted** array only —
+   curated `circuit-facts.json` wired via `withContext` in `orchestrate.ts` + the new
+   `insights` field. Hard rule kept: never free LLM recall / invented facts.
+4. **R17 refresh wired** — `build_pit_loss` added to `build_all` AND `scripts/build_2026.py`
+   (incremental step 4/6, live-season merge, validated: picks up 7 completed 2026 rounds,
+   preserves 48 history rows, skips unraced Austria gracefully). Both workflow copies
+   (`.github/workflows/` + `docs/ops/`) stage `pit_loss.parquet`; `git add api/*.parquet`
+   already caught it. So live pit-loss now refreshes each weekend with the other tables.
+
+**Follow-ups:** China/single-sample 2026 noise (consider a min-stop threshold or multi-year
+median if "latest" reads wrong); Barcelona↔Spain key collision means a 2026-Barcelona
+pit-loss row is unreachable via the "Spain"-normalized lookup (harmless, pre-existing).
+
 ## 🎯 1. Current Goal & Status
 
 **Ultimate goal of Phase 1:** Decide — cheaply, on rich 2023–2025 historical data —
