@@ -53,7 +53,7 @@ jobs:
       - name: Stage refreshed tables into api/
         run: |
           cp data/pace_features.parquet data/strategy_features.parquet \
-             data/team_map.parquet data/season_results.parquet api/
+             data/team_map.parquet data/season_results.parquet data/pit_loss.parquet api/
           cp data/podium_features.parquet api/podium_features.parquet
 
       - name: Commit & push if changed (triggers Vercel deploy)

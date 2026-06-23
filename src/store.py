@@ -19,6 +19,7 @@ STRATEGY_TABLE = "data/strategy_features.parquet"
 PODIUM_TABLE = "data/podium_features.parquet"
 SEASON_RESULTS = "data/season_results.parquet"
 TEAM_MAP = "data/team_map.parquet"
+PIT_LOSS = "data/pit_loss.parquet"
 
 
 def write_table(df: pd.DataFrame, path: str) -> None:
