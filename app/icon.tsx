@@ -20,6 +20,7 @@ export default function Icon() {
           alignItems: "center",
           justifyContent: "center",
           background: "#0B1020",
+          border: "2px solid #39477F", // holds the tile edge on dark chrome; subtle on light
           borderRadius: 12,
         }}
       >
