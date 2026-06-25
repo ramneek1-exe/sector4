@@ -21,9 +21,9 @@ const COLOR_LO = [11, 30, 107]; // --ramp-0 (deep navy)
 const COLOR_HI = [30, 63, 208]; // --ramp-1 (brand blue)
 const NOISE_SCALE = 0.09; // same as AsciiFog
 const FOG_T = 6.4; // a fog frame with a nicer diagonal billow for the card
-const CELL = 20; // px per glyph cell
-const FOG_COLS = 60; // full-bleed across the 1200px card
-const FOG_ROWS = 32;
+const CELL = 22; // px per glyph cell (coarser = more graphic/abstract)
+const FOG_COLS = 55; // full-bleed across the 1200px card
+const FOG_ROWS = 29;
 
 // Brightness -> character, mirroring ascii-bitmap.ts glyphFor's threshold cascade
 // (single-dot · / dot-dot : / plus + / x / hash # / big-dot ●).
@@ -37,14 +37,13 @@ function fogChar(v: number): string {
   return "@"; // densest core (● isn't in JetBrains Mono -> satori can't render it)
 }
 
-// Sample the same field, denser: a small ambient lift (more cells cross the glyph
-// thresholds) plus a bright "hotspot" toward the right core — the still-frame equivalent
-// of the cursor brighten that makes the live fog billow densest where you hover.
+// Sample the field abstractly: let the raw domain-warped FBM through (organic clouds with
+// real negative space), pulled DOWN slightly so low areas fall blank, plus one soft,
+// localised billow on the right — not a uniform fill.
 function fogValue(c: number, r: number): number {
-  let v = warpedField(c * NOISE_SCALE, r * NOISE_SCALE, FOG_T) + 0.12;
-  const d = Math.hypot(c - FOG_COLS * 0.72, r - FOG_ROWS * 0.44) / (FOG_COLS * 0.5);
-  if (d < 1) v += (1 - d) * (1 - d) * 0.62;
-  return v;
+  const v = warpedField(c * NOISE_SCALE, r * NOISE_SCALE, FOG_T) - 0.06;
+  const d = Math.hypot(c - FOG_COLS * 0.74, r - FOG_ROWS * 0.42) / (FOG_COLS * 0.32);
+  return d < 1 ? v + (1 - d) * (1 - d) * 0.42 : v;
 }
 
 function FogCell({ v }: { v: number }) {
