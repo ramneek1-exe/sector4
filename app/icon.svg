@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0B1020"/>
+  <text x="32" y="41" text-anchor="middle"
+        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        font-weight="800" font-size="32" letter-spacing="0.5" fill="#FAFAFA">S4</text>
+  <rect x="19" y="49" width="26" height="4" rx="2" fill="#2E8BFF"/>
+</svg>
