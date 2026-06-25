@@ -2,12 +2,13 @@ import { ImageResponse } from "next/og";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// iOS home-screen / share icon: "S4" in Bebas Neue + accent underline on ink. Generated
-// so the real wordmark face is rasterised in (matches the favicon).
-export const size = { width: 180, height: 180 };
+// Favicon: "S4" in Bebas Neue (the wordmark face) on the ink background. Generated as a
+// PNG via satori so the real font is rasterised in — an SVG <text> favicon can't load the
+// web font, and PNG favicons render everywhere.
+export const size = { width: 64, height: 64 };
 export const contentType = "image/png";
 
-export default function AppleIcon() {
+export default function Icon() {
   const bebas = readFileSync(join(process.cwd(), "app/fonts/og/bebas.ttf"));
   return new ImageResponse(
     (
@@ -16,16 +17,15 @@ export default function AppleIcon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#0B1020",
+          borderRadius: 12,
         }}
       >
-        <div style={{ display: "flex", fontFamily: "Bebas", fontSize: 120, letterSpacing: 3, lineHeight: 1, color: "#FAFAFA" }}>
+        <div style={{ display: "flex", fontFamily: "Bebas", fontSize: 46, letterSpacing: 1, lineHeight: 1, color: "#FAFAFA" }}>
           S4
         </div>
-        <div style={{ display: "flex", width: 72, height: 9, background: "#2E8BFF", borderRadius: 5, marginTop: 8 }} />
       </div>
     ),
     { ...size, fonts: [{ name: "Bebas", data: bebas, style: "normal", weight: 400 }] },
