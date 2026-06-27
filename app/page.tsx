@@ -252,6 +252,7 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
 function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
+      <h1 className="font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
       <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
         Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
       </p>
@@ -287,12 +288,20 @@ export default function Home() {
 
   return (
     <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
-      <Link
-        href="/weekend"
-        className="cta-grow fixed right-6 top-4 z-40 font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
-      >
-        Upcoming weekend odds →
-      </Link>
+      <div className="fixed right-6 top-4 z-40 flex items-center gap-3">
+        <Link
+          href="/learn"
+          className="rounded-full px-2 py-0.5 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
+        >
+          Learn
+        </Link>
+        <Link
+          href="/weekend"
+          className="cta-grow font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
+        >
+          Upcoming weekend odds →
+        </Link>
+      </div>
       <form
         onSubmit={(e) => {
           e.preventDefault();
