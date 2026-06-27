@@ -60,7 +60,7 @@ jobs:
         run: |
           git config user.name "sector4-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add api/*.parquet
+          git add api/*.parquet app/data/grids.json
           if git diff --cached --quiet; then
             echo "No data changes — nothing to deploy."
           else

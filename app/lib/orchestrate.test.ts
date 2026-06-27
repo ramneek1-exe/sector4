@@ -36,6 +36,8 @@ function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
     narrate: async () => "Monaco loses about 19.5s.",
     predictPodium: async () => PODIUM,
     narratePodium: async () => "NOR is the strongest podium pick at Monza.",
+    grid: () => undefined, // hermetic default; override per-test to exercise sharpening
+
     predictPace: async () => PACE,
     narratePace: async () => "NOR holds a small long-run edge.",
     predictStrategy: async () => STRATEGY,
@@ -120,6 +122,34 @@ describe("answerQuery", () => {
     expect(askedYear).toBe(2026);
     expect(askedGp).toBe("Austria");
     expect(out.supported).toBe(true);
+  });
+
+  it("forwards the qualifying grid to the podium predictor (post-quali sharpening)", async () => {
+    let askedGrid: Record<string, number> | undefined;
+    await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium", gp: "Austria", year: 2026 }),
+        grid: () => ({ RUS: 1, LEC: 2 }),
+        predictPodium: async (_y, _g, grid) => { askedGrid = grid; return PODIUM; },
+      }),
+      "who podiums at Austria?",
+    );
+    expect(askedGrid).toEqual({ RUS: 1, LEC: 2 });
+  });
+
+  it("passes no grid pre-quali so the podium stays in honest Friday mode", async () => {
+    let called = false;
+    let askedGrid: Record<string, number> | undefined = { sentinel: 0 };
+    await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium", gp: "Austria", year: 2026 }),
+        grid: () => undefined,
+        predictPodium: async (_y, _g, grid) => { called = true; askedGrid = grid; return PODIUM; },
+      }),
+      "who podiums at Austria?",
+    );
+    expect(called).toBe(true);
+    expect(askedGrid).toBeUndefined();
   });
 
   it("attaches curated circuit context to the facts handed to the narrator", async () => {
