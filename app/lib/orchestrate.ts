@@ -3,6 +3,7 @@ import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts } from "./narrati
 import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
 import { getCircuitFacts } from "./circuit-facts";
+import { getGrid, type Grid } from "./grid";
 
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
@@ -23,7 +24,10 @@ export type AnswerDeps = {
   parse: (query: string) => Promise<ParsedQuery>;
   lookup: (stat: string, gp: string, year?: number) => Promise<StatFacts>;
   narrate: (facts: StatFacts) => Promise<string>;
-  predictPodium: (year: number, gp: string) => Promise<PodiumFacts>;
+  predictPodium: (year: number, gp: string, grid?: Grid) => Promise<PodiumFacts>;
+  // Resolves a weekend's qualifying grid (post-quali) so user-facing podium queries
+  // sharpen too; injectable for tests, defaults to the committed grids.json.
+  grid?: (year: number, gp: string) => Grid | undefined;
   narratePodium: (facts: PodiumFacts) => Promise<string>;
   predictPace: (year: number, gp: string) => Promise<PaceFacts>;
   narratePace: (facts: PaceFacts) => Promise<string>;
@@ -86,7 +90,12 @@ export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answ
   if (parsed.intent === "predict_podium") {
     const target = resolveTarget(parsed, upcoming);
     if (!target) return { supported: false, message: unsupportedSlice(parsed.gp ?? "") };
-    const podium = withContext(await deps.predictPodium(target.year, target.gp), target.gp);
+    // Pass the grid when quali has run so the podium sharpens; undefined -> Friday bands.
+    const grid = (deps.grid ?? getGrid)(target.year, target.gp);
+    const podium = withContext(
+      await deps.predictPodium(target.year, target.gp, grid),
+      target.gp,
+    );
     const narrative = await deps.narratePodium(podium);
     return { supported: true, podium, narrative };
   }

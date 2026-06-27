@@ -43,7 +43,8 @@ export async function POST(req: Request) {
         parse: (q) => parseQuery(client, q),
         lookup: (stat, gp, year) => postJson<StatFacts>(origin, "/api/inference", { stat, gp, year }),
         narrate: (facts) => generateNarrative(client, facts),
-        predictPodium: (year, gp) => postJson<PodiumFacts>(origin, "/api/podium", { year, gp }),
+        predictPodium: (year, gp, grid) =>
+          postJson<PodiumFacts>(origin, "/api/podium", { year, gp, grid }),
         narratePodium: (facts) => generatePodiumNarrative(client, facts),
         predictPace: (year, gp) => postJson<PaceFacts>(origin, "/api/pace", { year, gp }),
         narratePace: (facts) => generatePaceNarrative(client, facts),
