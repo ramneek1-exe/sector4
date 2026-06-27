@@ -12,7 +12,7 @@
     "related": ["stop-count-strategy", "undercut-overcut", "track-evolution"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
     ]
   },
@@ -29,7 +29,7 @@
     "related": ["tyre-degradation", "stop-count-strategy", "pit-lane-time-loss", "dirty-air"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
     ]
   },
@@ -46,7 +46,7 @@
     "related": ["tyre-degradation", "undercut-overcut", "pit-lane-time-loss"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
     ]
   },
@@ -63,7 +63,7 @@
     "related": ["stop-count-strategy", "undercut-overcut"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
     ]
   },
@@ -80,7 +80,7 @@
     "related": ["track-evolution", "tyre-degradation"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
     ]
   },
@@ -97,7 +97,7 @@
     "related": ["qualifying-vs-race-pace", "tyre-degradation"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
     ]
   },
@@ -114,7 +114,7 @@
     "related": ["drs", "undercut-overcut"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Downforce", "url": "https://en.wikipedia.org/wiki/Downforce" }
     ]
   },
@@ -131,7 +131,7 @@
     "related": ["dirty-air"],
     "badge": "drafted",
     "sources": [
-      { "label": "Formula 1 — official glossary", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia — Drag reduction system", "url": "https://en.wikipedia.org/wiki/Drag_reduction_system" }
     ]
   }
