@@ -297,7 +297,7 @@ export default function Home() {
         </Link>
         <Link
           href="/weekend"
-          className="cta-grow font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
+          className="relative cta-grow font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
         >
           Upcoming weekend odds →
         </Link>
