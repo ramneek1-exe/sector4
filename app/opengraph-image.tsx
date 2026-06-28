@@ -7,7 +7,7 @@ import { warpedField } from "@/app/lib/noise";
 // (Bebas wordmark + PP Mondwest pixel-serif tagline) left-aligned, and a domain-warped
 // FBM ASCII fog field on the right — the same look as app/components/AsciiFog. Fonts are
 // TTF/OTF (satori can't read woff2); read from disk so they bundle into the route.
-export const alt = "Sector 4 — an explainer-led F1 weekend companion";
+export const alt = "Sector 4: an explainer-led F1 weekend companion";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

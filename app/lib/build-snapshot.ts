@@ -13,7 +13,7 @@ export interface SnapshotDeps {
 }
 
 const CAL_NOTE =
-  "Podium shown as honest bands, not a telemetry edge — probabilities are not yet " +
+  "Podium shown as honest bands, not a telemetry edge. Probabilities are not yet " +
   "calibrated and will sharpen as the 2026 season accumulates.";
 
 export async function buildSnapshot(
