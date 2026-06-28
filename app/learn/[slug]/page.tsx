@@ -38,11 +38,14 @@ export default function ConceptPage({ params }: { params: { slug: string } }) {
         />
       </div>
 
-      <Link href="/learn" className="font-grotesk text-xs text-muted transition hover:text-ink">
+      <Link
+        href="/learn"
+        className="learn-rise cta-grow relative inline-block font-pixel text-xl tracking-wide text-muted transition-colors hover:text-ink"
+      >
         ← Learn
       </Link>
 
-      <header className="mt-6 mb-8">
+      <header className="learn-rise mt-6 mb-8" style={{ animationDelay: "60ms" }}>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="font-bebas text-5xl leading-none text-ink sm:text-6xl">{concept.term}</h1>
           <TrustBadge badge={concept.badge} />
@@ -50,13 +53,16 @@ export default function ConceptPage({ params }: { params: { slug: string } }) {
         <p className="mt-4 font-lastik text-lg text-ink/80">{concept.summary}</p>
       </header>
 
-      <div className="space-y-4 font-lastik text-ink/90">
+      <div className="learn-rise space-y-4 font-lastik text-ink/90" style={{ animationDelay: "120ms" }}>
         {concept.body.map((p, i) => (
           <p key={i}>{p}</p>
         ))}
       </div>
 
-      <aside className="legible my-8 rounded-2xl border border-accent/30 bg-accent/[0.06] p-5">
+      <aside
+        className="learn-rise legible my-8 rounded-2xl border border-accent/30 bg-accent/[0.06] p-5"
+        style={{ animationDelay: "180ms" }}
+      >
         <h2 className="mb-2 font-grotesk text-xs font-semibold uppercase tracking-wide text-accent">
           Why it matters
         </h2>
@@ -64,7 +70,7 @@ export default function ConceptPage({ params }: { params: { slug: string } }) {
       </aside>
 
       {related.length > 0 && (
-        <section className="mb-8">
+        <section className="learn-rise mb-8" style={{ animationDelay: "240ms" }}>
           <h2 className="mb-3 font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
             Related
           </h2>
@@ -83,7 +89,7 @@ export default function ConceptPage({ params }: { params: { slug: string } }) {
         </section>
       )}
 
-      <footer className="border-t border-ink/10 pt-5">
+      <footer className="learn-rise border-t border-ink/10 pt-5" style={{ animationDelay: "300ms" }}>
         <h2 className="mb-2 font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
           Sources
         </h2>

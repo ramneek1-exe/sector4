@@ -20,7 +20,7 @@ export function NarrativeText({ narrative, className }: { narrative: string; cla
             type="button"
             aria-label={getConcept(seg.slug)?.term ?? seg.text}
             onClick={(e) => open(seg.slug, e.currentTarget.getBoundingClientRect())}
-            className="cta-grow relative font-medium text-accent"
+            className="cta-grow relative align-baseline font-pixel text-[1.15em] tracking-wide text-accent"
           >
             {seg.text}
           </button>
