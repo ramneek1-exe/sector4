@@ -4,6 +4,7 @@
     "term": "Tyre Degradation",
     "group": "Tyres & strategy",
     "summary": "How a tyre loses grip and pace as a stint goes on, the core driver of race strategy.",
+    "aliases": ["tyre degradation", "tyre deg", "degradation", "deg"],
     "body": [
       "As a tyre runs, heat and wear gradually reduce the grip it can deliver, so lap times creep up over a stint. This loss is 'degradation', or 'deg'. Softer compounds are faster when fresh but degrade quicker; harder compounds give up outright pace for longer life.",
       "Deg isn't linear or identical for every car. Track surface, temperature, fuel load and how a driver manages the tyre all change the rate. Teams measure it in practice long runs to estimate how many laps a set stays competitive."
@@ -21,6 +22,7 @@
     "term": "Undercut / Overcut",
     "group": "Tyres & strategy",
     "summary": "Two ways to gain track position by timing a pit stop earlier or later than a rival.",
+    "aliases": ["undercut", "overcut"],
     "body": [
       "An undercut pits earlier than the car ahead: fresh tyres give an immediate pace boost, so you bank lap time while the rival is still on worn rubber, then emerge ahead once they stop. An overcut is the opposite: staying out longer and betting that your older tyres in clean air beat a rival who pitted into traffic or whose new tyres take time to switch on.",
       "Which one works depends on degradation, how much time the pit lane costs, and traffic. High-deg tracks favour the undercut; circuits where it's hard to follow can reward the overcut."
@@ -38,6 +40,7 @@
     "term": "Stop-Count Strategy",
     "group": "Tyres & strategy",
     "summary": "Whether a race is run on one pit stop or two, the strategic spine of a Grand Prix.",
+    "aliases": ["stop-count", "stop count", "one-stop", "two-stop", "extra stop"],
     "body": [
       "The pit-stop count is the headline strategic choice: fewer stops mean less time lost in the pit lane but more laps on tyres past their best; more stops mean fresher rubber but repeated pit-lane losses. The break-even depends on how fast tyres degrade versus how much a stop costs.",
       "Most dry races settle into a dominant pattern, a one-stop or two-stop race, though teams split strategies to cover each other and react to safety cars."
@@ -55,6 +58,7 @@
     "term": "Pit-Lane Time Loss",
     "group": "Tyres & strategy",
     "summary": "The total time a pit stop costs versus staying out, counting pit-lane transit plus the stop itself.",
+    "aliases": ["pit-lane time loss", "pit lane loss", "pit loss", "pit stop"],
     "body": [
       "Every stop loses time: the car slows to the pit-lane speed limit, drives its length, and sits stationary for the tyre change. Added up against a flying lap, that's the 'pit-loss', typically around 20 seconds, though it varies a lot by circuit depending on pit-lane length and layout.",
       "The stationary part, the actual tyre change, is only about 2 to 3 seconds of it; most of the loss is the slow transit through the pit lane."
@@ -72,6 +76,7 @@
     "term": "Qualifying vs. Race Pace",
     "group": "Pace & sessions",
     "summary": "Why a car's one-lap qualifying speed can differ from its long-run race pace.",
+    "aliases": ["qualifying pace", "race pace", "quali pace"],
     "body": [
       "Qualifying rewards a single low-fuel lap on fresh soft tyres with everything turned up. Race pace is about sustaining competitive lap times over a stint, with heavy fuel, managing tyre wear, and looking after the car. A team can be strong at one and ordinary at the other.",
       "That gap is why grid position and race result often diverge, and why practice long runs, not the quick laps, are the better read on Sunday pace."
@@ -89,6 +94,7 @@
     "term": "Track Evolution",
     "group": "Pace & sessions",
     "summary": "How a circuit gets faster across a weekend as rubber builds up and the surface cleans.",
+    "aliases": ["track evolution", "track ramps up", "rubbering in"],
     "body": [
       "A 'green' track at the start of practice is slow and slippery. As cars lap, they lay down rubber and sweep away dust, raising grip, so lap times tumble through the weekend even if nothing about the cars changes. This is 'track evolution', or 'rubbering in'.",
       "It complicates comparisons: a time set on Friday isn't directly comparable to one on Saturday, and the last runners in qualifying often benefit from the cleanest, fastest track."
@@ -106,6 +112,7 @@
     "term": "Dirty Air",
     "group": "Air & aero",
     "summary": "The turbulent wake behind a car that robs the one following of downforce and grip.",
+    "aliases": ["dirty air", "clean air"],
     "body": [
       "F1 cars make most of their grip from aerodynamics, which need clean, smooth airflow. Running closely behind another car puts you in its turbulent 'dirty air', cutting downforce, so the following car slides, struggles in corners, and overheats its tyres.",
       "This is why following closely is hard and why overtaking often needs a big pace gap or an overtake aid. Recent rules aimed to reduce the effect, but it never fully disappears."
@@ -123,6 +130,7 @@
     "term": "DRS & Active Aero",
     "group": "Air & aero",
     "summary": "How cars are helped past each other, from the DRS flap of 2011 to 2025 to the active aero and energy boost of 2026.",
+    "aliases": ["drs", "active aero", "active-aero", "overtake boost"],
     "body": [
       "The Drag Reduction System (DRS) ran from 2011 to 2025. It let a chasing driver open a flap in the rear wing on set straights, cutting drag for extra straight-line speed when within one second of the car ahead at a detection point. It was disabled in wet or dangerous conditions, and the zones were fixed per circuit. The 2026 rules retire DRS.",
       "In its place, 2026 cars run active aerodynamics. The driver switches the front and rear wings between a high-downforce mode for the corners and a low-drag 'straight' mode for the straights. Overtaking is helped instead by a manual override boost, an 'overtake' mode that hands the chasing car extra electrical power. With the new power units drawing close to half their output from the battery, recovering and deploying that energy ('regen') over a lap becomes a big part of both attack and defence."
