@@ -1,0 +1,138 @@
+[
+  {
+    "slug": "tyre-degradation",
+    "term": "Tyre Degradation",
+    "group": "Tyres & strategy",
+    "summary": "How a tyre loses grip and pace as a stint goes on — the core driver of race strategy.",
+    "body": [
+      "As a tyre runs, heat and wear gradually reduce the grip it can deliver, so lap times creep up over a stint. This loss is 'degradation', or 'deg'. Softer compounds are faster when fresh but degrade quicker; harder compounds give up outright pace for longer life.",
+      "Deg isn't linear or identical for every car — track surface, temperature, fuel load and how a driver manages the tyre all change the rate. Teams measure it in practice long runs to estimate how many laps a set stays competitive."
+    ],
+    "whyItMatters": "Sector 4's stop-count model leans on degradation measured in Friday practice — steeper deg points toward an extra stop. It's the telemetry signal that actually beats a track-history baseline.",
+    "related": ["stop-count-strategy", "undercut-overcut", "track-evolution"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+    ]
+  },
+  {
+    "slug": "undercut-overcut",
+    "term": "Undercut / Overcut",
+    "group": "Tyres & strategy",
+    "summary": "Two ways to gain track position by timing a pit stop earlier or later than a rival.",
+    "body": [
+      "An undercut pits earlier than the car ahead: fresh tyres give an immediate pace boost, so you bank lap time while the rival is still on worn rubber, then emerge ahead once they stop. An overcut is the opposite — staying out longer, betting your older tyres in clean air beat a rival who pitted into traffic or whose new tyres take time to switch on.",
+      "Which one works depends on degradation, how much time the pit lane costs, and traffic. High-deg tracks favour the undercut; circuits where it's hard to follow can reward the overcut."
+    ],
+    "whyItMatters": "These are the moves a stop-count call sets up. When Sector 4 flags a likely two-stop, the undercut or overcut is the on-track lever teams use to make it pay.",
+    "related": ["tyre-degradation", "stop-count-strategy", "pit-lane-time-loss", "dirty-air"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
+    ]
+  },
+  {
+    "slug": "stop-count-strategy",
+    "term": "Stop-Count Strategy",
+    "group": "Tyres & strategy",
+    "summary": "Whether a race is run on one pit stop or two — the strategic spine of a Grand Prix.",
+    "body": [
+      "The pit-stop count is the headline strategic choice: fewer stops mean less time lost in the pit lane but more laps on tyres past their best; more stops mean fresher rubber but repeated pit-lane losses. The break-even depends on how fast tyres degrade versus how much a stop costs.",
+      "Most dry races settle into a dominant pattern — a one-stop or two-stop race — though teams split strategies to cover each other and react to safety cars."
+    ],
+    "whyItMatters": "This is Sector 4's one validated telemetry edge: a model trained on practice degradation predicts per-driver stop count better than a track-history baseline. We surface it as a supporting call, always caveated for safety cars.",
+    "related": ["tyre-degradation", "undercut-overcut", "pit-lane-time-loss"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+    ]
+  },
+  {
+    "slug": "pit-lane-time-loss",
+    "term": "Pit-Lane Time Loss",
+    "group": "Tyres & strategy",
+    "summary": "The total time a pit stop costs versus staying out — pit-lane transit plus the stop itself.",
+    "body": [
+      "Every stop loses time: the car slows to the pit-lane speed limit, drives its length, and sits stationary for the tyre change. Added up against a flying lap, that's the 'pit-loss' — typically around 20 seconds, but it varies a lot by circuit depending on pit-lane length and layout.",
+      "The stationary part — the actual change — is only about 2 to 3 seconds of it; most of the loss is the slow transit through the pit lane."
+    ],
+    "whyItMatters": "Pit-loss sets the break-even for strategy: the higher it is, the more a stop has to be worth. Sector 4 computes it per circuit from real data, so the strategy explanations rest on the actual cost at each track.",
+    "related": ["stop-count-strategy", "undercut-overcut"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
+    ]
+  },
+  {
+    "slug": "qualifying-vs-race-pace",
+    "term": "Qualifying vs. Race Pace",
+    "group": "Pace & sessions",
+    "summary": "Why a car's one-lap qualifying speed can differ from its long-run race pace.",
+    "body": [
+      "Qualifying rewards a single low-fuel lap on fresh soft tyres with everything turned up. Race pace is about sustaining competitive lap times over a stint — heavy fuel, managing tyre wear, and looking after the car. A team can be strong at one and ordinary at the other.",
+      "That gap is why grid position and race result often diverge, and why practice long runs — not the quick laps — are the better read on Sunday pace."
+    ],
+    "whyItMatters": "Sector 4's pace model predicts long-run race-pace gaps, not qualifying — and Phase 1 found that's a supporting context signal, not a podium edge. The grid (qualifying) remains the strongest single podium predictor.",
+    "related": ["track-evolution", "tyre-degradation"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+    ]
+  },
+  {
+    "slug": "track-evolution",
+    "term": "Track Evolution",
+    "group": "Pace & sessions",
+    "summary": "How a circuit gets faster across a weekend as rubber builds up and the surface cleans.",
+    "body": [
+      "A 'green' track at the start of practice is slow and slippery. As cars lap, they lay down rubber and sweep away dust, raising grip — so lap times tumble through the weekend even if nothing about the cars changes. This is 'track evolution', or 'rubbering in'.",
+      "It complicates comparisons: a time set on Friday isn't directly comparable to one on Saturday, and the last runners in qualifying often benefit from the cleanest, fastest track."
+    ],
+    "whyItMatters": "When Sector 4 compares practice pace across sessions, it corrects for evolution — otherwise a later, faster lap looks like a quicker car rather than just a quicker track.",
+    "related": ["qualifying-vs-race-pace", "tyre-degradation"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
+    ]
+  },
+  {
+    "slug": "dirty-air",
+    "term": "Dirty Air",
+    "group": "Air & aero",
+    "summary": "The turbulent wake behind a car that robs the one following of downforce and grip.",
+    "body": [
+      "F1 cars make most of their grip from aerodynamics, which need clean, smooth airflow. Running closely behind another car puts you in its turbulent 'dirty air', cutting downforce — so the following car slides, struggles in corners, and overheats its tyres.",
+      "This is why following closely is hard and why overtaking often needs a big pace gap or help from DRS. Recent rules aimed to reduce the effect, but it never disappears."
+    ],
+    "whyItMatters": "Dirty air shapes whether track position can be held or lost — context for why an overcut into clean air can beat fresher tyres stuck in traffic.",
+    "related": ["drs", "undercut-overcut"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Downforce", "url": "https://en.wikipedia.org/wiki/Downforce" }
+    ]
+  },
+  {
+    "slug": "drs",
+    "term": "DRS (Drag Reduction System)",
+    "group": "Air & aero",
+    "summary": "A driver-activated rear-wing flap that cuts drag to aid overtaking on straights.",
+    "body": [
+      "The Drag Reduction System opens a flap in the rear wing on designated straights, reducing drag and adding straight-line speed. A driver can use it when within one second of the car ahead at a detection point, giving a closing-speed boost to attempt a pass.",
+      "In the race it's only available once enabled and when within that one-second window, and it's disabled in wet or dangerous conditions. DRS zones and detection points are set per circuit."
+    ],
+    "whyItMatters": "DRS partly offsets dirty air, so where and how many DRS zones a track has affects how easily positions change — background to how a predicted strategy actually plays out.",
+    "related": ["dirty-air"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 — official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia — Drag reduction system", "url": "https://en.wikipedia.org/wiki/Drag_reduction_system" }
+    ]
+  }
+]

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { createPortal } from "react-dom";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
@@ -286,13 +285,8 @@ export default function Home() {
   }
 
   return (
-    <main className="relative mx-auto flex w-full max-w-3xl flex-1 flex-col items-center gap-10 px-6 py-24">
-      <Link
-        href="/weekend"
-        className="cta-grow fixed right-6 top-4 z-40 font-grotesk text-sm font-semibold uppercase tracking-wide text-ink/80 transition-colors duration-200 hover:text-ink motion-reduce:transition-none sm:text-base"
-      >
-        Upcoming weekend odds →
-      </Link>
+    <main className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-5 pb-16 pt-10 sm:px-8">
+      <h1 className="self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();

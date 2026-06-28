@@ -1,0 +1,45 @@
+// Abstract ASCII/dither emblems for the learning layer — one per concept group. PRD §8:
+// generic shapes only, no logos/marks/liveries. Rendered as a brand-blue dither field by
+// AsciiEmblem. The tyre + airflow are simple SVGs (below); the CAR is a traced silhouette
+// bitmap (app/lib/car-silhouette.ts) so it reads as an unmistakable F1 car at any size.
+
+export type EmblemKind = "tyre" | "car" | "airflow";
+// The two emblems drawn from inline SVG (the car comes from the silhouette bitmap instead).
+export type SvgEmblem = "tyre" | "airflow";
+
+const VIEWBOX: Record<SvgEmblem, { w: number; h: number }> = {
+  tyre: { w: 120, h: 120 },
+  airflow: { w: 120, h: 120 },
+};
+
+export function emblemViewBox(kind: SvgEmblem): { w: number; h: number } {
+  return VIEWBOX[kind];
+}
+
+/** Map a concept group to its emblem. */
+export function emblemForGroup(group: string): EmblemKind {
+  if (group.startsWith("Tyres")) return "tyre";
+  if (group.startsWith("Pace")) return "car";
+  return "airflow"; // Air & aero
+}
+
+// Shapes draw only the figure (transparent elsewhere) so the dither sampler reads a glyph,
+// not a filled box. `fill="none"` rings/strokes keep genuine holes (e.g. the tyre centre).
+const shapes = (c: string): Record<SvgEmblem, string> => ({
+  // Side-on tyre: a thick tread ring (transparent centre) + a hub.
+  tyre: `
+    <circle cx="60" cy="60" r="40" fill="none" stroke="${c}" stroke-width="22"/>
+    <circle cx="60" cy="60" r="9" fill="${c}"/>
+  `,
+  // Wind: three streamlines, each curling into a loop (the classic gust icon).
+  airflow: `
+    <path d="M14,42 H56 a13,13 0 1 0 -9,-13" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M14,64 H90 a17,17 0 1 0 -13,-17" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M14,90 H58 a13,13 0 1 1 -9,13" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round"/>
+  `,
+});
+
+export function emblemSvgMarkup(kind: SvgEmblem, color = "#1E3FD0"): string {
+  const { w, h } = VIEWBOX[kind];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${shapes(color)[kind]}</svg>`;
+}
