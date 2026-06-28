@@ -4,7 +4,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { allConcepts, getConcept, resolveRelated } from "@/app/lib/concepts";
+import { emblemForGroup } from "@/app/lib/emblems";
 import { TrustBadge } from "@/app/components/TrustBadge";
+import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 
 export function generateStaticParams() {
   return allConcepts().map((c) => ({ slug: c.slug }));
@@ -12,7 +14,7 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }) {
   const c = getConcept(params.slug);
-  return { title: c ? `${c.term} — Sector 4` : "Learn — Sector 4" };
+  return { title: c ? c.term : "Learn" }; // layout template adds " · Sector 4"
 }
 
 export default function ConceptPage({ params }: { params: { slug: string } }) {
@@ -21,7 +23,21 @@ export default function ConceptPage({ params }: { params: { slug: string } }) {
   const related = resolveRelated(concept.slug);
 
   return (
-    <main className="mx-auto max-w-2xl px-5 py-14 sm:py-20">
+    <main className="relative mx-auto max-w-2xl px-5 py-14 sm:py-20">
+      {/* Large, faded brand emblem for this concept's theme — a thematic backdrop sitting
+          right-of-centre behind the text, fully visible (no clipping) (PRD §8 dither). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-[18%] -z-10 opacity-[0.08]"
+      >
+        <AsciiEmblem
+          kind={emblemForGroup(concept.group)}
+          size={emblemForGroup(concept.group) === "car" ? 580 : 440}
+          cols={emblemForGroup(concept.group) === "car" ? 92 : 58}
+          animate={false}
+        />
+      </div>
+
       <Link href="/learn" className="font-grotesk text-xs text-muted transition hover:text-ink">
         ← Learn
       </Link>
