@@ -69,11 +69,46 @@
 > "never use em-dashes" rule added to every Haiku narrative prompt (owner wants natural,
 > non-AI-tell text). All branches deleted; remote is just `main`.
 >
-> **Remaining M6:** **M6-B** (inline narrative→concept linking + in-context drawer; the `summary`
-> field and `getConcept(slug)` seam are already built for it) and **M6-C** (entity-what
-> retrieval→Haiku-paraphrase→cite→cache→per-type-TTL pipeline + corrections form; replaces the
-> curated `circuit-facts.json` stopgap on `/weekend` via the `getCircuitFacts(gp)` seam). Each is
-> its own spec→plan→build cycle.
+> **M6-B — inline concept links + in-context popover: MERGED to `main` and LIVE on PRODUCTION.**
+> The "whys link to whats" half of the learning layer (PRD §6.6). Narratives in all four answer
+> cards (Stat/Podium/Pace/Strategy) now linkify recognized concept terms; clicking opens a popover
+> anchored over the word with the concept summary + `TrustBadge` + "Read more →" to `/learn/[slug]`.
+> Deterministic post-process (NO Haiku prompt change, zero hallucination risk): `aliases: string[]`
+> added per concept (`concepts.json`), pure `app/lib/linkify.ts` (`linkifyNarrative` longest-alias-
+> first/word-boundary/first-occurrence + `computePopoverPosition` below/flip-up/clamp, both node-
+> tested), `ConceptPopoverProvider`+`useConceptPopover()`+portalled `ConceptPopover`
+> (`app/components/ConceptPopover.tsx`), `NarrativeText` renderer. Spec/plan in
+> `docs/superpowers/{specs,plans}/2026-06-28-m6b-*`; built subagent-driven, opus whole-branch review
+> (1 Important fixed: stale dismiss-timer cleared on unmount + provider `open` `useCallback`).
+> **Polish pass (owner-directed, same branch):** highlighted concept words render in **PP NeueBit**
+> (`font-pixel`, ~1.15em); **`/learn` cross-page route transition** (`app/learn/template.tsx` re-mounts
+> per nav → `.learn-route` opacity crossfade) + **concept-page enter cascade** (`.learn-rise` staggered
+> across sections); **bigger "← Learn" back link** (PP NeueBit `text-xl`, growing underline). All motion
+> gated by `prefers-reduced-motion`. 109 vitest pass/2 skip, `npm run build` clean.
+>
+> **Remaining M6:** **M6-C** (entity-what retrieval→Haiku-paraphrase→cite→cache→per-type-TTL pipeline
+> + corrections form; replaces the curated `circuit-facts.json` stopgap on `/weekend` via the
+> `getCircuitFacts(gp)` seam). Its own spec→plan→build cycle.
+>
+> **OPEN TODOs / known gaps (added 2026-06-28):**
+> 1. **No stop-count (pit-stop count) data for live 2026 weekends.** Model B's validated telemetry
+>    differentiator (stop-count strategy, +0.07) needs FP long-run deg features, which don't exist for
+>    an upcoming/early 2026 weekend until that weekend's practice has run and the tables are rebuilt
+>    (R17). So `/api/strategy` falls back to the qualitative/no-target branch and the StrategyCard can't
+>    surface a real per-weekend stop call early. Decide the UX: an honest "not available yet this
+>    weekend" state vs. a historical track-norm placeholder vs. wait-for-FP gating — and wire the
+>    refresh so stop-count lights up once Austria/Britain-style FP rows land. (Telemetry differentiator
+>    is the product's genuine edge, so this gap is worth closing deliberately, not papering over.)
+> 2. **Mobile hamburger menu for the nav.** `SiteNav` is a single persistent row (SECTOR4 + Ask/Learn/
+>    Upcoming-weekend); on narrow viewports the links crowd the wordmark. Build a hamburger that houses
+>    the nav links on mobile (accessible toggle, reduced-motion-safe open/close, keeps the growing-
+>    underline affordance), desktop unchanged. Its own small spec→plan→build.
+>
+> **Pre-existing test failure (NOT M6-B):** `tests/test_api_results.py::test_unrun_race_is_empty_not_error`
+> now fails on `main` — it asserts the 2026 Austrian GP returns an empty finishing order, but that race
+> actually ran (2026-06-28), so the live API returns 22 results. Zero Python touched by M6-B. Fix the
+> stale date-based assumption (mock/fixture an unrun future round, or assert against a genuinely-unraced
+> GP) as a quick follow-up.
 
 ## ✨ Post-M5 fine-tuning (2026-06-22) — output quality, NOT M6
 

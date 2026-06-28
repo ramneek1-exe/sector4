@@ -10,6 +10,7 @@ export interface Concept {
   term: string;
   group: string;
   summary: string;
+  aliases: string[];
   body: string[];
   whyItMatters: string;
   related: string[];

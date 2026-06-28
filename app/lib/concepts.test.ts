@@ -2,9 +2,9 @@ import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/app/data/concepts.json", () => ({
   default: [
-    { slug: "a", term: "A", group: "G1", summary: "s", body: ["p"], whyItMatters: "w", related: ["b", "ghost"], badge: "drafted", sources: [{ label: "L", url: "http://x" }] },
-    { slug: "b", term: "B", group: "G2", summary: "s", body: ["p"], whyItMatters: "w", related: [], badge: "verified", sources: [] },
-    { slug: "c", term: "C", group: "G1", summary: "s", body: ["p"], whyItMatters: "w", related: [], badge: "drafted", sources: [] },
+    { slug: "a", term: "A", group: "G1", summary: "s", aliases: ["alias1", "alias2"], body: ["p"], whyItMatters: "w", related: ["b", "ghost"], badge: "drafted", sources: [{ label: "L", url: "http://x" }] },
+    { slug: "b", term: "B", group: "G2", summary: "s", aliases: ["alias3"], body: ["p"], whyItMatters: "w", related: [], badge: "verified", sources: [] },
+    { slug: "c", term: "C", group: "G1", summary: "s", aliases: ["alias4", "alias5"], body: ["p"], whyItMatters: "w", related: [], badge: "drafted", sources: [] },
   ],
 }));
 
@@ -30,5 +30,26 @@ describe("concepts accessors", () => {
     expect(badgeLabel("verified")).toBe("Verified");
     expect(badgeLabel("drafted")).toBe("Drafted · unverified");
     expect(badgeLabel("community-reviewed")).toBe("Community-reviewed");
+  });
+});
+
+describe("concept aliases", () => {
+  it("every concept has at least one non-empty alias", () => {
+    for (const c of allConcepts()) {
+      expect(Array.isArray(c.aliases), `${c.slug} aliases`).toBe(true);
+      expect(c.aliases.length, `${c.slug} alias count`).toBeGreaterThan(0);
+      for (const a of c.aliases) expect(a.trim().length, `${c.slug} alias "${a}"`).toBeGreaterThan(0);
+    }
+  });
+
+  it("aliases are globally unique (no alias maps to two concepts)", () => {
+    const seen = new Map<string, string>();
+    for (const c of allConcepts()) {
+      for (const a of c.aliases) {
+        const key = a.toLowerCase();
+        expect(seen.has(key), `duplicate alias "${a}" (${seen.get(key)} vs ${c.slug})`).toBe(false);
+        seen.set(key, c.slug);
+      }
+    }
   });
 });

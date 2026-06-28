@@ -60,6 +60,22 @@ body {
   }
 }
 
+/* /learn cross-page route transition — template.tsx re-mounts per navigation, replaying
+   this short opacity crossfade each time. Opacity-only on purpose (no full-page blur cost);
+   the page's own .learn-rise cascade provides the directional motion. */
+@keyframes learnRoute {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.learn-route {
+  animation: learnRoute 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .learn-route {
+    animation: none;
+  }
+}
+
 /* Nav/CTA link: blue underline that grows left→right on hover and retracts on leave. The
    ::after is absolute, so each consumer must give the link its own positioned context
    (the SiteNav links add `relative`); this rule deliberately sets no position itself. */
