@@ -10,6 +10,8 @@ import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
 import { BAND_TEXT } from "@/app/lib/bands";
+import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
+import { NarrativeText } from "@/app/components/NarrativeText";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
@@ -65,7 +67,7 @@ function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: s
         <p className="text-muted">{podium.reason ?? "Not enough data for this weekend yet."}</p>
       )}
 
-      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
       <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
         Honest bands, not precise %s — the p values are the model’s raw probabilities and are not yet
         calibrated
@@ -98,7 +100,7 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
       ) : (
         <p className="text-muted">{pace.reason ?? "Not enough data for this weekend yet."}</p>
       )}
-      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
       <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
         Supporting context: long-run pace gaps and their uncertainty, not a podium or result prediction
         {typeof pace.n_train_races === "number" && ` · trained on ${pace.n_train_races} prior weekends`}.
@@ -196,7 +198,7 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
       ) : (
         <p className="text-muted">{strategy.reason ?? "Not enough data for this weekend yet."}</p>
       )}
-      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
       <p className={`max-w-lg font-grotesk text-[11px] text-amber-700 ${LEGIBLE} px-3 py-1.5`}>{strategy.sc_caveat}</p>
       {strategy.drivers.length > 0 && (
         <button
@@ -229,7 +231,7 @@ function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string 
           )}
         </div>
       )}
-      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
+      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
       {facts.insights && facts.insights.length > 0 && (
         <ul className="flex max-w-xl flex-col items-center gap-1">
           {facts.insights.map((line) => (
@@ -338,27 +340,29 @@ export default function Home() {
             }}
           />
         )}
-        {loading && (
-          <p className={`fog-in font-pixel text-3xl tracking-wide text-ink/75 ${LEGIBLE} px-4 py-2`}>{loadingLine}</p>
-        )}
-        {answer && "supported" in answer && answer.supported && "facts" in answer && (
-          <StatAnswer facts={answer.facts} narrative={answer.narrative} />
-        )}
-        {answer && "supported" in answer && answer.supported && "podium" in answer && (
-          <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
-        )}
-        {answer && "supported" in answer && answer.supported && "pace" in answer && (
-          <PaceCard pace={answer.pace} narrative={answer.narrative} />
-        )}
-        {answer && "supported" in answer && answer.supported && "strategy" in answer && (
-          <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
-        )}
-        {answer && "supported" in answer && !answer.supported && (
-          <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
-        )}
-        {answer && "error" in answer && (
-          <p className={`fog-in text-center font-grotesk text-red-600 ${LEGIBLE} px-4 py-2`}>Error: {answer.error}</p>
-        )}
+        <ConceptPopoverProvider>
+          {loading && (
+            <p className={`fog-in font-pixel text-3xl tracking-wide text-ink/75 ${LEGIBLE} px-4 py-2`}>{loadingLine}</p>
+          )}
+          {answer && "supported" in answer && answer.supported && "facts" in answer && (
+            <StatAnswer facts={answer.facts} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "podium" in answer && (
+            <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "pace" in answer && (
+            <PaceCard pace={answer.pace} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "strategy" in answer && (
+            <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && !answer.supported && (
+            <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
+          )}
+          {answer && "error" in answer && (
+            <p className={`fog-in text-center font-grotesk text-red-600 ${LEGIBLE} px-4 py-2`}>Error: {answer.error}</p>
+          )}
+        </ConceptPopoverProvider>
       </section>
     </main>
   );
