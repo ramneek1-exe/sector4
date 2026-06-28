@@ -45,6 +45,21 @@ body {
   }
 }
 
+/* /learn opening reveal — header + cards rise + sharpen in, staggered via an inline
+   animation-delay per element (set in the page). One-shot on mount. */
+@keyframes learnRise {
+  from { opacity: 0; transform: translateY(12px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.learn-rise {
+  animation: learnRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .learn-rise {
+    animation: none;
+  }
+}
+
 /* CTA: blue underline that grows left→right on hover and retracts on leave. The element
    itself is positioned by its `fixed` utility, so the ::after anchors to it — we must NOT
    set position here or it would override `fixed` and drop the CTA into normal flow. */
