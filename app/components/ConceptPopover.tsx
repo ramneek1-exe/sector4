@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { getConcept } from "@/app/lib/concepts";
@@ -19,7 +19,7 @@ interface PopState {
 
 export function ConceptPopoverProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<PopState | null>(null);
-  const open: OpenFn = (slug, anchor) => setState({ slug, anchor });
+  const open = useCallback<OpenFn>((slug, anchor) => setState({ slug, anchor }), []);
   return (
     <PopoverContext.Provider value={open}>
       {children}
@@ -40,6 +40,7 @@ const POPOVER_WIDTH = 288; // matches w-72
 function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRect; onClose: () => void }) {
   const concept = getConcept(slug);
   const ref = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<number | undefined>(undefined);
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
@@ -63,7 +64,7 @@ function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRe
   useEffect(() => {
     const close = () => {
       setShow(false);
-      window.setTimeout(onClose, 150); // matches the transition duration
+      closeTimer.current = window.setTimeout(onClose, 150); // matches the transition duration
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
@@ -78,6 +79,7 @@ function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRe
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("mousedown", onDown);
       window.clearTimeout(tid);
+      if (closeTimer.current) window.clearTimeout(closeTimer.current);
     };
   }, [onClose]);
 
