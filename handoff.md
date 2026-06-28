@@ -1,7 +1,7 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-21.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-28.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
@@ -42,6 +42,38 @@
 > even with no data change (harmless; tighten with a content check later).
 > Next milestone after the beta runs: **M6 — learning layer** (incl. replacing the curated
 > `/weekend` facts with the entity-what pipeline).
+>
+> **Qualifying-grid wiring — MERGED (PR #5) and LIVE.** Post-quali podium sharpening: a
+> committed `app/data/grids.json` (written by R17's `build_2026.py` step 7 via fastf1's
+> qualifying classification, livery/marks irrelevant) is read by `app/lib/grid.ts:getGrid`
+> and passed into `/api/podium` by `buildSnapshot` + `orchestrate`, flipping Friday→Saturday
+> (verified live for Austria: RUS 0.27→0.58, LEC 0.23→0.47). fastf1 NEVER runs serverless;
+> the grid is produced in CI and read from the bundle. `_DEFAULTS`/`round→ceil` etc. detailed
+> in PR #5.
+>
+> **M6-A — concept whats + `/learn`: MERGED (PR #6) and LIVE; polished (PR #7, #8).** The
+> learning-layer foundation (PRD §6.6): `app/data/concepts.json` (the `what` model + accessors
+> in `app/lib/concepts.ts`), 8 teaching concepts, `TrustBadge`, `/learn` index + `/learn/[slug]`
+> pages (SSG). Visual system: single-row persistent `SiteNav` (SECTOR4 + Ask/Learn/Upcoming-
+> weekend, PP NeueBit, growing-underline hover); PP Mondwest page headers; subtle brand-fog
+> card hover (`CardFog`, blooms bottom-right, RAF only while active, reduced-motion off);
+> `/learn` enter cascade; and ASCII **emblems** per group (tyre + wind-icon SVGs; an
+> **F1-car silhouette** traced from an alpha mask to a coverage bitmap `app/lib/car-silhouette.ts`,
+> rendered monochrome brand-blue by `AsciiEmblem` — generic silhouette only, livery/marks
+> stripped per PRD §8) shown as heading markers + large faded right-of-centre concept-page
+> watermarks. Built subagent-driven (specs/plans in `docs/superpowers/.../2026-06-27-m6a-*`),
+> opus whole-branch reviews before each merge. **Polish (PR #7/#8):** all 8 concepts promoted
+> `drafted`→`verified`; the 4 review nits fixed; nav enlarged; **DRS concept rewritten for 2026**
+> ("DRS & Active Aero": DRS retired after 2025, active-aero straight/downforce modes, override
+> "overtake" boost, regen/battery); and **em-dashes removed from ALL user-facing copy** + a
+> "never use em-dashes" rule added to every Haiku narrative prompt (owner wants natural,
+> non-AI-tell text). All branches deleted; remote is just `main`.
+>
+> **Remaining M6:** **M6-B** (inline narrative→concept linking + in-context drawer; the `summary`
+> field and `getConcept(slug)` seam are already built for it) and **M6-C** (entity-what
+> retrieval→Haiku-paraphrase→cite→cache→per-type-TTL pipeline + corrections form; replaces the
+> curated `circuit-facts.json` stopgap on `/weekend` via the `getCircuitFacts(gp)` seam). Each is
+> its own spec→plan→build cycle.
 
 ## ✨ Post-M5 fine-tuning (2026-06-22) — output quality, NOT M6
 
