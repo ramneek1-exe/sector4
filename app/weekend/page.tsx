@@ -14,9 +14,9 @@ import { getCircuitFacts, getCircuitName } from "@/app/lib/circuit-facts";
 export const dynamic = "force-dynamic";
 
 const CHECKPOINT_LABEL: Record<string, string> = {
-  "pre-quali": "Issued Friday — pre-qualifying",
-  "post-quali": "Sharpened Saturday — post-qualifying",
-  final: "Final — race complete",
+  "pre-quali": "Issued Friday, pre-qualifying",
+  "post-quali": "Sharpened Saturday, post-qualifying",
+  final: "Final, race complete",
 };
 
 type PodiumDriver = {

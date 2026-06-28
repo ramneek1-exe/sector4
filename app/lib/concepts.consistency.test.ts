@@ -23,8 +23,8 @@ describe("concepts.json integrity", () => {
     }
   });
 
-  it("ships all concepts as drafted (owner promotes to verified)", () => {
-    expect(concepts.every((c) => c.badge === "drafted")).toBe(true);
+  it("ships all concepts as verified (owner-reviewed)", () => {
+    expect(concepts.every((c) => c.badge === "verified")).toBe(true);
   });
 
   it("slugs are unique", () => {
