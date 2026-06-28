@@ -159,6 +159,11 @@ export function AsciiEmblem({
     return () => cancelAnimationFrame(raf);
   }, [grid, size, animate]);
 
-  if (!grid) return <div aria-hidden style={{ width: size }} className={className} />;
+  if (!grid) {
+    // Reserve the eventual height so the canvas doesn't pop in (square SVG emblems render
+    // ~`size` tall; the car keeps the silhouette's aspect).
+    const aspect = kind === "car" ? CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols : 1;
+    return <div aria-hidden style={{ width: size, height: size * aspect }} className={className} />;
+  }
   return <canvas ref={canvasRef} aria-hidden className={className} />;
 }

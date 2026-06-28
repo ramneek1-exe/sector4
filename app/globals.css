@@ -60,9 +60,9 @@ body {
   }
 }
 
-/* CTA: blue underline that grows left→right on hover and retracts on leave. The element
-   itself is positioned by its `fixed` utility, so the ::after anchors to it — we must NOT
-   set position here or it would override `fixed` and drop the CTA into normal flow. */
+/* Nav/CTA link: blue underline that grows left→right on hover and retracts on leave. The
+   ::after is absolute, so each consumer must give the link its own positioned context
+   (the SiteNav links add `relative`); this rule deliberately sets no position itself. */
 .cta-grow::after {
   content: "";
   position: absolute;
