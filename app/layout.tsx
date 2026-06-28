@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { fontVars } from "@/app/lib/fonts";
+import { SiteNav } from "@/app/components/SiteNav";
 
 const TAGLINE = "Honest podium odds, strategy, and the numbers behind them.";
 
@@ -41,19 +41,11 @@ const DISCLAIMER =
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
-      <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg text-ink antialiased font-lastik">
-        {/* Top nav bar — the wordmark lives here (the ONLY use of Bebas Neue). Has a
-            translucent backing so scrolled content passes UNDER it instead of bleeding
-            through the logo. Reusable for future nav items. */}
-        <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center bg-bg/95 px-6 backdrop-blur-sm">
-          <Link
-            href="/"
-            aria-label="Sector 4 — home"
-            className="rounded-sm font-bebas text-3xl leading-none tracking-wide text-ink transition-colors duration-200 hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
-          >
-            SECTOR4
-          </Link>
-        </header>
+      <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg text-ink antialiased font-lastik pt-14">
+        {/* Persistent single-row nav (wordmark + section links + CTA). The fixed bar has
+            a translucent backing so scrolled content passes UNDER it; the body's top
+            padding (matching SiteNav NAV_H) keeps page content clear of it. */}
+        <SiteNav />
         {children}
         <footer className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
           <span className="max-w-3xl">{DISCLAIMER}</span>
