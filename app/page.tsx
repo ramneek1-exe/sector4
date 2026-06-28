@@ -100,7 +100,7 @@ function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
       )}
       <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{narrative}</p>
       <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
-        Supporting context — long-run pace gaps and their uncertainty, not a podium or result prediction
+        Supporting context: long-run pace gaps and their uncertainty, not a podium or result prediction
         {typeof pace.n_train_races === "number" && ` · trained on ${pace.n_train_races} prior weekends`}.
       </p>
     </div>
@@ -252,7 +252,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
       <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
-        Ask about a 2024–25 race weekend — honest podium odds, strategy, and the numbers behind them.
+        Ask about a 2024–25 race weekend: honest podium odds, strategy, and the numbers behind them.
       </p>
       <QueryChips examples={EXAMPLES} onPick={onPick} />
     </div>

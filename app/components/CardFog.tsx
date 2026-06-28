@@ -100,6 +100,12 @@ export function CardFog({ active }: { active: boolean }) {
     };
 
     let dims = sizeToCard();
+    // Re-measure if the card resizes mid-hover (else the backing store stays stale until
+    // the next hover re-enters the effect).
+    const ro = new ResizeObserver(() => {
+      dims = sizeToCard();
+    });
+    ro.observe(canvas);
 
     const frame = (ms: number) => {
       const dt = lastRef.current ? ms - lastRef.current : 16;
@@ -128,6 +134,7 @@ export function CardFog({ active }: { active: boolean }) {
     return () => {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = 0;
+      ro.disconnect();
     };
   }, [active]);
 

@@ -20,8 +20,9 @@ const SYSTEM = [
   "You may use ONLY the facts in the JSON the user provides (the stat, its value, units, year, any `insights`, and any `context`).",
   "Do not invent or estimate any numbers, drivers, teams, causes, or comparisons not present in that JSON.",
   "State the value and circuit plainly, then make it smarter by working in the provided `insights` (grounded facts like how much of a pit stop is stationary time, or how the circuit ranks on the calendar).",
-  "If the JSON includes `context` (curated circuit facts), you MAY also weave in at most ONE short detail from it — only from the insights/context arrays, never your own outside knowledge.",
-  "If the value is null, say plainly that this stat isn't available for this circuit yet — do not guess a number.",
+  "If the JSON includes `context` (curated circuit facts), you MAY also weave in at most ONE short detail from it, only from the insights/context arrays, never your own outside knowledge.",
+  "If the value is null, say plainly that this stat isn't available for this circuit yet; do not guess a number.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
 ].join(" ");
 
 export async function generateNarrative(client: LlmClient, facts: StatFacts): Promise<string> {
@@ -70,12 +71,13 @@ export type PodiumFacts = {
 
 const PODIUM_SYSTEM = [
   "You write a short, honest, insightful explanation (2-3 sentences) of a Formula 1 podium-probability prediction.",
-  "Use ONLY the facts in the JSON. Each driver has a band, a p_podium probability, and `factors` — the real signals behind the call: champ_rank (championship position, 1 = leader), recent_form_avg_finish (mean finishing position over the last 3 races, lower = better), track_pace_delta_s (the driver's historical race-pace gap AT THIS TRACK in seconds, negative = faster than average), and grid (starting position, present once qualifying has happened).",
+  "Use ONLY the facts in the JSON. Each driver has a band, a p_podium probability, and `factors`, the real signals behind the call: champ_rank (championship position, 1 = leader), recent_form_avg_finish (mean finishing position over the last 3 races, lower = better), track_pace_delta_s (the driver's historical race-pace gap AT THIS TRACK in seconds, negative = faster than average), and grid (starting position, present once qualifying has happened).",
   "Lead with the 2-3 strongest contenders by three-letter code and EXPLAIN WHY using their factors (e.g. 'leads on championship position and was quick here last year'), rather than just reciting probabilities.",
-  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short sentence drawn from it for color — only from that array, never your own outside knowledge.",
-  "These are probabilities, not certainties (bands: strong / in contention / outside shot). NEVER say anyone 'will' podium — speak in terms of likelihood.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short sentence drawn from it for color, only from that array, never your own outside knowledge.",
+  "These are probabilities, not certainties (bands: strong / in contention / outside shot). NEVER say anyone 'will' podium; speak in terms of likelihood.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not present in the JSON.",
   "If the JSON has no drivers (a qualitative/low-data state), say plainly that there isn't enough data for this weekend yet.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
 ].join(" ");
 
 export async function generatePodiumNarrative(client: LlmClient, facts: PodiumFacts): Promise<string> {
@@ -107,11 +109,12 @@ export type PaceFacts = {
 const PACE_SYSTEM = [
   "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 long-run PACE-GAP estimate.",
   "You may use ONLY the facts in the JSON the user provides (driver codes, pace_delta_s where lower = faster, uncertainty_s, and any `context`).",
-  "This is SUPPORTING CONTEXT about long-run pace gaps and how confident we are — it is NOT a podium or race-result prediction. Never say who will finish where.",
+  "This is SUPPORTING CONTEXT about long-run pace gaps and how confident we are. It is NOT a podium or race-result prediction. Never say who will finish where.",
   "Name the few fastest drivers by three-letter code, describe the gap in seconds and the uncertainty, and explain what the gap means for the race (e.g. a tenth a lap over a stint).",
-  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it — only from that array, never your own outside knowledge.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it, only from that array, never your own outside knowledge.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON.",
   "If the JSON has no drivers (a qualitative/low-data state), say plainly there isn't enough data for this weekend yet.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
 ].join(" ");
 
 export async function generatePaceNarrative(client: LlmClient, facts: PaceFacts): Promise<string> {
@@ -141,11 +144,12 @@ export type StrategyFacts = {
 const STRATEGY_SYSTEM = [
   "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 STOP-COUNT strategy prediction.",
   "You may use ONLY the facts in the JSON the user provides (the dominant stop call, per-driver n_stops + confidence, sc_caveat, and any `context`).",
-  "Lead with the race-level / track-level call from `dominant` (e.g. mostly a one- or two-stop here) — strategy is driven more by the track and conditions than by individual teams, so keep per-driver detail secondary.",
+  "Lead with the race-level / track-level call from `dominant` (e.g. mostly a one- or two-stop here). Strategy is driven more by the track and conditions than by individual teams, so keep per-driver detail secondary.",
   "Explain the teachable mechanism: higher tyre degradation pushes toward MORE stops. You MUST mention the safety-car caveat from sc_caveat.",
-  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it (e.g. a track trait that drives tyre wear) — only from that array, never your own outside knowledge.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it (e.g. a track trait that drives tyre wear), only from that array, never your own outside knowledge.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON. Speak in terms of likelihood, never certainty.",
   "If the JSON has no drivers / dominant is null (a low-data state), say plainly there isn't enough data for this weekend yet.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
 ].join(" ");
 
 export async function generateStrategyNarrative(client: LlmClient, facts: StrategyFacts): Promise<string> {

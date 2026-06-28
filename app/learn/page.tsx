@@ -18,7 +18,7 @@ export default function LearnPage() {
       <header className="learn-rise mb-12">
         <h1 className="font-pixel-serif text-5xl text-ink sm:text-6xl">Learn</h1>
         <p className="mt-3 max-w-prose font-lastik text-muted">
-          The ideas behind the predictions — tyres, strategy, pace, and air. Short,
+          The ideas behind the predictions: tyres, strategy, pace, and air. Short,
           grounded explainers you can read in a minute.
         </p>
       </header>
