@@ -13,7 +13,6 @@ export function MobileNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -41,7 +40,7 @@ export function MobileNav() {
     };
     document.addEventListener("keydown", onKey);
     document.body.classList.add("overflow-hidden");
-    closeRef.current?.focus();
+    buttonRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.classList.remove("overflow-hidden");
@@ -88,7 +87,9 @@ export function MobileNav() {
             // Reduced motion: jump straight to the open state (reverse() jumps back to closed).
             tl.set(".mnav-overlay", { autoAlpha: 1, clipPath: "none" })
               .set(".mnav-link", { autoAlpha: 1, y: 0, filter: "none" })
-              .set(".mnav-bar-mid", { autoAlpha: 0 });
+              .set(".mnav-bar-mid", { autoAlpha: 0 })
+              .set(".mnav-bar-top", { y: 7, rotate: 45 })
+              .set(".mnav-bar-bot", { y: -7, rotate: -45 });
           }
 
           tlRef.current = tl;
@@ -132,10 +133,6 @@ export function MobileNav() {
         ref={overlayRef}
         id="mobile-menu"
         className="mnav-overlay fixed inset-0 z-40 flex flex-col bg-bg"
-        onClick={(e) => {
-          // Tap on the backdrop (not on a link/button) closes.
-          if (e.target === e.currentTarget) setOpen(false);
-        }}
       >
         {/* Top bar mirrors the header so it reads as the same row. */}
         <div className="flex h-[68px] shrink-0 items-center justify-between px-7">
@@ -146,19 +143,17 @@ export function MobileNav() {
           >
             SECTOR4
           </Link>
-          <button
-            ref={closeRef}
-            type="button"
-            aria-label="Close menu"
-            onClick={() => setOpen(false)}
-            className="flex h-10 w-10 items-center justify-center rounded-sm font-pixel text-3xl leading-none text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-          >
-            ✕
-          </button>
         </div>
 
         {/* Links — centered, large, PP NeueBit, keep the growing underline + active accent. */}
-        <nav className="flex flex-1 flex-col items-center justify-center gap-8">
+        <nav
+          aria-label="Mobile"
+          className="flex flex-1 flex-col items-center justify-center gap-8"
+          onClick={(e) => {
+            // Tap on the backdrop (empty space, not a link) closes.
+            if (e.target === e.currentTarget) setOpen(false);
+          }}
+        >
           {NAV_LINKS.map(({ href, label }) => {
             const active = isActiveLink(pathname, href);
             return (

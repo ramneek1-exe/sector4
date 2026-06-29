@@ -38,7 +38,7 @@ export function SiteNav() {
       </Link>
 
       {/* Desktop: inline row (unchanged). Hidden below md, where MobileNav takes over. */}
-      <nav className="hidden items-center gap-6 md:flex">
+      <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
         {NAV_LINKS.map(({ href, label }) => {
           const active = isActiveLink(pathname, href);
           const inactive =
