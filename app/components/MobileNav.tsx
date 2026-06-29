@@ -65,7 +65,7 @@ export function MobileNav() {
       <div
         ref={overlayRef}
         id="mobile-menu"
-        className="mnav-overlay fixed inset-0 z-40 flex flex-col bg-bg"
+        className={`mnav-overlay fixed inset-0 z-40 flex flex-col bg-bg ${open ? "" : "hidden"}`}
         onClick={(e) => {
           // Tap on the backdrop (not on a link/button) closes.
           if (e.target === e.currentTarget) setOpen(false);
