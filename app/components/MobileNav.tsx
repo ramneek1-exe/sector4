@@ -1,5 +1,7 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -11,6 +13,8 @@ export function MobileNav() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   // Close whenever the route changes (link tap navigates → menu dismisses).
   useEffect(() => {
@@ -43,8 +47,68 @@ export function MobileNav() {
     };
   }, [open]);
 
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+      mm.add(
+        {
+          animated: "(prefers-reduced-motion: no-preference)",
+          reduced: "(prefers-reduced-motion: reduce)",
+        },
+        (ctx) => {
+          const { animated } = ctx.conditions as { animated: boolean; reduced: boolean };
+          const tl = gsap.timeline({ paused: true });
+
+          if (animated) {
+            tl.to(".mnav-overlay", {
+              autoAlpha: 1,
+              clipPath: "circle(150% at calc(100% - 2.75rem) 2.25rem)",
+              duration: 0.5,
+              ease: "expo.out",
+            })
+              .to(
+                ".mnav-link",
+                {
+                  autoAlpha: 1,
+                  y: 0,
+                  filter: "blur(0px)",
+                  stagger: 0.08,
+                  duration: 0.4,
+                  ease: "power3.out",
+                },
+                0.15,
+              )
+              // Hamburger bars → X, on the same timeline.
+              .to(".mnav-bar-top", { y: 7, rotate: 45, duration: 0.3, ease: "power2.inOut" }, 0)
+              .to(".mnav-bar-mid", { autoAlpha: 0, duration: 0.2 }, 0)
+              .to(".mnav-bar-bot", { y: -7, rotate: -45, duration: 0.3, ease: "power2.inOut" }, 0);
+          } else {
+            // Reduced motion: jump straight to the open state (reverse() jumps back to closed).
+            tl.set(".mnav-overlay", { autoAlpha: 1, clipPath: "none" })
+              .set(".mnav-link", { autoAlpha: 1, y: 0, filter: "none" })
+              .set(".mnav-bar-mid", { autoAlpha: 0 });
+          }
+
+          tlRef.current = tl;
+          return () => {
+            tlRef.current = null;
+          };
+        },
+      );
+    },
+    { scope: rootRef },
+  );
+
+  // Drive the timeline from open state.
+  useEffect(() => {
+    const tl = tlRef.current;
+    if (!tl) return;
+    if (open) tl.play();
+    else tl.reverse();
+  }, [open]);
+
   return (
-    <div className="md:hidden">
+    <div ref={rootRef} className="md:hidden">
       <button
         ref={buttonRef}
         type="button"
@@ -65,7 +129,7 @@ export function MobileNav() {
       <div
         ref={overlayRef}
         id="mobile-menu"
-        className={`mnav-overlay fixed inset-0 z-40 flex flex-col bg-bg ${open ? "" : "hidden"}`}
+        className="mnav-overlay fixed inset-0 z-40 flex flex-col bg-bg"
         onClick={(e) => {
           // Tap on the backdrop (not on a link/button) closes.
           if (e.target === e.currentTarget) setOpen(false);

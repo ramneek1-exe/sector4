@@ -220,3 +220,25 @@ body {
     rgba(250, 250, 250, 0) 82%
   );
 }
+
+/* Mobile nav overlay (app/components/MobileNav.tsx). Base = CLOSED visual state so the
+   paused GSAP timeline at time 0 matches this; the timeline animates toward OPEN and
+   reverse() returns here. autoAlpha (GSAP) toggles opacity+visibility together. */
+.mnav-overlay {
+  opacity: 0;
+  visibility: hidden;
+  clip-path: circle(0% at calc(100% - 2.75rem) 2.25rem);
+}
+.mnav-link {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+}
+/* Reduced motion: GSAP's matchMedia sets final states instantly, but guard the base too so
+   there is never a flash of the from-state if JS is slow. */
+@media (prefers-reduced-motion: reduce) {
+  .mnav-link {
+    transform: none;
+    filter: none;
+  }
+}
