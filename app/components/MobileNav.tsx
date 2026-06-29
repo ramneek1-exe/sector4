@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NAV_LINKS, isActiveLink } from "@/app/components/SiteNav";
 
+gsap.registerPlugin(useGSAP);
+
 export function MobileNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
