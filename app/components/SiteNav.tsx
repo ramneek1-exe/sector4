@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MobileNav } from "@/app/components/MobileNav";
 
 // Single-row persistent site nav (lives in the root layout, so it's on every page).
 // SECTOR4 wordmark on the left (the ONLY use of Bebas Neue); the section links + the
@@ -54,6 +55,8 @@ export function SiteNav() {
           );
         })}
       </nav>
+
+      <MobileNav />
     </header>
   );
 }
