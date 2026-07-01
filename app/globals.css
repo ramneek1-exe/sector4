@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  /* ASCII / Dither ramp, dark -> light (PRD §8 reference image) */
-  --ramp-0: #0b1e6b;
-  --ramp-1: #1e3fd0;
-  --ramp-2: #2e8bff;
-  --ramp-3: #59c8ff;
-  --ramp-4: #b8e2ff;
-  --ramp-5: #eef6ff;
+  /* ASCII / Dither ramp, dark -> light. Palette: coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44 */
+  --ramp-0: #251f44;
+  --ramp-1: #2f2e89;
+  --ramp-2: #406cd6;
+  --ramp-3: #459ae4;
+  --ramp-4: #addcef;
+  --ramp-5: #bee2f0;
 }
 
 body {
   background: #fafafa;
-  color: #0b1020;
+  color: #251f44;
 }
 
 /* Content emerges from the fog — fade + rise. Disabled for reduced motion. */
@@ -86,7 +86,7 @@ body {
   bottom: -3px;
   height: 2px;
   width: 100%;
-  background: var(--ramp-1, #1e3fd0);
+  background: var(--ramp-1, #2f2e89);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);

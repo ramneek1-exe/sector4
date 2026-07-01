@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand fog ramp (same as AsciiFog) — darker → mid blue.
-const COLOR_LO = [11, 30, 107];
-const COLOR_HI = [30, 63, 208];
+// Brand fog ramp (same as AsciiFog) — darkest navy → royal blue (palette).
+const COLOR_LO = [37, 31, 68]; // --ramp-0 #251f44
+const COLOR_HI = [64, 108, 214]; // --ramp-2 #406cd6
 const CELL = 12; // px per dot-matrix glyph cell (a touch finer than the page fog)
 const NOISE_SCALE = 0.13;
 // The fog clings to the bottom + right edges and pools in the bottom-right corner — it

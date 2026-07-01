@@ -9,7 +9,7 @@ import { CAR_SILHOUETTE } from "@/app/lib/car-silhouette";
 const SS = 5; // off-screen supersample per ASCII cell
 const REVEAL_MS = 560; // window over which cells scatter in
 const FADE_MS = 340; // per-cell develop
-const CAR_COLOR = "#1E3FD0"; // brand blue — the silhouette is rendered monochrome
+const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette rendered monochrome
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);

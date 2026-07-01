@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand ramp (globals.css :root) — darker → mid blue (deeper than before).
-const COLOR_LO = [11, 30, 107]; // --ramp-0
-const COLOR_HI = [30, 63, 208]; // --ramp-1 (deeper than before)
+// Brand ramp (globals.css :root) — darkest navy → royal blue (palette bee2f0…251f44).
+const COLOR_LO = [37, 31, 68]; // --ramp-0 #251f44
+const COLOR_HI = [64, 108, 214]; // --ramp-2 #406cd6
 const CELL = 16; // px per character cell (one 5x5 dot-matrix glyph)
 const FPS = 30;
 const NOISE_SCALE = 0.09; // lower = larger, smoother blobs
