@@ -17,10 +17,15 @@ import pandas as pd
 from src.calendar import RACE_CALENDAR, race_id
 from src.data.load import load_session
 
-# Completed 2026 rounds + the next race (Great Britain) — enough for completed-race actuals AND
-# the per-circuit historical norm. Widen with the calendar as the season progresses (see the
-# staying-current task). Great Britain is a real, historical circuit in GP_TO_EVENT.
-STOPS_CIRCUITS: list[str] = list(dict.fromkeys(RACE_CALENDAR[2026] + ["Great Britain"]))
+# The full 2026 circuit roster in schedule order. build_actual_stops sweeps ALL of these so
+# every circuit has prior-season rows for the historical-norm answer; the occurred-gate still
+# limits which get a 2026 ACTUALS row to RACE_CALENDAR[2026] (the completed rounds). Do NOT
+# fold this into RACE_CALENDAR — that would break the occurred-gate (see the plan's Task 7).
+STOPS_CIRCUITS: list[str] = [
+    "Australia", "China", "Japan", "Miami", "Canada", "Monaco", "Barcelona", "Austria",
+    "Great Britain", "Belgium", "Hungary", "Netherlands", "Italy", "Spain", "Azerbaijan",
+    "Singapore", "United States", "Mexico City", "São Paulo", "Las Vegas", "Qatar", "Abu Dhabi",
+]
 
 
 def race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict:

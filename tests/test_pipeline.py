@@ -50,9 +50,9 @@ def test_build_team_map_keys_on_short_gp():
     tm = build_team_map(results)
     assert list(tm.columns) == ["year", "gp", "Driver", "team"]
     assert set(tm["gp"]) == {"Italy"}  # EventName -> short key
-    # an event outside GP_TO_EVENT is dropped (Belgian GP is not in the calendar map)
+    # an event outside GP_TO_EVENT is dropped (Emilia Romagna GP is not in the calendar map)
     other = pd.DataFrame({"Driver": ["VER"], "team": ["Red Bull Racing"],
-                          "year": [2024], "gp": ["Belgian Grand Prix"]})
+                          "year": [2024], "gp": ["Emilia Romagna Grand Prix"]})
     assert build_team_map(other).empty
 
 
