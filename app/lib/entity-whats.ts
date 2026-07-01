@@ -25,6 +25,17 @@ export function getEntityWhat(type: EntityType, slug: string): EntityWhat | unde
   return WHATS[entityKey(type, slug)];
 }
 
+// A popover key is either "type:slug" (entity) or a bare concept slug.
+export function parsePopoverKey(key: string): { kind: "entity"; what: EntityWhat } | { kind: "concept"; slug: string } | null {
+  const i = key.indexOf(":");
+  if (i > 0) {
+    const type = key.slice(0, i) as EntityType;
+    const what = getEntityWhat(type, key.slice(i + 1));
+    return what ? { kind: "entity", what } : null;
+  }
+  return { kind: "concept", slug: key };
+}
+
 // Split prose into sentences, keeping terminal punctuation, dropping empties.
 function sentences(text: string): string[] {
   return (text.match(/[^.!?]+[.!?]+/g) ?? [text]).map((s) => s.trim()).filter(Boolean);
