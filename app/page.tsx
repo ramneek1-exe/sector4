@@ -332,13 +332,14 @@ export default function Home() {
 
   return (
     <main className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-5 pb-16 pt-10 sm:px-8">
-      <h1 className="self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
+      <h1 className="fog-in self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void run(query);
         }}
-        className="flex w-full max-w-xl gap-2"
+        style={{ animationDelay: "0.09s" }}
+        className="fog-in flex w-full max-w-xl gap-2"
       >
         <div className="bar-shell flex-1">
           <input
@@ -352,7 +353,7 @@ export default function Home() {
           className={`relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-7 font-grotesk text-lg font-medium shadow-sm transition duration-200 motion-reduce:hover:translate-y-0 ${
             loading
               ? "bg-[#f3f3f3] text-ink"
-              : "bg-accent text-white hover:-translate-y-px hover:bg-[#1b39b0]"
+              : "bg-accent text-white hover:-translate-y-px hover:bg-accent-bright"
           }`}
           disabled={loading}
           aria-busy={loading}
