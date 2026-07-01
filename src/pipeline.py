@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from src import store
-from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, SEASONS, race_id
+from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, RACE_CALENDAR, SEASONS, race_id
 from src.data.load import is_dry_session, load_session
 from src.features.assemble import build_dataset
 from src.features.friday import add_friday_features, prior_track_pace
@@ -139,10 +139,20 @@ def build_strategy_table(seasons: list[int] = SEASONS,
 def build_actual_stops(seasons: list[int] = SEASONS,
                        circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
     """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
-    laps (future/unrun) or no classified finishers so the builder is safe across the calendar."""
+    laps (future/unrun) or no classified finishers so the builder is safe across the calendar.
+
+    For the LIVE (latest) season, only rounds that have actually occurred are built — i.e. those
+    listed in RACE_CALENDAR[live], the app's completed-round set. A not-yet-run round is skipped
+    even if fastf1 has leaked future session data (it exposes laps for a scheduled-but-unraced
+    weekend). Past seasons are fully complete, so every circuit builds (this is what gives an
+    upcoming circuit its prior-season historical norm)."""
+    live = max(RACE_CALENDAR)
     rows = []
     for year in seasons:
+        completed = RACE_CALENDAR.get(year) if year == live else None
         for gp in circuits:
+            if completed is not None and gp not in completed:
+                continue  # a live-season round that has not been run yet
             race = load_session(year, gp, "R")
             if race is None or race.laps.empty:
                 continue
