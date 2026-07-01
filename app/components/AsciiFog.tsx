@@ -81,13 +81,14 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          // Diagonal sweep across the full palette, nudged by the field so it reads organic.
-          // The ^1.6 curve biases the field toward the darker/mid blues (which hold up on the
-          // light page) so the pale end only surfaces near the far corner — a balanced fog
-          // rather than a washed-out one.
+          // Diagonal sweep across the FULL palette, nudged by the field so it reads organic.
           const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
-          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.6));
-          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(1, 0.32 + cv * 0.62)})`;
+          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.25));
+          // Luminance-aware alpha: the pale shades vanish on the near-white page, so give them
+          // more opacity and the dark shades a little less. The whole spectrum then reads with
+          // even, graceful presence instead of dark-heavy-and-loud or pale-and-washed-out.
+          const light = (m[0] + m[1] + m[2]) / 765; // 0 = darkest, ~0.85 = palest stop
+          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(0.9, 0.28 + cv * 0.48 + light * 0.34)})`;
           const ox = c * CELL;
           const oy = r * CELL;
           for (let by = 0; by < GLYPH_DIM; by++) {
