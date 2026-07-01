@@ -4,9 +4,26 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand ramp (globals.css :root) — darkest navy → royal blue (palette bee2f0…251f44).
-const COLOR_LO = [37, 31, 68]; // --ramp-0 #251f44
-const COLOR_HI = [64, 108, 214]; // --ramp-2 #406cd6
+// Full palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44), ordered dark → light so
+// the fog sweeps the whole spectrum as a gradient.
+const PALETTE: number[][] = [
+  [37, 31, 68], // #251f44
+  [47, 46, 137], // #2f2e89
+  [64, 108, 214], // #406cd6
+  [69, 154, 228], // #459ae4
+  [173, 220, 239], // #addcef
+  [190, 226, 240], // #bee2f0
+];
+
+// Colour at position t in [0,1] across the full palette (linear between adjacent stops).
+function paletteAt(t: number): number[] {
+  const x = Math.max(0, Math.min(1, t)) * (PALETTE.length - 1);
+  const i = Math.floor(x);
+  const f = x - i;
+  const a = PALETTE[i];
+  const b = PALETTE[Math.min(PALETTE.length - 1, i + 1)];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
 const CELL = 16; // px per character cell (one 5x5 dot-matrix glyph)
 const FPS = 30;
 const NOISE_SCALE = 0.09; // lower = larger, smoother blobs
@@ -64,7 +81,10 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
+          // Diagonal spatial sweep across the full palette, nudged by the field so it reads
+          // organic rather than a flat linear gradient.
+          const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
+          const m = paletteAt(pos * 0.72 + cv * 0.28);
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(1, 0.32 + cv * 0.62)})`;
           const ox = c * CELL;
           const oy = r * CELL;

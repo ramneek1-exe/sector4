@@ -9,8 +9,8 @@ const config: Config = {
         // near-white for legibility; ink/accent/fog carry the palette.
         bg: "#FAFAFA",
         ink: "#251F44", // darkest palette navy (was #0B1020)
-        accent: "#406CD6", // royal blue (was #2348E0)
-        "accent-bright": "#459AE4", // brighter blue (was #2E8BFF)
+        accent: "#2F2E89", // deep indigo — buttons, active nav, links (darker, was #406CD6)
+        "accent-bright": "#406CD6", // royal blue for brighter/hover accents
         muted: "#6A6A93", // palette-tinted slate (was #5B6B8C)
       },
       fontFamily: {

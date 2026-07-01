@@ -4,9 +4,23 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand fog ramp (same as AsciiFog) — darkest navy → royal blue (palette).
-const COLOR_LO = [37, 31, 68]; // --ramp-0 #251f44
-const COLOR_HI = [64, 108, 214]; // --ramp-2 #406cd6
+// Full palette (same as AsciiFog), dark → light, swept as a gradient across the bloom.
+const PALETTE: number[][] = [
+  [37, 31, 68], // #251f44
+  [47, 46, 137], // #2f2e89
+  [64, 108, 214], // #406cd6
+  [69, 154, 228], // #459ae4
+  [173, 220, 239], // #addcef
+  [190, 226, 240], // #bee2f0
+];
+function paletteAt(t: number): number[] {
+  const x = Math.max(0, Math.min(1, t)) * (PALETTE.length - 1);
+  const i = Math.floor(x);
+  const f = x - i;
+  const a = PALETTE[i];
+  const b = PALETTE[Math.min(PALETTE.length - 1, i + 1)];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
 const CELL = 12; // px per dot-matrix glyph cell (a touch finer than the page fog)
 const NOISE_SCALE = 0.13;
 // The fog clings to the bottom + right edges and pools in the bottom-right corner — it
@@ -84,7 +98,8 @@ export function CardFog({ active }: { active: boolean }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
+          const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
+          const m = paletteAt(pos * 0.72 + cv * 0.28);
           const a = (0.07 + cv * 0.23) * ew; // deliberately faint
           if (a < 0.015) continue;
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${a})`;
