@@ -98,9 +98,11 @@ export function CardFog({ active }: { active: boolean }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
-          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.6));
-          const a = (0.07 + cv * 0.23) * ew; // deliberately faint
+          // The bloom lives in the corner, so a spatial sweep would land the pale end exactly
+          // where the fog shows. Drive colour by DENSITY across the dark→bright half of the
+          // palette instead, keeping the corner bloom in visible blues.
+          const m = paletteAt(cv * 0.55);
+          const a = (0.09 + cv * 0.28) * ew; // faint, but present on the card
           if (a < 0.015) continue;
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${a})`;
           const ox = c * CELL;
