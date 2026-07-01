@@ -88,7 +88,7 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           // more opacity and the dark shades a little less. The whole spectrum then reads with
           // even, graceful presence instead of dark-heavy-and-loud or pale-and-washed-out.
           const light = (m[0] + m[1] + m[2]) / 765; // 0 = darkest, ~0.85 = palest stop
-          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(0.9, 0.28 + cv * 0.48 + light * 0.34)})`;
+          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(0.96, 0.36 + cv * 0.5 + light * 0.32)})`;
           const ox = c * CELL;
           const oy = r * CELL;
           for (let by = 0; by < GLYPH_DIM; by++) {
