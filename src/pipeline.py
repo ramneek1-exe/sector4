@@ -21,6 +21,7 @@ from src.features.friday import add_friday_features, prior_track_pace
 from src.features.pace import summarize_stints
 from src.features.pit_loss import derive_race_pit_loss
 from src.features.stints import long_run_stints
+from src.features.actual_stops import race_stop_distribution
 from src.features.strategy import (
     add_history,
     count_stops,
@@ -135,6 +136,21 @@ def build_strategy_table(seasons: list[int] = SEASONS,
     return driver_df
 
 
+def build_actual_stops(seasons: list[int] = SEASONS,
+                       circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
+    """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
+    laps (future/unrun) so the builder is safe to run across the whole calendar."""
+    rows = []
+    for year in seasons:
+        for gp in circuits:
+            race = load_session(year, gp, "R")
+            if race is None or race.laps.empty:
+                continue
+            d = race_stop_distribution(race.laps)
+            rows.append({"race_id": race_id(year, gp), "year": year, "gp": gp, **d})
+    return pd.DataFrame(rows)
+
+
 # Every circuit the pit-loss lookup can be asked about (the dry-set 8 + Monaco + the live
 # 2026 calendar). Derived across all seasons we hold; the lookup defaults to the latest.
 PIT_LOSS_CIRCUITS = [
@@ -221,5 +237,7 @@ def build_all() -> None:
     logger.info("Wrote %s and %s", store.PACE_TABLE, store.STRATEGY_TABLE)
     store.write_table(build_pit_loss(), store.PIT_LOSS)
     logger.info("Wrote %s", store.PIT_LOSS)
+    store.write_table(build_actual_stops(), store.ACTUAL_STOPS)
+    logger.info("Wrote %s", store.ACTUAL_STOPS)
     store.write_table(build_team_map(store.read_table(store.SEASON_RESULTS)), store.TEAM_MAP)
     logger.info("Wrote %s", store.TEAM_MAP)

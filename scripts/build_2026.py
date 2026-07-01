@@ -31,6 +31,7 @@ from src.calendar import RACE_CALENDAR, race_id
 from src.data.grid import load_qualifying_grid
 from src.data.results import load_results
 from src.pipeline import (
+    build_actual_stops,
     build_pace_table,
     build_pit_loss,
     build_podium_table,
@@ -56,6 +57,7 @@ TABLES = [
     "season_results.parquet",
     "podium_features.parquet",
     "pit_loss.parquet",
+    "actual_stops.parquet",
 ]
 
 
@@ -134,6 +136,12 @@ def main() -> None:
     pit = _merge_live(store.PIT_LOSS, build_pit_loss([LIVE_SEASON], LIVE_CIRCUITS))
     store.write_table(pit, store.PIT_LOSS)
     print(f"    {len(pit)} rows, {pit['gp'].nunique()} circuits")
+
+    from src.features.actual_stops import STOPS_CIRCUITS  # local import: script-level constant
+    print(f"4b/7 actual stops — fetch {LIVE_SEASON} only, merge...")
+    stops = _merge_live(store.ACTUAL_STOPS, build_actual_stops([LIVE_SEASON], STOPS_CIRCUITS))
+    store.write_table(stops, store.ACTUAL_STOPS)
+    print(f"    {len(stops)} rows, {stops['race_id'].nunique()} races")
 
     print("5/7 podium table (pure transform)...")
     store.write_table(build_podium_table(pace, results), store.PODIUM_TABLE)
