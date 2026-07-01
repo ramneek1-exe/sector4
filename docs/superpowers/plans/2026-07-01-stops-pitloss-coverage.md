@@ -34,7 +34,9 @@
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/test_actual_stops.py`:
+Create `tests/test_actual_stops.py`. A pit stop is a COMPOUND CHANGE between consecutive
+stints (robust to red-flag phantom stints); only CLASSIFIED finishers (numeric
+`ClassifiedPosition`) count.
 
 ```python
 import pandas as pd
@@ -43,22 +45,36 @@ from src.features.actual_stops import race_stop_distribution
 
 
 def _laps(stints_by_driver):
-    # one row per (driver, stint); count_stops uses nunique(Stint) - 1
+    # stints_by_driver: {driver: [compound per stint in order]}
     rows = []
-    for drv, n_stints in stints_by_driver.items():
-        for s in range(1, n_stints + 1):
-            rows.append({"Driver": drv, "Stint": s})
+    for drv, comps in stints_by_driver.items():
+        for i, c in enumerate(comps, start=1):
+            rows.append({"Driver": drv, "Stint": i, "Compound": c})
     return pd.DataFrame(rows)
 
 
-def test_distribution_modal_and_range():
-    # VER 2 stints -> 1 stop; HAM,LEC 3 stints -> 2 stops; RUS 3 stints -> 2 stops
-    laps = _laps({"VER": 2, "HAM": 3, "LEC": 3, "RUS": 3})
-    d = race_stop_distribution(laps)
-    assert d["modal_stops"] == 2
-    assert d["n_drivers"] == 4
+def _results(classified_by_driver):
+    # classified_by_driver: {driver: ClassifiedPosition string ("1".."20" or "R" for retired)}
+    return pd.DataFrame([
+        {"Abbreviation": drv, "ClassifiedPosition": pos}
+        for drv, pos in classified_by_driver.items()
+    ])
+
+
+def test_counts_compound_changes_among_classified_finishers():
+    laps = _laps({
+        "VER": ["SOFT", "HARD"],                 # 1 change -> 1 stop
+        "HAM": ["SOFT", "HARD", "SOFT"],         # 2 changes -> 2 stops
+        "LEC": ["MEDIUM", "MEDIUM", "HARD"],     # phantom same-compound stint -> 1 real stop
+        "RUS": ["SOFT", "HARD"],                 # 1 stop
+        "BOT": ["SOFT"],                          # DNF (retired) -> excluded, no 0-stop pollution
+    })
+    results = _results({"VER": "1", "HAM": "2", "LEC": "3", "RUS": "4", "BOT": "R"})
+    d = race_stop_distribution(laps, results)
+    assert d["modal_stops"] == 1        # VER, LEC, RUS at 1; HAM at 2
+    assert d["n_drivers"] == 4          # BOT excluded
     assert d["n_at_modal"] == 3
-    assert d["stops_min"] == 1
+    assert d["stops_min"] == 1          # no 0-stop DNF row
     assert d["stops_max"] == 2
 ```
 
@@ -70,12 +86,17 @@ Expected: FAIL — `ModuleNotFoundError`/`ImportError` for `race_stop_distributi
 - [ ] **Step 3: Implement `src/features/actual_stops.py`**
 
 ```python
-"""Actual per-race pit-stop counts, derived from race laps (no FP, no dry filter).
+"""Actual per-race pit-stop counts, derived from race laps + results (no FP, no dry filter).
 
 Unlike the Model-B strategy features (which need a dry FP2 long run), this works for EVERY
 completed race — sprint or wet — because it reads only what drivers actually did. Feeds the
 "how many stops happened" answer for completed races and the per-circuit historical norm for
 upcoming races.
+
+A pit stop is a COMPOUND CHANGE between consecutive stints, NOT a stint transition: red-flag
+restarts create phantom same-compound stints that inflate a naive stint count (2026 Monaco
+reads 5 stops that way vs 2 real). Only CLASSIFIED finishers count, so retirements do not
+pollute the modal with 0-stop rows.
 """
 from __future__ import annotations
 
@@ -83,7 +104,6 @@ import pandas as pd
 
 from src.calendar import RACE_CALENDAR, race_id
 from src.data.load import load_session
-from src.features.strategy import count_stops
 
 # Completed 2026 rounds + the next race (Great Britain) — enough for completed-race actuals AND
 # the per-circuit historical norm. Widen with the calendar as the season progresses (see the
@@ -91,9 +111,27 @@ from src.features.strategy import count_stops
 STOPS_CIRCUITS: list[str] = list(dict.fromkeys(RACE_CALENDAR[2026] + ["Great Britain"]))
 
 
-def race_stop_distribution(laps: pd.DataFrame) -> dict:
-    """Summarise a race's actual stop counts: modal, spread, and how many ran the mode."""
-    stops = count_stops(laps)["n_stops"]
+def race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict:
+    """Actual stop distribution among classified finishers, robust to red-flag phantom stints.
+
+    Returns {} if there are no classified finishers (so the builder skips the race).
+    """
+    classified = None
+    if results is not None and "ClassifiedPosition" in results:
+        classified = set(
+            results.loc[
+                results["ClassifiedPosition"].astype(str).str.fullmatch(r"\d+"), "Abbreviation"
+            ]
+        )
+    counts: dict[str, int] = {}
+    for drv, d in laps.groupby("Driver"):
+        if classified is not None and drv not in classified:
+            continue
+        comp = d.sort_values("Stint").groupby("Stint")["Compound"].first()
+        counts[drv] = max(int((comp != comp.shift()).sum() - 1), 0)  # compound changes
+    stops = pd.Series(counts)
+    if stops.empty:
+        return {}
     modal = int(stops.mode().iloc[0])
     return {
         "modal_stops": modal,
@@ -123,14 +161,16 @@ Add this function after `build_strategy_table` (near line 136):
 def build_actual_stops(seasons: list[int] = SEASONS,
                        circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
     """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
-    laps (future/unrun) so the builder is safe to run across the whole calendar."""
+    laps (future/unrun) or no classified finishers so the builder is safe across the calendar."""
     rows = []
     for year in seasons:
         for gp in circuits:
             race = load_session(year, gp, "R")
             if race is None or race.laps.empty:
                 continue
-            d = race_stop_distribution(race.laps)
+            d = race_stop_distribution(race.laps, race.results)
+            if not d:  # no classified finishers
+                continue
             rows.append({"race_id": race_id(year, gp), "year": year, "gp": gp, **d})
     return pd.DataFrame(rows)
 ```
