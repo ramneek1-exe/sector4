@@ -1,7 +1,9 @@
-// Pure narrative linker (M6-B). Turns a finished narrative string into segments where
-// recognized concept terms become links into the learning layer. No React, no DOM — the
-// real logic lives here so it is node-testable; the components are thin wrappers.
+// Pure narrative linker (M6-B + M6-C). Turns a finished narrative string into segments
+// where recognized concept terms and entity names (circuits, teams) become popover links.
+// No React, no DOM — the real logic lives here so it is node-testable; components are
+// thin wrappers.
 import { allConcepts } from "@/app/lib/concepts";
+import entityWhatsRaw from "@/app/data/entity-whats.json";
 
 export type Segment = string | { text: string; slug: string };
 
@@ -10,11 +12,39 @@ interface AliasEntry {
   slug: string;
 }
 
+// Concept aliases (M6-B): every concept alias maps to its concept slug.
+const conceptAliases: AliasEntry[] = allConcepts().flatMap((c) =>
+  c.aliases.map((alias) => ({ alias: alias.toLowerCase(), slug: c.slug })),
+);
+
+// Entity aliases (M6-C): circuit + team titles/tracks/slugs map to their entity key
+// ("circuit:<slug>" or "team:<slug>"). Drivers are NOT linkified inline — they surface
+// via the glyph tap instead.
+type RawWhat = { type: string; slug: string; title: string; track?: string };
+const entityAliases: AliasEntry[] = Object.entries(entityWhatsRaw as Record<string, RawWhat>)
+  .filter(([key]) => key.startsWith("circuit:") || key.startsWith("team:"))
+  .flatMap(([key, w]) => {
+    const seen = new Set<string>();
+    const entries: AliasEntry[] = [];
+    const add = (text: string) => {
+      const lower = text.toLowerCase();
+      if (lower && !seen.has(lower)) {
+        seen.add(lower);
+        entries.push({ alias: lower, slug: key });
+      }
+    };
+    if (w.title) add(w.title);
+    if (w.track) add(w.track);
+    add(w.slug); // e.g. "Austria" or "McLaren"
+    return entries;
+  });
+
 // All aliases, sorted longest-first so the most specific phrase wins at any position
-// (e.g. "tyre deg" beats "deg"). Built once at module load.
-const ALIASES: AliasEntry[] = allConcepts()
-  .flatMap((c) => c.aliases.map((alias) => ({ alias: alias.toLowerCase(), slug: c.slug })))
-  .sort((a, b) => b.alias.length - a.alias.length);
+// (e.g. "tyre deg" beats "deg"; "the Red Bull Ring" beats "Austria"). Built once at
+// module load.
+const ALIASES: AliasEntry[] = [...conceptAliases, ...entityAliases].sort(
+  (a, b) => b.alias.length - a.alias.length,
+);
 
 const isWordChar = (ch: string | undefined): boolean => ch !== undefined && /[A-Za-z0-9]/.test(ch);
 

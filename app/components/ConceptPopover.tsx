@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getConcept } from "@/app/lib/concepts";
 import { computePopoverPosition } from "@/app/lib/linkify";
 import { TrustBadge } from "@/app/components/TrustBadge";
+import { CorrectionForm } from "@/app/components/CorrectionForm";
 import { parsePopoverKey } from "@/app/lib/entity-whats";
 
 type OpenFn = (slug: string, anchor: DOMRect) => void;
@@ -137,6 +138,7 @@ function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRe
           >
             Source: {parsed.what.source.label} →
           </a>
+          <CorrectionForm type={parsed.what.type} slug={parsed.what.slug} />
         </>
       ) : null}
     </div>,

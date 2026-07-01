@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DriverGlyph } from "@/app/components/DriverGlyph";
+import { useConceptPopover } from "@/app/components/ConceptPopover";
 import { asciiRowsFor, sampleAscii, type AsciiGrid } from "@/app/lib/ascii";
-import { resolveGlyph } from "@/app/lib/glyph";
+import { resolveGlyph, driverName } from "@/app/lib/glyph";
 import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { scatterDelay } from "@/app/lib/scatter";
+import { getEntityWhat, entityKey } from "@/app/lib/entity-whats";
 
 const SS = 5; // off-screen supersample per ASCII cell
 const REVEAL_MS = 520; // window over which cells scatter in
@@ -37,6 +39,13 @@ export function AsciiGlyph({
   const [grid, setGrid] = useState<AsciiGrid | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const g = resolveGlyph(code, team);
+  const open = useConceptPopover();
+  const what = getEntityWhat("driver", code);
+  const name = driverName(code);
+
+  const handleGlyphClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    open(entityKey("driver", code), e.currentTarget.getBoundingClientRect());
+  };
 
   // 1. Rasterise + sample the helmet off-screen.
   useEffect(() => {
@@ -137,6 +146,29 @@ export function AsciiGlyph({
   }, [grid, size]);
 
   // Vector fallback: server render, while sampling, or if canvas is unavailable.
-  if (!grid) return <DriverGlyph code={code} team={team} size={size} />;
-  return <canvas ref={canvasRef} role="img" aria-label={`${code} helmet`} />;
+  // Pass click props only when a driver entity-what exists (no dead affordance otherwise).
+  if (!grid) {
+    return (
+      <DriverGlyph
+        code={code}
+        team={team}
+        size={size}
+        onGlyphClick={what ? handleGlyphClick : undefined}
+        ariaLabel={what ? `About ${name}` : undefined}
+      />
+    );
+  }
+
+  const canvas = <canvas ref={canvasRef} role="img" aria-label={`${code} helmet`} />;
+  if (!what) return canvas;
+  return (
+    <button
+      type="button"
+      onClick={handleGlyphClick}
+      aria-label={`About ${name}`}
+      className="cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent/60"
+    >
+      {canvas}
+    </button>
+  );
 }

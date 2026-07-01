@@ -7,9 +7,11 @@ import { getJson } from "@/app/lib/blob";
 import { latestKey, type WeekendSnapshot } from "@/app/lib/snapshot";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
+import { TrustBadge } from "@/app/components/TrustBadge";
+import { CorrectionForm } from "@/app/components/CorrectionForm";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { driverName } from "@/app/lib/glyph";
-import { getCircuitFacts, getCircuitName } from "@/app/lib/entity-whats";
+import { getCircuitFacts, getCircuitName, getEntityWhat } from "@/app/lib/entity-whats";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +80,7 @@ export default async function WeekendPage() {
   if (!snap || concluded) {
     const upcomingGp = concluded ? schedule.nextGp ?? schedule.gp : schedule.gp;
     const upcomingFacts = getCircuitFacts(upcomingGp);
+    const upcomingWhat = getEntityWhat("circuit", upcomingGp);
     return (
       <>
         <SideFog />
@@ -92,7 +95,10 @@ export default async function WeekendPage() {
 
           {upcomingFacts.length > 0 && (
             <section className="mt-12">
-              <h2 className={SECTION_LABEL}>About {upcomingGp}</h2>
+              <div className="mb-3 flex items-center gap-3">
+                <h2 className={SECTION_LABEL} style={{ margin: 0 }}>About {upcomingGp}</h2>
+                {upcomingWhat && <TrustBadge badge={upcomingWhat.badge} />}
+              </div>
               <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">
                 {upcomingFacts.map((f) => (
                   <li key={f} className="border-l-2 border-ink/15 pl-3">
@@ -100,6 +106,17 @@ export default async function WeekendPage() {
                   </li>
                 ))}
               </ul>
+              {upcomingWhat?.source && (
+                <a
+                  href={upcomingWhat.source.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block font-grotesk text-[11px] font-semibold uppercase tracking-wide text-accent"
+                >
+                  Source: {upcomingWhat.source.label} →
+                </a>
+              )}
+              <CorrectionForm type="circuit" slug={upcomingGp} />
             </section>
           )}
         </main>
@@ -111,6 +128,7 @@ export default async function WeekendPage() {
   const strategy = (snap.strategy ?? {}) as Strategy;
   const pace = (snap.pace ?? {}) as Pace;
   const facts = getCircuitFacts(snap.gp);
+  const circuitWhat = getEntityWhat("circuit", snap.gp);
   const drivers = (podium.drivers ?? []).slice(0, 10);
 
   return (
@@ -204,7 +222,10 @@ export default async function WeekendPage() {
 
         {facts.length > 0 && (
           <section className="mb-10">
-            <h2 className={SECTION_LABEL}>About {snap.gp}</h2>
+            <div className="mb-3 flex items-center gap-3">
+              <h2 className={SECTION_LABEL} style={{ margin: 0 }}>About {snap.gp}</h2>
+              {circuitWhat && <TrustBadge badge={circuitWhat.badge} />}
+            </div>
             <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">
               {facts.map((f) => (
                 <li key={f} className="border-l-2 border-ink/15 pl-3">
@@ -212,6 +233,17 @@ export default async function WeekendPage() {
                 </li>
               ))}
             </ul>
+            {circuitWhat?.source && (
+              <a
+                href={circuitWhat.source.url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-block font-grotesk text-[11px] font-semibold uppercase tracking-wide text-accent"
+              >
+                Source: {circuitWhat.source.label} →
+              </a>
+            )}
+            <CorrectionForm type="circuit" slug={snap.gp} />
           </section>
         )}
 

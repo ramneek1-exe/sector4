@@ -4,18 +4,27 @@ import { HELMET_VIEWBOX, SHELL, VENT, VISOR, VISOR_FILL } from "@/app/lib/helmet
 // Plain vector helmet glyph. Paths live in app/lib/helmet.ts so the ASCII
 // renderer (AsciiGlyph) can rasterise the exact same shapes. No likeness, no
 // marks — shapes + team colour only (PRD §8).
+//
+// When `onGlyphClick` + `ariaLabel` are provided (set by AsciiGlyph when a
+// driver entity-what exists), the glyph is wrapped in an accessible button
+// that opens the popover. Otherwise it renders as a plain presentational
+// element (no dead affordance when no what exists).
 export function DriverGlyph({
   code,
   team,
   size = 56,
+  onGlyphClick,
+  ariaLabel,
 }: {
   code: string;
   team: string | null;
   size?: number;
+  onGlyphClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  ariaLabel?: string;
 }) {
   const g = resolveGlyph(code, team);
   const { w, h } = HELMET_VIEWBOX;
-  return (
+  const svg = (
     <svg
       width={size}
       height={Math.round((size * h) / w)}
@@ -42,4 +51,18 @@ export function DriverGlyph({
       )}
     </svg>
   );
+
+  if (onGlyphClick && ariaLabel) {
+    return (
+      <button
+        type="button"
+        onClick={onGlyphClick}
+        aria-label={ariaLabel}
+        className="cursor-pointer rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent/60"
+      >
+        {svg}
+      </button>
+    );
+  }
+  return svg;
 }

@@ -45,6 +45,13 @@ describe("linkifyNarrative", () => {
     expect(slugs).toContain("stop-count-strategy"); // "extra stop"
     expect(slugs).toContain("pit-lane-time-loss");  // "pit stop"
   });
+
+  it("linkifies a circuit/team name to its entity key", () => {
+    const segs = linkifyNarrative("Expect a busy race at the Red Bull Ring for McLaren.");
+    const keys = segs.filter((s) => typeof s !== "string").map((s: any) => s.slug);
+    expect(keys).toContain("circuit:Austria");
+    expect(keys).toContain("team:McLaren");
+  });
 });
 
 describe("computePopoverPosition", () => {
