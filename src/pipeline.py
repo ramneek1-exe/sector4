@@ -139,14 +139,16 @@ def build_strategy_table(seasons: list[int] = SEASONS,
 def build_actual_stops(seasons: list[int] = SEASONS,
                        circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
     """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
-    laps (future/unrun) so the builder is safe to run across the whole calendar."""
+    laps (future/unrun) or no classified finishers so the builder is safe across the calendar."""
     rows = []
     for year in seasons:
         for gp in circuits:
             race = load_session(year, gp, "R")
             if race is None or race.laps.empty:
                 continue
-            d = race_stop_distribution(race.laps)
+            d = race_stop_distribution(race.laps, race.results)
+            if not d:  # no classified finishers
+                continue
             rows.append({"race_id": race_id(year, gp), "year": year, "gp": gp, **d})
     return pd.DataFrame(rows)
 
