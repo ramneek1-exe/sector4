@@ -1,11 +1,45 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-06-28.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-01.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
+>
+> ## 2026-07-01 session — all MERGED to `main` + LIVE on prod
+> Shipped, in order: **(1) Mobile hamburger nav** (merge `34ff737`) — below `md` the inline row
+> becomes a full-screen GSAP overlay portaled to `document.body` (the header's `backdrop-filter`
+> makes it a containing block, so an in-header overlay clamped to 68px — GOTCHA). Later added an
+> **open-state focus trap** (`inert` on the background). **(2) De-staled the Python test**
+> `test_unrun_race_is_empty_not_error` (assert a far-future season). **(3) 2026 stop-count DATA-LOSS
+> fix** (merge `96f597f`): `_merge_live` dropped ALL current-season rows before appending the fresh
+> build, so an empty/partial CI fetch wiped 2026 rows — replaced with non-destructive
+> `src.pipeline.merge_refreshed` (race_id-keyed) + rebuilt tables. **(4) Stops + pit-loss FULL
+> coverage** (merge `b4c1b60`, closes old TODO #1): every completed 2026 race answers "how many pit
+> stops" with its ACTUAL distribution; the next race gets a HISTORICAL NORM (sharpens to the Model-B
+> telemetry prediction once dry practice exists); pit-loss covers every round. New `actual_stops`
+> table (`src/features/actual_stops.py`, `build_actual_stops`) counts COMPOUND CHANGES among
+> CLASSIFIED finishers (red-flag-safe; naive stint-count read Monaco as 5 stops). `api/strategy.py`
+> routes actual/historical/predicted by race state; `strategyLede` + `StrategyCard` mode label.
+> **CRITICAL GOTCHA — the occurred-gate:** `build_actual_stops` builds live-season actuals ONLY for
+> `gp in RACE_CALENDAR[live]` because **fastf1 LEAKS future race data** (British R9, 2026-07-05, had
+> laps pre-race). NEVER extend `RACE_CALENDAR` to the full schedule — it must stay "rounds run so
+> far". `STOPS_CIRCUITS` = full 22-circuit roster (for norms), separate from RACE_CALENDAR. Also
+> fixed the Barcelona↔Spain pit-loss collision. **(5) Query fixes + palette re-skin** (merge
+> `f28417a`): "next race" resolves for stat lookups; the full roster circuits normalize on the
+> frontend (`circuits.ts`, Spa/Belgium/etc.); `explain_concept` ("what is DRS?") now answers with the
+> concept summary + /learn link (`matchConcept` in `concepts.ts`, `orchestrate.ts` branch, new
+> `ConceptCard` in page.tsx). Applied the owner's coolors palette
+> (bee2f0-459ae4-2f2e89-addcef-406cd6-251f44) everywhere: `ink #251F44`, `accent #2F2E89`, `--ramp`
+> + ALL fog/art re-derived; home `AsciiFog` sweeps the full palette with LUMINANCE-AWARE alpha, and
+> the broad central white scrim was thinned so the fog reads colourful (text keeps its own `.legible`
+> backing). 2026-forward tagline + chips; Ask h1 + input bar join the `fog-in` entrance.
+> **DATA-CURRENCY NOTE:** fastf1's real 2026 data runs AHEAD of the app's canonical calendar — as
+> each round runs, bump `RACE_CALENDAR[2026]` + `app/data/weekend-schedule.json` per weekend (ops
+> cadence) so all tables build for it; the occurred-gate + full roster handle the rest.
+> **NEXT: M6-C (entity-what pipeline).** Built subagent-driven (specs/plans in
+> `docs/superpowers/.../2026-06-28-mobile-*`, `2026-07-01-stops-pitloss-*`).
 >
 > **M4 — telemetry differentiators: MERGED to `main` and live on PRODUCTION
 > (`sector4-zeta.vercel.app`).** Pace-gap context (Model A, supporting) + stop-count strategy
@@ -90,25 +124,21 @@
 > + corrections form; replaces the curated `circuit-facts.json` stopgap on `/weekend` via the
 > `getCircuitFacts(gp)` seam). Its own spec→plan→build cycle.
 >
-> **OPEN TODOs / known gaps (added 2026-06-28):**
-> 1. **No stop-count (pit-stop count) data for live 2026 weekends.** Model B's validated telemetry
->    differentiator (stop-count strategy, +0.07) needs FP long-run deg features, which don't exist for
->    an upcoming/early 2026 weekend until that weekend's practice has run and the tables are rebuilt
->    (R17). So `/api/strategy` falls back to the qualitative/no-target branch and the StrategyCard can't
->    surface a real per-weekend stop call early. Decide the UX: an honest "not available yet this
->    weekend" state vs. a historical track-norm placeholder vs. wait-for-FP gating — and wire the
->    refresh so stop-count lights up once Austria/Britain-style FP rows land. (Telemetry differentiator
->    is the product's genuine edge, so this gap is worth closing deliberately, not papering over.)
-> 2. **Mobile hamburger menu for the nav.** `SiteNav` is a single persistent row (SECTOR4 + Ask/Learn/
->    Upcoming-weekend); on narrow viewports the links crowd the wordmark. Build a hamburger that houses
->    the nav links on mobile (accessible toggle, reduced-motion-safe open/close, keeps the growing-
->    underline affordance), desktop unchanged. Its own small spec→plan→build.
->
-> **Pre-existing test failure (NOT M6-B):** `tests/test_api_results.py::test_unrun_race_is_empty_not_error`
-> now fails on `main` — it asserts the 2026 Austrian GP returns an empty finishing order, but that race
-> actually ran (2026-06-28), so the live API returns 22 results. Zero Python touched by M6-B. Fix the
-> stale date-based assumption (mock/fixture an unrun future round, or assert against a genuinely-unraced
-> GP) as a quick follow-up.
+> **OPEN TODOs / known gaps (updated 2026-07-01):** (old TODOs #1 stop-count data + #2 mobile
+> hamburger, and the `test_unrun_race_is_empty_not_error` failure, are all DONE — see the 2026-07-01
+> entry above.) Remaining:
+> 1. **M6-C — entity-what pipeline (the next milestone).** Allowlist retrieval → Haiku short original
+>    paraphrase → inline cite + link → cache (per-content-type TTL) → auto "drafted, unverified" badge
+>    + corrections form; hard facts from `drivers.json`, never cached prose. Replaces the curated
+>    `app/data/circuit-facts.json` stopgap on `/weekend` via the `getCircuitFacts(gp)` seam (keep the
+>    seam, swap the impl). Its own spec→plan→build. Then **M7** (breadth + polish).
+> 2. **Data-currency automation.** fastf1's real 2026 data is ahead of the app's calendar; today the
+>    owner must bump `RACE_CALENDAR[2026]` + `weekend-schedule.json` per weekend. Consider automating
+>    the "which rounds have occurred" detection (occurred-gate already guards actuals) so R17 self-updates.
+> 3. **Ops hygiene:** rotate the PREVIEW `CRON_SECRET` off the throwaway `s4-cron-test` value.
+> 4. **Minor:** R17 parquet non-determinism (commits/deploys every scheduled run even with no data
+>    change — tighten with a content check); China single-sample 2026 pit-loss noise (min-stop threshold
+>    or multi-year median).
 
 ## ✨ Post-M5 fine-tuning (2026-06-22) — output quality, NOT M6
 
