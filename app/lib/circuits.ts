@@ -26,6 +26,15 @@ export const CANONICAL_CIRCUITS = [
   "Monaco",
   "Austria",
   "Great Britain",
+  // remaining 2026 rounds — historical stop/pit-loss norms available now; actuals fill in
+  // as each runs. (Barcelona & Spain/Madrid stay folded into "Spain" below, see note.)
+  "Belgium",
+  "Netherlands",
+  "Azerbaijan",
+  "Singapore",
+  "United States",
+  "São Paulo",
+  "Qatar",
 ] as const;
 
 // Common aliases (lowercased) → canonical key. Includes the country/circuit/city
@@ -85,6 +94,31 @@ const ALIASES: Record<string, string> = {
   "great britain": "Great Britain",
   silverstone: "Great Britain",
   uk: "Great Britain",
+  // remaining 2026 rounds (added so upcoming-race stop/pit-loss queries resolve)
+  belgium: "Belgium",
+  belgian: "Belgium",
+  spa: "Belgium",
+  "spa francorchamps": "Belgium",
+  netherlands: "Netherlands",
+  dutch: "Netherlands",
+  zandvoort: "Netherlands",
+  azerbaijan: "Azerbaijan",
+  baku: "Azerbaijan",
+  singapore: "Singapore",
+  "marina bay": "Singapore",
+  "united states": "United States",
+  usa: "United States",
+  "us grand prix": "United States",
+  cota: "United States",
+  austin: "United States",
+  "sao paulo": "São Paulo",
+  "são paulo": "São Paulo",
+  brazil: "São Paulo",
+  brazilian: "São Paulo",
+  interlagos: "São Paulo",
+  qatar: "Qatar",
+  lusail: "Qatar",
+  losail: "Qatar",
 };
 
 const STOPWORDS = new Set(["grand", "grands", "prix", "circuit", "gp", "the"]);

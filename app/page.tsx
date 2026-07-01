@@ -12,6 +12,9 @@ import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";
+import { TrustBadge } from "@/app/components/TrustBadge";
+import type { Concept } from "@/app/lib/concepts";
+import Link from "next/link";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
@@ -233,6 +236,29 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
 }
 
 /** Computed-stat answer (e.g. pit-loss). No box. */
+/** Concept answer: the hand-authored summary + trust badge + a link to the full /learn page. */
+function ConceptCard({ concept }: { concept: Concept }) {
+  return (
+    <div className="fog-in flex max-w-xl flex-col items-center gap-4 text-center">
+      <div className="flex items-center gap-3">
+        <h2 className={`font-pixel text-4xl leading-none tracking-wide text-ink ${LEGIBLE} px-3 py-1`}>
+          {concept.term}
+        </h2>
+        <TrustBadge badge={concept.badge} />
+      </div>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>
+        {concept.summary}
+      </p>
+      <Link
+        href={`/learn/${concept.slug}`}
+        className="cta-grow relative font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
+      >
+        Read more →
+      </Link>
+    </div>
+  );
+}
+
 function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
@@ -373,6 +399,9 @@ export default function Home() {
           )}
           {answer && "supported" in answer && answer.supported && "strategy" in answer && (
             <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "concept" in answer && (
+            <ConceptCard concept={answer.concept} />
           )}
           {answer && "supported" in answer && !answer.supported && (
             <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>

@@ -15,6 +15,16 @@ describe("normalizeCircuit", () => {
     expect(normalizeCircuit("mexico")).toBe("Mexico City");
   });
 
+  it("normalizes the remaining 2026 roster circuits (upcoming races)", () => {
+    expect(normalizeCircuit("Spa")).toBe("Belgium");
+    expect(normalizeCircuit("the Belgian Grand Prix")).toBe("Belgium");
+    expect(normalizeCircuit("Zandvoort")).toBe("Netherlands");
+    expect(normalizeCircuit("Baku")).toBe("Azerbaijan");
+    expect(normalizeCircuit("Interlagos")).toBe("São Paulo");
+    expect(normalizeCircuit("Lusail")).toBe("Qatar");
+    expect(normalizeCircuit("Singapore")).toBe("Singapore");
+  });
+
   it("normalizes 2026 calendar circuits", () => {
     expect(normalizeCircuit("Austrian Grand Prix")).toBe("Austria");
     expect(normalizeCircuit("red bull ring")).toBe("Austria");

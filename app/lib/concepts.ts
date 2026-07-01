@@ -29,6 +29,27 @@ export function getConcept(slug: string): Concept | undefined {
   return BY_SLUG.get(slug);
 }
 
+// Lowercased aliases, longest-first so the most specific phrase wins ("safety car" over "car").
+const ALIAS_TO_SLUG: { alias: string; slug: string }[] = CONCEPTS.flatMap((c) =>
+  c.aliases.map((a) => ({ alias: a.toLowerCase(), slug: c.slug })),
+).sort((a, b) => b.alias.length - a.alias.length);
+
+const isWordChar = (ch: string | undefined) => !!ch && /[a-z0-9]/i.test(ch);
+
+// Find the concept a free-text question is about by matching a concept alias as a whole word
+// (e.g. "what is DRS?" -> the DRS concept). Longest alias wins; null if none appears.
+export function matchConcept(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const { alias, slug } of ALIAS_TO_SLUG) {
+    let from = 0;
+    for (let i = lower.indexOf(alias, from); i >= 0; i = lower.indexOf(alias, from)) {
+      if (!isWordChar(lower[i - 1]) && !isWordChar(lower[i + alias.length])) return slug;
+      from = i + 1;
+    }
+  }
+  return null;
+}
+
 export function conceptsByGroup(): { group: string; concepts: Concept[] }[] {
   const groups: { group: string; concepts: Concept[] }[] = [];
   for (const c of CONCEPTS) {
