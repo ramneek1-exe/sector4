@@ -14,9 +14,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.calendar import RACE_CALENDAR, race_id
-from src.data.load import load_session
-
 # The full 2026 circuit roster in schedule order. build_actual_stops sweeps ALL of these so
 # every circuit has prior-season rows for the historical-norm answer; the occurred-gate still
 # limits which get a 2026 ACTUALS row to RACE_CALENDAR[2026] (the completed rounds). Do NOT
