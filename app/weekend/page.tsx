@@ -96,7 +96,7 @@ export default async function WeekendPage() {
           {upcomingFacts.length > 0 && (
             <section className="mt-12">
               <div className="mb-3 flex items-center gap-3">
-                <h2 className={SECTION_LABEL} style={{ margin: 0 }}>About {upcomingGp}</h2>
+                <h2 className={`${SECTION_LABEL} m-0`}>About {upcomingGp}</h2>
                 {upcomingWhat && <TrustBadge badge={upcomingWhat.badge} />}
               </div>
               <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">
@@ -223,7 +223,7 @@ export default async function WeekendPage() {
         {facts.length > 0 && (
           <section className="mb-10">
             <div className="mb-3 flex items-center gap-3">
-              <h2 className={SECTION_LABEL} style={{ margin: 0 }}>About {snap.gp}</h2>
+              <h2 className={`${SECTION_LABEL} m-0`}>About {snap.gp}</h2>
               {circuitWhat && <TrustBadge badge={circuitWhat.badge} />}
             </div>
             <ul className="space-y-3 font-pixel-serif text-lg leading-relaxed">

@@ -31,6 +31,7 @@ export function DriverGlyph({
       viewBox={`0 0 ${w} ${h}`}
       role="img"
       aria-label={`${code} helmet`}
+      aria-hidden={!!onGlyphClick}
     >
       <path d={SHELL} fill={g.helmetFill} />
       <path d={VISOR} fill={VISOR_FILL} />

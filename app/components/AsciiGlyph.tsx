@@ -159,7 +159,7 @@ export function AsciiGlyph({
     );
   }
 
-  const canvas = <canvas ref={canvasRef} role="img" aria-label={`${code} helmet`} />;
+  const canvas = <canvas ref={canvasRef} role="img" aria-label={`${code} helmet`} aria-hidden={!!what} />;
   if (!what) return canvas;
   return (
     <button
