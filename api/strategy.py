@@ -22,15 +22,18 @@ import pandas as pd
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from src.inference.stops import actual_stops, historical_stop_norm  # noqa: E402
 from src.inference.strategy import predict_stop_counts  # noqa: E402
 from src.inference.teams import attach_teams  # noqa: E402
 
 _TABLE = pd.read_parquet(Path(__file__).with_name("strategy_features.parquet"))
 _TEAMS = pd.read_parquet(Path(__file__).with_name("team_map.parquet"))
+_ACTUAL = pd.read_parquet(Path(__file__).with_name("actual_stops.parquet"))
 
 
 def strategy_response(body: dict) -> tuple[int, dict]:
-    """Map a request body {year, gp} to (status, json-serializable payload)."""
+    """Route a stops question by race state: completed -> actual, upcoming+dry-FP -> Model-B
+    prediction, otherwise -> historical norm. All return a `mode`-tagged StrategyFacts shape."""
     year, gp = body.get("year"), body.get("gp")
     if year is None or not gp:
         return 400, {"error": "year and gp are required"}
@@ -38,9 +41,34 @@ def strategy_response(body: dict) -> tuple[int, dict]:
         year = int(year)
     except (TypeError, ValueError):
         return 400, {"error": "year must be an integer"}
-    payload = predict_stop_counts(year, gp, table=_TABLE)
-    payload["drivers"] = attach_teams(payload["drivers"], _TEAMS, year, gp)
-    return 200, payload
+
+    act = actual_stops(year, gp, _ACTUAL)
+    if act is not None:
+        share = round(act["n_at_modal"] / act["n_drivers"], 2) if act["n_drivers"] else None
+        return 200, {
+            "year": year, "gp": gp, "mode": "actual", "qualitative": False, "sc_caveat": "",
+            "dominant": {"n_stops": act["modal_stops"], "share": share,
+                         "n_drivers": act["n_drivers"]},
+            "stops_min": act["stops_min"], "stops_max": act["stops_max"], "drivers": [],
+        }
+
+    pred = predict_stop_counts(year, gp, table=_TABLE)
+    if pred.get("dominant"):
+        pred["mode"] = "predicted"
+        pred["drivers"] = attach_teams(pred["drivers"], _TEAMS, year, gp)
+        return 200, pred
+
+    norm = historical_stop_norm(gp, _ACTUAL, before_year=year)
+    if norm is not None:
+        return 200, {
+            "year": year, "gp": gp, "mode": "historical", "qualitative": False, "sc_caveat": "",
+            "dominant": {"n_stops": norm["modal_stops"], "share": None, "n_drivers": None},
+            "n_seasons": norm["n_seasons"], "drivers": [],
+        }
+
+    # No actuals, no FP row, no history: honest low-data state (keep predict_stop_counts' shape).
+    pred["mode"] = "historical"
+    return 200, pred
 
 
 class handler(BaseHTTPRequestHandler):
