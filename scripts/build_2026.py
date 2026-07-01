@@ -36,6 +36,7 @@ from src.pipeline import (
     build_podium_table,
     build_strategy_table,
     build_team_map,
+    merge_refreshed,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -99,12 +100,15 @@ def _refresh_grid() -> None:
 
 
 def _merge_live(base_path: str, fresh: pd.DataFrame) -> pd.DataFrame:
-    """Replace the LIVE_SEASON rows in the committed base table with freshly-built ones."""
+    """Overlay freshly-built LIVE_SEASON rows onto the committed base table, non-destructively.
+
+    Only the races actually present in ``fresh`` are replaced (keyed on race_id); every other
+    row — history AND any already-built current-season race this run did not reproduce — is
+    kept. So an empty/partial fetch can never wipe previously-built rows (see
+    src.pipeline.merge_refreshed).
+    """
     base = pd.read_parquet(base_path) if os.path.exists(base_path) else pd.DataFrame()
-    if not base.empty and "year" in base:
-        base = base[base["year"] != LIVE_SEASON]
-    frames = [df for df in (base, fresh) if df is not None and not df.empty]
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    return merge_refreshed(base, fresh, key="race_id")
 
 
 def main() -> None:

@@ -32,6 +32,28 @@ from src.features.track import track_features
 logger = logging.getLogger(__name__)
 
 
+def merge_refreshed(base: pd.DataFrame, fresh: pd.DataFrame,
+                    key: str = "race_id") -> pd.DataFrame:
+    """Non-destructive incremental merge: overlay freshly-built rows onto a base table.
+
+    Replaces ONLY the races present in ``fresh`` (matched on ``key``, e.g. race_id like
+    "2026-Australia"), keeping every other base row untouched. Because race_id is year-scoped,
+    this preserves both the 2023-25 history AND any already-built current-season races that a
+    given refresh run did not reproduce.
+
+    This is the guard against the 2026 stop-count data loss: the previous logic dropped ALL
+    current-season rows before appending ``fresh``, so a refresh whose fresh build came back
+    empty/partial (CI has no fastf1 cache and cannot always re-fetch live FP sessions) wiped
+    previously-built rows. An empty ``fresh`` here is a no-op, never a deletion.
+    """
+    if fresh is None or fresh.empty:
+        return base.copy() if base is not None else pd.DataFrame()
+    if base is None or base.empty:
+        return fresh.copy()
+    kept = base[~base[key].isin(fresh[key].unique())]
+    return pd.concat([kept, fresh], ignore_index=True)
+
+
 def build_pace_table(seasons: list[int] = SEASONS,
                      circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
     """Model A feature table over the calendar (wraps the validated build_dataset)."""
