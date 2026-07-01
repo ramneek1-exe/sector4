@@ -49,4 +49,8 @@ describe("normalizeLookupCircuit", () => {
   it("returns null for an unknown circuit", () => {
     expect(normalizeLookupCircuit("Narnia", "pit_loss")).toBeNull();
   });
+
+  it("maps Barcelona to Barcelona for pit_loss (2026 distinct circuit)", () => {
+    expect(normalizeLookupCircuit("Barcelona", "pit_loss")).toBe("Barcelona");
+  });
 });
