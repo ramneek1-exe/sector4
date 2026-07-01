@@ -632,61 +632,118 @@ git commit -m "data: refresh feature bundle with actual-stops table"
 
 ---
 
-### Task 7: Staying current — extend the 2026 calendar (optional, do last)
+### Task 7: Staying current — full 2026 circuit roster for historical norms (do last)
 
 **Files:**
-- Modify: `src/calendar.py` (`RACE_CALENDAR[2026]`, `GP_TO_EVENT`), `src/features/actual_stops.py` (`STOPS_CIRCUITS`)
-- Test: `tests/test_calendar.py` (extend or create)
+- Modify: `src/calendar.py` (`GP_TO_EVENT` — ADD the 7 missing 2026 circuits), `src/features/actual_stops.py` (`STOPS_CIRCUITS` → full roster)
+- Test: `tests/test_calendar.py` (create)
 
-This widens pace/strategy/pit-loss coverage to rounds 9+ as the real season runs (actual_stops already covers them via `STOPS_CIRCUITS`). It changes calendar ordering, so it goes last and is gated on the full suite.
+**Why this shape (NOT the calendar).** `RACE_CALENDAR[2026]` MUST stay = "rounds run so far" (currently the 8 completed rounds). The Task-1 occurred-gate builds live-season actuals ONLY for `gp in RACE_CALENDAR[2026]`; that is what stops fastf1's leaked future data (e.g. British round 9) from producing a bogus 2026 actuals row. Extending `RACE_CALENDAR` to the full schedule would re-break that. Instead, give the historical-norm mode data for EVERY upcoming circuit by extending `STOPS_CIRCUITS` (the circuits `build_actual_stops` sweeps) and `GP_TO_EVENT` (so `load_session` can resolve each) to the full 2026 roster. Past-season rows build for all of them; the occurred-gate still limits 2026 actuals to the completed rounds. So Belgium/Hungary/etc. get a prior-season norm before they run, and their actuals appear only once the owner adds them to `RACE_CALENDAR[2026]` on the weekend cadence.
 
-- [ ] **Step 1: Derive the real full 2026 schedule**
+**Missing `GP_TO_EVENT` entries (verified):** Belgian, Dutch, Azerbaijan, Singapore, United States, São Paulo, Qatar Grands Prix. The other 15 roster circuits are already mapped.
 
-```bash
-PYTHONPATH=. .venv/bin/python -c "
-import fastf1
-s = fastf1.get_event_schedule(2026, include_testing=False)
-print([e for e in s['EventName'].tolist()])
-"
-```
-Record the exact `EventName` strings (these are the fastf1 keys `load_session` needs).
+- [ ] **Step 1: Write the failing test**
 
-- [ ] **Step 2: Write the failing test**
-
-In `tests/test_calendar.py`:
+Create `tests/test_calendar.py`:
 
 ```python
-from src.calendar import RACE_CALENDAR, GP_TO_EVENT, calendar_order
+from src.calendar import GP_TO_EVENT, RACE_CALENDAR
+from src.features.actual_stops import STOPS_CIRCUITS
 
 
-def test_2026_calendar_is_full_season_and_ordered():
-    cal = RACE_CALENDAR[2026]
-    assert "Great Britain" in cal
-    assert cal.index("Austria") < cal.index("Great Britain")  # true schedule order
-    for gp in cal:
-        assert gp in GP_TO_EVENT  # every round maps to a fastf1 EventName
-    assert calendar_order()  # still builds without error
+def test_full_2026_roster_is_mappable():
+    # Every circuit we sweep for actual stops must resolve to a fastf1 EventName.
+    for gp in STOPS_CIRCUITS:
+        assert gp in GP_TO_EVENT, f"{gp} missing from GP_TO_EVENT"
+    # The roster covers the whole season (>= 22), including rounds not yet run.
+    assert len(STOPS_CIRCUITS) >= 22
+    for gp in ("Belgium", "Netherlands", "Singapore", "Qatar"):
+        assert gp in STOPS_CIRCUITS
+
+
+def test_race_calendar_stays_completed_rounds_only():
+    # The occurred-gate depends on this: RACE_CALENDAR[2026] is the COMPLETED rounds, NOT the
+    # full schedule. It must NOT contain a not-yet-run round.
+    assert "Belgium" not in RACE_CALENDAR[2026]
+    assert "Great Britain" not in RACE_CALENDAR[2026]
 ```
 
-- [ ] **Step 3: Run to verify it fails**
+- [ ] **Step 2: Run to verify it fails**
 
 Run: `.venv/bin/python -m pytest tests/test_calendar.py -q`
-Expected: FAIL — `Great Britain` not in `RACE_CALENDAR[2026]`.
+Expected: FAIL — `Belgium` not in `STOPS_CIRCUITS` / `GP_TO_EVENT`.
 
-- [ ] **Step 4: Extend `src/calendar.py`**
+- [ ] **Step 3: Add the 7 missing `GP_TO_EVENT` entries**
 
-Replace `RACE_CALENDAR[2026]` with the full ordered schedule from Step 1 (short keys), and add the corresponding `GP_TO_EVENT` entries mapping each short key to its fastf1 `EventName`. Simplify `STOPS_CIRCUITS` in `src/features/actual_stops.py` to `list(RACE_CALENDAR[2026])` now that the calendar is complete.
+In `src/calendar.py`, add to the `GP_TO_EVENT` dict (short key → exact fastf1 `EventName`, matching the existing style):
 
-- [ ] **Step 5: Run to verify it passes + full regression**
+```python
+    "Belgium": "Belgian Grand Prix",
+    "Netherlands": "Dutch Grand Prix",
+    "Azerbaijan": "Azerbaijan Grand Prix",
+    "Singapore": "Singapore Grand Prix",
+    "United States": "United States Grand Prix",
+    "São Paulo": "São Paulo Grand Prix",
+    "Qatar": "Qatar Grand Prix",
+```
 
-Run: `.venv/bin/python -m pytest -q` (ALL — the calendar touches podium/pace ordering) and `PYTHONPATH=. .venv/bin/python notebooks/06_strategy_compound.py 2>&1 | grep "PART 1 strategy"` (must still be `Δ +0.070`).
+- [ ] **Step 4: Set `STOPS_CIRCUITS` to the full roster**
 
-- [ ] **Step 6: Rebuild bundle + commit**
+In `src/features/actual_stops.py`, replace the `STOPS_CIRCUITS` definition with the full 2026 roster in schedule order (short keys; keeps `RACE_CALENDAR[2026]`'s completed rounds first, then the rest):
+
+```python
+# The full 2026 circuit roster in schedule order. build_actual_stops sweeps ALL of these so
+# every circuit has prior-season rows for the historical-norm answer; the occurred-gate still
+# limits which get a 2026 ACTUALS row to RACE_CALENDAR[2026] (the completed rounds). Do NOT
+# fold this into RACE_CALENDAR — that would break the occurred-gate (see the plan's Task 7).
+STOPS_CIRCUITS: list[str] = [
+    "Australia", "China", "Japan", "Miami", "Canada", "Monaco", "Barcelona", "Austria",
+    "Great Britain", "Belgium", "Hungary", "Netherlands", "Italy", "Spain", "Azerbaijan",
+    "Singapore", "United States", "Mexico City", "São Paulo", "Las Vegas", "Qatar", "Abu Dhabi",
+]
+```
+
+Remove the now-unused `RACE_CALENDAR` import from `actual_stops.py` if it is no longer referenced there.
+
+- [ ] **Step 5: Run to verify it passes**
+
+Run: `.venv/bin/python -m pytest tests/test_calendar.py tests/test_actual_stops.py -q`
+Expected: PASS (the roster + occurred-gate tests).
+
+- [ ] **Step 6: Rebuild the bundle + verify norms + full regression**
+
+Rebuild (fastf1; now sweeps 22 circuits × seasons — a few minutes):
 
 ```bash
-PYTHONPATH=. .venv/bin/python scripts/build_2026.py
-git add src/calendar.py src/features/actual_stops.py tests/test_calendar.py api/*.parquet
-git commit -m "feat: extend 2026 calendar to the full season so coverage stays current"
+PYTHONPATH=. .venv/bin/python -c "from src.pipeline import build_actual_stops; from src.features.actual_stops import STOPS_CIRCUITS; from src import store; store.write_table(build_actual_stops([2023,2024,2025,2026], STOPS_CIRCUITS), store.ACTUAL_STOPS)"
+cp data/actual_stops.parquet api/actual_stops.parquet
+```
+
+Verify the roster built and an upcoming circuit now gets a historical norm (paste output):
+
+```bash
+.venv/bin/python -c "
+import pandas as pd
+from api.strategy import strategy_response
+d = pd.read_parquet('api/actual_stops.parquet')
+print('2026 actual rounds:', sorted(d[d.year==2026].gp.tolist()))            # still the 8 completed
+print('circuits with history:', sorted(d[d.year<2026].gp.unique().tolist())) # should include Belgium, Hungary, ...
+for gp in ['Belgium','Hungary']:
+    s,p = strategy_response({'year':2026,'gp':gp}); print(gp, '->', p['mode'], p['dominant'])
+"
+```
+Expected: 2026 actual rounds unchanged (the 8 completed, NO Belgium/GB); `Belgium`/`Hungary` → `mode: "historical"` with a `dominant.n_stops`. (A circuit with no usable prior data legitimately falls through to the low-data state; note any.)
+
+Then the full gates:
+- `.venv/bin/python -m pytest -q` → all pass.
+- `PYTHONPATH=. .venv/bin/python notebooks/06_strategy_compound.py 2>&1 | grep "PART 1 strategy"` → `Δ +0.070`.
+- `npx vitest run` → all pass. `npm run build` → clean.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/calendar.py src/features/actual_stops.py tests/test_calendar.py api/actual_stops.parquet
+git commit -m "feat: full 2026 circuit roster so any upcoming race gets a historical stop norm"
 ```
 
 ---
@@ -706,4 +763,4 @@ git commit -m "feat: extend 2026 calendar to the full season so coverage stays c
 
 **Type consistency:** `race_stop_distribution` keys (`modal_stops, n_drivers, n_at_modal, stops_min, stops_max`) defined in Task 1 are the exact keys read in Task 2 (`actual_stops`) and surfaced in Task 3, and the Task-3 payload fields (`mode`, `dominant.share: number|null`, `stops_min/max`, `n_seasons`) match the Task-4 `StrategyFacts` extension. `STOPS_CIRCUITS` defined in Task 1, simplified in Task 7. `store.ACTUAL_STOPS` consistent across Tasks 1/3/6. ✓
 
-**Note on task independence:** Tasks 1-6 ship the feature for the current 8 rounds + Great Britain without touching `RACE_CALENDAR`; Task 7 (the riskier calendar change) is last and independently gated, so the core feature lands even if Task 7 is deferred.
+**Note on task independence:** Tasks 1-6 ship the feature for the current 8 rounds + Great Britain. Task 7 (reframed) extends `STOPS_CIRCUITS` + `GP_TO_EVENT` to the full 2026 circuit roster so ANY upcoming race gets a historical norm — WITHOUT touching `RACE_CALENDAR` (which stays "completed rounds so far" so the Task-1 occurred-gate keeps working). It is last and independently gated, so the core feature lands even if Task 7 is deferred.
