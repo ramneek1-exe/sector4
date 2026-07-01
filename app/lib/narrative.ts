@@ -132,32 +132,59 @@ export type StrategyDriver = { driver: string; team: string | null; n_stops: num
 export type StrategyFacts = {
   year: number;
   gp: string;
+  mode?: "actual" | "historical" | "predicted";
   qualitative: boolean;
   n_train_races?: number;
+  n_seasons?: number;
   reason?: string;
   sc_caveat: string;
-  dominant: { n_stops: number; share: number; n_drivers: number } | null;
+  stops_min?: number;
+  stops_max?: number;
+  dominant: { n_stops: number; share: number | null; n_drivers: number | null } | null;
   drivers: StrategyDriver[];
   context?: string[];
 };
 
+// A grounded, mode-aware one-liner the narrative generator (and the card) lead with. No
+// invented facts: every number comes straight from the StrategyFacts JSON. No em-dashes.
+export function strategyLede(f: StrategyFacts): string {
+  const n = f.dominant?.n_stops;
+  if (n == null) return "There is not enough data to call the stops for this race yet.";
+  const stops = `${n} stop${n === 1 ? "" : "s"}`;
+  if (f.mode === "actual") {
+    const range =
+      f.stops_min != null && f.stops_max != null && f.stops_min !== f.stops_max
+        ? ` (spread ${f.stops_min} to ${f.stops_max})`
+        : "";
+    return `At the ${f.year} ${f.gp}, most drivers ran ${stops}${range}.`;
+  }
+  if (f.mode === "historical") {
+    return `Usually a ${stops.replace(" ", "-")} race here, based on recent seasons.`;
+  }
+  return `The stop-count model points to a ${stops.replace(" ", "-")} race.`;
+}
+
 const STRATEGY_SYSTEM = [
-  "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 STOP-COUNT strategy prediction.",
-  "You may use ONLY the facts in the JSON the user provides (the dominant stop call, per-driver n_stops + confidence, sc_caveat, and any `context`).",
-  "Lead with the race-level / track-level call from `dominant` (e.g. mostly a one- or two-stop here). Strategy is driven more by the track and conditions than by individual teams, so keep per-driver detail secondary.",
-  "Explain the teachable mechanism: higher tyre degradation pushes toward MORE stops. You MUST mention the safety-car caveat from sc_caveat.",
+  "You write a short, insightful, honest explanation (2-3 sentences) of a Formula 1 STOP-COUNT strategy call.",
+  "You may use ONLY the facts in the JSON the user provides (the lede line, dominant stop call, per-driver n_stops + confidence, sc_caveat, and any `context`).",
+  "The first line of the user message is a grounded lede; build naturally from it rather than repeating it verbatim.",
+  "Strategy is driven more by the track and conditions than by individual teams, so keep per-driver detail secondary.",
+  "Explain the teachable mechanism: higher tyre degradation pushes toward MORE stops.",
+  "If sc_caveat is present and non-empty, you MUST mention it; if sc_caveat is absent or empty, do not invent one.",
   "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it (e.g. a track trait that drives tyre wear), only from that array, never your own outside knowledge.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON. Speak in terms of likelihood, never certainty.",
-  "If the JSON has no drivers / dominant is null (a low-data state), say plainly there isn't enough data for this weekend yet.",
+  "If dominant is null (a low-data state), say plainly there isn't enough data for this weekend yet.",
   "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
 ].join(" ");
 
 export async function generateStrategyNarrative(client: LlmClient, facts: StrategyFacts): Promise<string> {
+  const lede = strategyLede(facts);
+  const userContent = `${lede}\n\n${JSON.stringify(facts)}`;
   const msg = await client.messages.create({
     model: HAIKU,
     max_tokens: 260,
     system: STRATEGY_SYSTEM,
-    messages: [{ role: "user", content: JSON.stringify(facts) }],
+    messages: [{ role: "user", content: userContent }],
   });
   return msg.content.filter((b: any) => b.type === "text").map((b: any) => b.text).join("").trim();
 }
