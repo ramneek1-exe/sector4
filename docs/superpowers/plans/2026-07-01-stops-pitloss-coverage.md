@@ -30,7 +30,7 @@
 - Test: `tests/test_actual_stops.py`
 
 **Interfaces:**
-- Produces: `race_stop_distribution(laps: pd.DataFrame) -> dict` with keys `modal_stops:int, n_drivers:int, n_at_modal:int, stops_min:int, stops_max:int`; `build_actual_stops(seasons: list[int], circuits: list[str]) -> pd.DataFrame` with columns `race_id, year, gp, modal_stops, n_drivers, n_at_modal, stops_min, stops_max`; `STOPS_CIRCUITS: list[str]`; `store.ACTUAL_STOPS = "data/actual_stops.parquet"`.
+- Produces: `race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict` with keys `modal_stops:int, n_drivers:int, n_at_modal:int, stops_min:int, stops_max:int` (or `{}` if no classified finishers); `build_actual_stops(seasons: list[int], circuits: list[str]) -> pd.DataFrame` with columns `race_id, year, gp, modal_stops, n_drivers, n_at_modal, stops_min, stops_max`; `STOPS_CIRCUITS: list[str]`; `store.ACTUAL_STOPS = "data/actual_stops.parquet"`.
 
 - [ ] **Step 1: Write the failing test**
 
