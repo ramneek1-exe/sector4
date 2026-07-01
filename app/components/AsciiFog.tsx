@@ -4,9 +4,26 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand ramp (globals.css :root) — darker → mid blue (deeper than before).
-const COLOR_LO = [11, 30, 107]; // --ramp-0
-const COLOR_HI = [30, 63, 208]; // --ramp-1 (deeper than before)
+// Full palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44), ordered dark → light so
+// the fog sweeps the whole spectrum as a gradient.
+const PALETTE: number[][] = [
+  [37, 31, 68], // #251f44
+  [47, 46, 137], // #2f2e89
+  [64, 108, 214], // #406cd6
+  [69, 154, 228], // #459ae4
+  [173, 220, 239], // #addcef
+  [190, 226, 240], // #bee2f0
+];
+
+// Colour at position t in [0,1] across the full palette (linear between adjacent stops).
+function paletteAt(t: number): number[] {
+  const x = Math.max(0, Math.min(1, t)) * (PALETTE.length - 1);
+  const i = Math.floor(x);
+  const f = x - i;
+  const a = PALETTE[i];
+  const b = PALETTE[Math.min(PALETTE.length - 1, i + 1)];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
 const CELL = 16; // px per character cell (one 5x5 dot-matrix glyph)
 const FPS = 30;
 const NOISE_SCALE = 0.09; // lower = larger, smoother blobs
@@ -64,8 +81,14 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
-          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(1, 0.32 + cv * 0.62)})`;
+          // Diagonal sweep across the FULL palette, nudged by the field so it reads organic.
+          const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
+          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.25));
+          // Luminance-aware alpha: the pale shades vanish on the near-white page, so give them
+          // more opacity and the dark shades a little less. The whole spectrum then reads with
+          // even, graceful presence instead of dark-heavy-and-loud or pale-and-washed-out.
+          const light = (m[0] + m[1] + m[2]) / 765; // 0 = darkest, ~0.85 = palest stop
+          ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(0.96, 0.36 + cv * 0.5 + light * 0.32)})`;
           const ox = c * CELL;
           const oy = r * CELL;
           for (let by = 0; by < GLYPH_DIM; by++) {

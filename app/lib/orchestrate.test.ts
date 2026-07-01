@@ -58,7 +58,7 @@ describe("answerQuery", () => {
     if (!out.supported) expect(out.message).toMatch(/podium prediction/i);
   });
 
-  it("does not call lookup or narrate when unsupported", async () => {
+  it("routes explain_concept to a concept answer without calling lookup", async () => {
     let called = false;
     const out = await answerQuery(
       deps({
@@ -68,10 +68,36 @@ describe("answerQuery", () => {
           return FACTS;
         },
       }),
-      "what is deg?",
+      "what is DRS?",
+    );
+    expect(out.supported).toBe(true);
+    expect(out).toHaveProperty("concept");
+    expect(called).toBe(false);
+  });
+
+  it("explain_concept with no recognizable term is unsupported", async () => {
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "explain_concept" }) }),
+      "what is the airspeed velocity of an unladen swallow?",
     );
     expect(out.supported).toBe(false);
-    expect(called).toBe(false);
+  });
+
+  it("resolves a relative circuit for a stat lookup (pit loss at the next race)", async () => {
+    let askedGp = "";
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "lookup_stat", stat: "pit_loss", gp: "next race" }),
+        lookup: async (_stat, gp) => {
+          askedGp = gp;
+          return { ...FACTS, gp };
+        },
+        upcomingRace: () => ({ year: 2026, gp: "Great Britain" }),
+      }),
+      "pit lane time loss at the next race?",
+    );
+    expect(out.supported).toBe(true);
+    expect(askedGp).toBe("Great Britain");
   });
 
   it("routes a podium question to a supported podium answer (normalizing the circuit)", async () => {

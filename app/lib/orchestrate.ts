@@ -4,6 +4,7 @@ import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circui
 import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
 import { getCircuitFacts } from "./circuit-facts";
 import { getGrid, type Grid } from "./grid";
+import { getConcept, matchConcept, type Concept } from "./concepts";
 
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
@@ -59,6 +60,7 @@ export type Answer =
   | { supported: true; podium: PodiumFacts; narrative: string }
   | { supported: true; pace: PaceFacts; narrative: string }
   | { supported: true; strategy: StrategyFacts; narrative: string }
+  | { supported: true; concept: Concept }
   | { supported: false; message: string };
 
 const UNSUPPORTED =
@@ -74,13 +76,27 @@ const unsupportedLookup = (raw: string) =>
   `That stat isn’t available for “${raw}” yet — supported circuits are the 8 dry-weekend ` +
   `tracks (plus Monaco for pit-lane time loss).`;
 
+const conceptFallback =
+  "I can explain F1 concepts like DRS, tyre compounds, safety cars, and pit strategy. " +
+  "Try “what is DRS?”, or browse them all on the Learn page.";
+
 export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answer> {
   const parsed = await deps.parse(query);
   const upcoming = deps.upcomingRace ?? nextRace;
 
-  if (parsed.intent === "lookup_stat" && parsed.stat && LOOKUP_STATS.includes(parsed.stat) && parsed.gp) {
-    const gp = normalizeLookupCircuit(parsed.gp, parsed.stat);
-    if (!gp) return { supported: false, message: unsupportedLookup(parsed.gp) };
+  if (parsed.intent === "explain_concept") {
+    const slug = matchConcept(query);
+    const concept = slug ? getConcept(slug) : undefined;
+    if (!concept) return { supported: false, message: conceptFallback };
+    return { supported: true, concept };
+  }
+
+  if (parsed.intent === "lookup_stat" && parsed.stat && LOOKUP_STATS.includes(parsed.stat)) {
+    // A relative or missing circuit ("pit loss at the next race?") resolves to the upcoming
+    // weekend, matching how the prediction intents handle it.
+    const raw = !parsed.gp || isRelativeCircuit(parsed.gp) ? upcoming().gp : parsed.gp;
+    const gp = normalizeLookupCircuit(raw, parsed.stat);
+    if (!gp) return { supported: false, message: unsupportedLookup(parsed.gp ?? "the next race") };
     const base = await deps.lookup(parsed.stat, gp, parsed.year);
     const facts = withContext(base, gp);
     const narrative = await deps.narrate(facts);

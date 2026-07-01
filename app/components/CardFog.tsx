@@ -4,9 +4,23 @@ import { useEffect, useRef } from "react";
 import { GLYPH_DIM, glyphFor } from "@/app/lib/ascii-bitmap";
 import { warpedField } from "@/app/lib/noise";
 
-// Brand fog ramp (same as AsciiFog) — darker → mid blue.
-const COLOR_LO = [11, 30, 107];
-const COLOR_HI = [30, 63, 208];
+// Full palette (same as AsciiFog), dark → light, swept as a gradient across the bloom.
+const PALETTE: number[][] = [
+  [37, 31, 68], // #251f44
+  [47, 46, 137], // #2f2e89
+  [64, 108, 214], // #406cd6
+  [69, 154, 228], // #459ae4
+  [173, 220, 239], // #addcef
+  [190, 226, 240], // #bee2f0
+];
+function paletteAt(t: number): number[] {
+  const x = Math.max(0, Math.min(1, t)) * (PALETTE.length - 1);
+  const i = Math.floor(x);
+  const f = x - i;
+  const a = PALETTE[i];
+  const b = PALETTE[Math.min(PALETTE.length - 1, i + 1)];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+}
 const CELL = 12; // px per dot-matrix glyph cell (a touch finer than the page fog)
 const NOISE_SCALE = 0.13;
 // The fog clings to the bottom + right edges and pools in the bottom-right corner — it
@@ -84,8 +98,11 @@ export function CardFog({ active }: { active: boolean }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          const m = [0, 1, 2].map((k) => COLOR_LO[k] + (COLOR_HI[k] - COLOR_LO[k]) * cv);
-          const a = (0.07 + cv * 0.23) * ew; // deliberately faint
+          // The bloom lives in the corner, so a spatial sweep would land the pale end exactly
+          // where the fog shows. Drive colour by DENSITY across the dark→bright half of the
+          // palette instead, keeping the corner bloom in visible blues.
+          const m = paletteAt(cv * 0.55);
+          const a = (0.09 + cv * 0.28) * ew; // faint, but present on the card
           if (a < 0.015) continue;
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${a})`;
           const ox = c * CELL;

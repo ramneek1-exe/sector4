@@ -39,7 +39,7 @@ const shapes = (c: string): Record<SvgEmblem, string> => ({
   `,
 });
 
-export function emblemSvgMarkup(kind: SvgEmblem, color = "#1E3FD0"): string {
+export function emblemSvgMarkup(kind: SvgEmblem, color = "#406CD6"): string {
   const { w, h } = VIEWBOX[kind];
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}">${shapes(color)[kind]}</svg>`;
 }

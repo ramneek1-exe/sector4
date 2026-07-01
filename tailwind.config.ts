@@ -5,11 +5,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Palette (coolors: bee2f0-459ae4-2f2e89-addcef-406cd6-251f44). bg stays flat
+        // near-white for legibility; ink/accent/fog carry the palette.
         bg: "#FAFAFA",
-        ink: "#0B1020",
-        accent: "#2348E0",
-        "accent-bright": "#2E8BFF",
-        muted: "#5B6B8C",
+        ink: "#251F44", // darkest palette navy (was #0B1020)
+        accent: "#2F2E89", // deep indigo — buttons, active nav, links (darker, was #406CD6)
+        "accent-bright": "#406CD6", // royal blue for brighter/hover accents
+        muted: "#6A6A93", // palette-tinted slate (was #5B6B8C)
       },
       fontFamily: {
         bebas: ["var(--font-bebas)", "sans-serif"],

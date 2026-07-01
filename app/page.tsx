@@ -12,6 +12,9 @@ import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";
+import { TrustBadge } from "@/app/components/TrustBadge";
+import type { Concept } from "@/app/lib/concepts";
+import Link from "next/link";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
@@ -19,18 +22,18 @@ type Answer = ApiAnswer | { error: string };
 // Interleaved by kind (podium → strategy → pace → lookup, repeating) so consecutive
 // chips are always a different type — the picker cycles this array in order.
 const EXAMPLES = [
-  "Who is likely to podium at the 2024 Italian Grand Prix?",
-  "Stop strategy for the 2024 Bahrain Grand Prix",
-  "Long-run pace at the 2024 Spanish Grand Prix",
-  "How fast do tyres wear at Bahrain?",
-  "Monza 2025 podium",
-  "One-stop or two at Hungary 2024?",
-  "Race pace gaps at Abu Dhabi 2024",
+  "Who's likely to podium at the next race?",
+  "How many pit stops at the Monaco Grand Prix?",
+  "Long-run pace at the 2026 Austrian Grand Prix",
+  "Pit-lane time loss at the next race?",
+  "What is DRS?",
+  "Podium odds for the British Grand Prix",
+  "How many stops at Austria?",
+  "How fast do tyres wear at Barcelona?",
+  "What are the tyre compounds?",
+  "Stops at the next race?",
+  "Race pace at the 2026 Chinese Grand Prix",
   "How much time is lost in the pit lane at Monaco?",
-  "Las Vegas 2024 podium",
-  "How many stops at Spain in 2024?",
-  "Who's fastest over a stint at Monza 2024?",
-  "How long do stints last at Spain?",
 ];
 
 // Subtle white backing so text stays legible over the fog — feathered to transparent,
@@ -233,6 +236,29 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
 }
 
 /** Computed-stat answer (e.g. pit-loss). No box. */
+/** Concept answer: the hand-authored summary + trust badge + a link to the full /learn page. */
+function ConceptCard({ concept }: { concept: Concept }) {
+  return (
+    <div className="fog-in flex max-w-xl flex-col items-center gap-4 text-center">
+      <div className="flex items-center gap-3">
+        <h2 className={`font-pixel text-4xl leading-none tracking-wide text-ink ${LEGIBLE} px-3 py-1`}>
+          {concept.term}
+        </h2>
+        <TrustBadge badge={concept.badge} />
+      </div>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>
+        {concept.summary}
+      </p>
+      <Link
+        href={`/learn/${concept.slug}`}
+        className="cta-grow relative font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
+      >
+        Read more →
+      </Link>
+    </div>
+  );
+}
+
 function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
   return (
     <div className="fog-in flex flex-col items-center gap-4 text-center">
@@ -272,7 +298,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
       <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
-        Ask about a 2024–25 race weekend: honest podium odds, strategy, and the numbers behind them.
+        Follow the live 2026 season: honest podium odds, real pit-stop calls, and the numbers behind them, explained.
       </p>
       <QueryChips examples={EXAMPLES} onPick={onPick} />
     </div>
@@ -306,13 +332,14 @@ export default function Home() {
 
   return (
     <main className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-5 pb-16 pt-10 sm:px-8">
-      <h1 className="self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
+      <h1 className="fog-in self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           void run(query);
         }}
-        className="flex w-full max-w-xl gap-2"
+        style={{ animationDelay: "0.09s" }}
+        className="fog-in flex w-full max-w-xl gap-2"
       >
         <div className="bar-shell flex-1">
           <input
@@ -326,7 +353,7 @@ export default function Home() {
           className={`relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-7 font-grotesk text-lg font-medium shadow-sm transition duration-200 motion-reduce:hover:translate-y-0 ${
             loading
               ? "bg-[#f3f3f3] text-ink"
-              : "bg-accent text-white hover:-translate-y-px hover:bg-[#1b39b0]"
+              : "bg-accent text-white hover:-translate-y-px hover:bg-accent-bright"
           }`}
           disabled={loading}
           aria-busy={loading}
@@ -347,7 +374,7 @@ export default function Home() {
         {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_46%_50%_at_50%_50%,rgba(250,250,250,0.74),rgba(250,250,250,0.3)_55%,transparent_75%)]"
+          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_38%_42%_at_50%_50%,rgba(250,250,250,0.5),rgba(250,250,250,0.14)_52%,transparent_70%)]"
         />
 
         {!answer && !loading && (
@@ -373,6 +400,9 @@ export default function Home() {
           )}
           {answer && "supported" in answer && answer.supported && "strategy" in answer && (
             <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "concept" in answer && (
+            <ConceptCard concept={answer.concept} />
           )}
           {answer && "supported" in answer && !answer.supported && (
             <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
