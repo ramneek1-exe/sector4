@@ -40,10 +40,13 @@ def test_podium_handler_includes_team():
     assert "team" in payload["drivers"][0]
 
 
-def test_upcoming_2026_austria_builds_runtime_prediction():
-    # No table row for the live target -> runtime construction. Pre-quali (no grid)
-    # resolves to Friday mode and still returns a ranked field of honest bands.
-    status, payload = podium_response({"year": 2026, "gp": "Austria"})
+def test_upcoming_builds_runtime_prediction():
+    # A known 2026 circuit with NO feature-table row -> runtime construction. Monaco is used
+    # deliberately: as a street circuit it is structurally excluded from the FP-long-run
+    # feature tables, so it never gains a row (unlike a race like Austria, which becomes
+    # "historical" once it runs and is rebuilt). Pre-quali (no grid) resolves to Friday mode
+    # and still returns a ranked field of honest bands.
+    status, payload = podium_response({"year": 2026, "gp": "Monaco"})
     assert status == 200
     assert payload["mode"] == "friday"
     assert payload["calibrated"] is False
@@ -54,13 +57,14 @@ def test_upcoming_2026_austria_builds_runtime_prediction():
 
 def test_upcoming_sharpens_to_saturday_with_grid():
     # A real post-quali grid covers the whole field; _resolve_mode needs every entry
-    # driver to have a grid slot to switch to Saturday.
+    # driver to have a grid slot to switch to Saturday. Uses the same runtime-path circuit
+    # (Monaco: known 2026 circuit, no feature-table row) as the Friday test above.
     import pandas as pd
     from src.inference.upcoming import latest_entry_list
 
     sr = pd.read_parquet("api/season_results.parquet")
     entry = latest_entry_list(sr, 2026)
     grid = {drv: i + 1 for i, drv in enumerate(entry)}
-    status, payload = podium_response({"year": 2026, "gp": "Austria", "grid": grid})
+    status, payload = podium_response({"year": 2026, "gp": "Monaco", "grid": grid})
     assert status == 200
     assert payload["mode"] == "saturday"
