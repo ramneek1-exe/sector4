@@ -22,18 +22,18 @@ type Answer = ApiAnswer | { error: string };
 // Interleaved by kind (podium → strategy → pace → lookup, repeating) so consecutive
 // chips are always a different type — the picker cycles this array in order.
 const EXAMPLES = [
-  "Who is likely to podium at the 2024 Italian Grand Prix?",
-  "Stop strategy for the 2024 Bahrain Grand Prix",
-  "Long-run pace at the 2024 Spanish Grand Prix",
-  "How fast do tyres wear at Bahrain?",
-  "Monza 2025 podium",
-  "One-stop or two at Hungary 2024?",
-  "Race pace gaps at Abu Dhabi 2024",
+  "Who's likely to podium at the next race?",
+  "How many pit stops at the Monaco Grand Prix?",
+  "Long-run pace at the 2026 Austrian Grand Prix",
+  "Pit-lane time loss at the next race?",
+  "What is DRS?",
+  "Podium odds for the British Grand Prix",
+  "How many stops at Austria?",
+  "How fast do tyres wear at Barcelona?",
+  "What are the tyre compounds?",
+  "Stops at the next race?",
+  "Race pace at the 2026 Chinese Grand Prix",
   "How much time is lost in the pit lane at Monaco?",
-  "Las Vegas 2024 podium",
-  "How many stops at Spain in 2024?",
-  "Who's fastest over a stint at Monza 2024?",
-  "How long do stints last at Spain?",
 ];
 
 // Subtle white backing so text stays legible over the fog — feathered to transparent,
@@ -298,7 +298,7 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
   return (
     <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
       <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
-        Ask about a 2024–25 race weekend: honest podium odds, strategy, and the numbers behind them.
+        Follow the live 2026 season: honest podium odds, real pit-stop calls, and the numbers behind them, explained.
       </p>
       <QueryChips examples={EXAMPLES} onPick={onPick} />
     </div>
