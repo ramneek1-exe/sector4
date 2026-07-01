@@ -99,7 +99,7 @@ export function CardFog({ active }: { active: boolean }) {
           if (!bits) continue;
           const cv = Math.min(1, v);
           const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
-          const m = paletteAt(pos * 0.72 + cv * 0.28);
+          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.6));
           const a = (0.07 + cv * 0.23) * ew; // deliberately faint
           if (a < 0.015) continue;
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${a})`;

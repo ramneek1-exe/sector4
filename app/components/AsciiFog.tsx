@@ -81,10 +81,12 @@ export function AsciiFog({ className = "" }: { className?: string }) {
           const bits = glyphFor(v);
           if (!bits) continue;
           const cv = Math.min(1, v);
-          // Diagonal spatial sweep across the full palette, nudged by the field so it reads
-          // organic rather than a flat linear gradient.
+          // Diagonal sweep across the full palette, nudged by the field so it reads organic.
+          // The ^1.6 curve biases the field toward the darker/mid blues (which hold up on the
+          // light page) so the pale end only surfaces near the far corner — a balanced fog
+          // rather than a washed-out one.
           const pos = (c / Math.max(1, cols) + r / Math.max(1, rows)) / 2;
-          const m = paletteAt(pos * 0.72 + cv * 0.28);
+          const m = paletteAt(Math.pow(pos * 0.72 + cv * 0.28, 1.6));
           ctx.fillStyle = `rgba(${m[0] | 0},${m[1] | 0},${m[2] | 0},${Math.min(1, 0.32 + cv * 0.62)})`;
           const ox = c * CELL;
           const oy = r * CELL;
