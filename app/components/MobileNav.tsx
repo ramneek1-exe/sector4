@@ -32,13 +32,23 @@ export function MobileNav() {
     setOpen(false);
   }, [pathname]);
 
-  // Toggle `inert` on the overlay on every open-state change (and once the portal mounts →
-  // closed overlay starts inert: out of tab order, no pointer events, ignored by AT).
+  // Manage `inert` so exactly the right layer is interactive (focus trap without a manual
+  // keydown trap). CLOSED: the overlay is inert (out of tab order / pointer / AT); the page is
+  // normal. OPEN: the overlay is active and every OTHER body child (header, main, footer — the
+  // background behind the opaque overlay) is inert, so Tab and AT stay inside the menu.
   useEffect(() => {
-    const el = overlayRef.current;
-    if (!el) return;
-    if (open) el.removeAttribute("inert");
-    else el.setAttribute("inert", "");
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const background = Array.from(document.body.children).filter((c) => c !== overlay);
+    if (open) {
+      overlay.removeAttribute("inert");
+      background.forEach((el) => el.setAttribute("inert", ""));
+    } else {
+      overlay.setAttribute("inert", "");
+      background.forEach((el) => el.removeAttribute("inert"));
+    }
+    // Safety net: never leave the background inert if this unmounts (or deps change) while open.
+    return () => background.forEach((el) => el.removeAttribute("inert"));
   }, [open, mounted]);
 
   // While open: Escape closes, body scroll locks, focus moves to the in-overlay close (✕);
