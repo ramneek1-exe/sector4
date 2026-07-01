@@ -14,13 +14,14 @@ import numpy as np
 import pandas as pd
 
 from src import store
-from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, SEASONS, race_id
+from src.calendar import DRY_CIRCUITS, GP_TO_EVENT, RACE_CALENDAR, SEASONS, race_id
 from src.data.load import is_dry_session, load_session
 from src.features.assemble import build_dataset
 from src.features.friday import add_friday_features, prior_track_pace
 from src.features.pace import summarize_stints
 from src.features.pit_loss import derive_race_pit_loss
 from src.features.stints import long_run_stints
+from src.features.actual_stops import race_stop_distribution, STOPS_CIRCUITS
 from src.features.strategy import (
     add_history,
     count_stops,
@@ -135,6 +136,33 @@ def build_strategy_table(seasons: list[int] = SEASONS,
     return driver_df
 
 
+def build_actual_stops(seasons: list[int] = SEASONS,
+                       circuits: list[str] = STOPS_CIRCUITS) -> pd.DataFrame:
+    """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
+    laps (future/unrun) or no classified finishers so the builder is safe across the calendar.
+
+    For the LIVE (latest) season, only rounds that have actually occurred are built — i.e. those
+    listed in RACE_CALENDAR[live], the app's completed-round set. A not-yet-run round is skipped
+    even if fastf1 has leaked future session data (it exposes laps for a scheduled-but-unraced
+    weekend). Past seasons are fully complete, so every circuit builds (this is what gives an
+    upcoming circuit its prior-season historical norm)."""
+    live = max(RACE_CALENDAR)
+    rows = []
+    for year in seasons:
+        completed = RACE_CALENDAR.get(year) if year == live else None
+        for gp in circuits:
+            if completed is not None and gp not in completed:
+                continue  # a live-season round that has not been run yet
+            race = load_session(year, gp, "R")
+            if race is None or race.laps.empty:
+                continue
+            d = race_stop_distribution(race.laps, race.results)
+            if not d:  # no classified finishers
+                continue
+            rows.append({"race_id": race_id(year, gp), "year": year, "gp": gp, **d})
+    return pd.DataFrame(rows)
+
+
 # Every circuit the pit-loss lookup can be asked about (the dry-set 8 + Monaco + the live
 # 2026 calendar). Derived across all seasons we hold; the lookup defaults to the latest.
 PIT_LOSS_CIRCUITS = [
@@ -221,5 +249,7 @@ def build_all() -> None:
     logger.info("Wrote %s and %s", store.PACE_TABLE, store.STRATEGY_TABLE)
     store.write_table(build_pit_loss(), store.PIT_LOSS)
     logger.info("Wrote %s", store.PIT_LOSS)
+    store.write_table(build_actual_stops(), store.ACTUAL_STOPS)
+    logger.info("Wrote %s", store.ACTUAL_STOPS)
     store.write_table(build_team_map(store.read_table(store.SEASON_RESULTS)), store.TEAM_MAP)
     logger.info("Wrote %s", store.TEAM_MAP)

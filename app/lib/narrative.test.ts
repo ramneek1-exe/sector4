@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, test } from "vitest";
 import {
   generateNarrative,
   generatePaceNarrative,
   generateStrategyNarrative,
+  strategyLede,
   type PaceFacts,
   type StrategyFacts,
 } from "./narrative";
@@ -59,4 +60,16 @@ describe("generateStrategyNarrative", () => {
     const out = await generateStrategyNarrative(fakeClient("Bahrain leans two-stop."), STRATEGY);
     expect(out).toBe("Bahrain leans two-stop.");
   });
+});
+
+test("actual mode ledes with what happened", () => {
+  const f = { year: 2026, gp: "Austria", mode: "actual" as const, qualitative: false, sc_caveat: "",
+    stops_min: 1, stops_max: 3, dominant: { n_stops: 2, share: 0.7, n_drivers: 20 }, drivers: [] };
+  expect(strategyLede(f)).toMatch(/most drivers ran 2 stops/i);
+});
+
+test("historical mode ledes with the norm", () => {
+  const f = { year: 2026, gp: "Great Britain", mode: "historical" as const, qualitative: false, sc_caveat: "",
+    n_seasons: 3, dominant: { n_stops: 2, share: null, n_drivers: null }, drivers: [] };
+  expect(strategyLede(f)).toMatch(/usually a 2-stop/i);
 });

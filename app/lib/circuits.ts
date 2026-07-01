@@ -106,9 +106,12 @@ export function normalizeCircuit(raw: string | undefined): string | null {
 }
 
 // Pit-loss is curated for the 8 podium circuits PLUS Monaco; deg/stint only have data
-// for the 8 strategy-table circuits.
+// for the 8 strategy-table circuits. 2026 has a distinct "Barcelona" circuit
+// (separate from the historical "Spain" entries in 2023-25).
 const LOOKUP_ALIASES: Record<string, string> = {
   ...ALIASES,
+  barcelona: "Barcelona", // Override: 2026 Barcelona is a distinct circuit in pit-loss table
+  catalunya: "Barcelona",
   monaco: "Monaco",
   "monte carlo": "Monaco",
 };

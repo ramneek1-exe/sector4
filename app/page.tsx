@@ -181,25 +181,43 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
   );
 }
 
+const MODE_LABEL: Record<string, string> = {
+  actual: "actual result",
+  historical: "historical norm",
+  predicted: "prediction",
+};
+
 /** Strategy answer: race-level stop call first, then deg->stops narrative, SC caveat, secondary per-driver. */
 function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrative: string }) {
   const dom = strategy.dominant;
   const [open, setOpen] = useState(false);
+  const modeLabel = strategy.mode ? MODE_LABEL[strategy.mode] : undefined;
   return (
     <div className="fog-in flex flex-col items-center gap-7 text-center">
       <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
         {strategy.year} {strategy.gp} · stop-count strategy
       </div>
       {dom ? (
-        <div className={`font-pixel-serif text-5xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-          Mostly a {dom.n_stops}-stop
-          <span className="ml-2 align-middle font-mono text-base text-muted">{Math.round(dom.share * 100)}% of the grid</span>
+        <div className="flex flex-col items-center gap-2">
+          {modeLabel && (
+            <div className={`font-grotesk text-[11px] font-semibold uppercase tracking-wider text-muted ${LEGIBLE} px-3 py-0.5`}>
+              {modeLabel}
+            </div>
+          )}
+          <div className={`font-pixel-serif text-5xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
+            {strategy.mode === "actual" && dom.share != null && dom.share < 0.5 ? "Most common:" : "Mostly a"} {dom.n_stops}-stop
+            {dom.share != null && (
+              <span className="ml-2 align-middle font-mono text-base text-muted">{Math.round(dom.share * 100)}% of the grid</span>
+            )}
+          </div>
         </div>
       ) : (
         <p className="text-muted">{strategy.reason ?? "Not enough data for this weekend yet."}</p>
       )}
       <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
-      <p className={`max-w-lg font-grotesk text-[11px] text-amber-700 ${LEGIBLE} px-3 py-1.5`}>{strategy.sc_caveat}</p>
+      {strategy.mode === "predicted" && strategy.sc_caveat && (
+        <p className={`max-w-lg font-grotesk text-[11px] text-amber-700 ${LEGIBLE} px-3 py-1.5`}>{strategy.sc_caveat}</p>
+      )}
       {strategy.drivers.length > 0 && (
         <button
           type="button"

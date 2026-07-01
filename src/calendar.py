@@ -54,6 +54,13 @@ GP_TO_EVENT = {
     "Barcelona": "Barcelona Grand Prix",
     "Austria": "Austrian Grand Prix",
     "Great Britain": "British Grand Prix",
+    "Belgium": "Belgian Grand Prix",
+    "Netherlands": "Dutch Grand Prix",
+    "Azerbaijan": "Azerbaijan Grand Prix",
+    "Singapore": "Singapore Grand Prix",
+    "United States": "United States Grand Prix",
+    "São Paulo": "São Paulo Grand Prix",
+    "Qatar": "Qatar Grand Prix",
 }
 
 

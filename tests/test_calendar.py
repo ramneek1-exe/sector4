@@ -8,6 +8,7 @@ from src.calendar import (
     calendar_order,
     race_id,
 )
+from src.features.actual_stops import STOPS_CIRCUITS
 
 
 def test_race_id_format():
@@ -59,3 +60,20 @@ def test_gp_to_event_covers_every_calendar_circuit():
         for gp in circuits:
             assert gp in GP_TO_EVENT, f"{gp} missing from GP_TO_EVENT"
             assert GP_TO_EVENT[gp].endswith("Grand Prix")
+
+
+def test_full_2026_roster_is_mappable():
+    # Every circuit we sweep for actual stops must resolve to a fastf1 EventName.
+    for gp in STOPS_CIRCUITS:
+        assert gp in GP_TO_EVENT, f"{gp} missing from GP_TO_EVENT"
+    # The roster covers the whole season (>= 22), including rounds not yet run.
+    assert len(STOPS_CIRCUITS) >= 22
+    for gp in ("Belgium", "Netherlands", "Singapore", "Qatar"):
+        assert gp in STOPS_CIRCUITS
+
+
+def test_race_calendar_stays_completed_rounds_only():
+    # The occurred-gate depends on this: RACE_CALENDAR[2026] is the COMPLETED rounds, NOT the
+    # full schedule. It must NOT contain a not-yet-run round.
+    assert "Belgium" not in RACE_CALENDAR[2026]
+    assert "Great Britain" not in RACE_CALENDAR[2026]
