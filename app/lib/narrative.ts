@@ -150,7 +150,8 @@ export type StrategyFacts = {
 export function strategyLede(f: StrategyFacts): string {
   const n = f.dominant?.n_stops;
   if (n == null) return "There is not enough data to call the stops for this race yet.";
-  const stops = `${n} stop${n === 1 ? "" : "s"}`;
+  const stops = `${n} stop${n === 1 ? "" : "s"}`; // ran-count phrasing: "1 stop" / "2 stops"
+  const hyphenated = `${n}-stop`; // adjective phrasing: "1-stop" / "2-stop" (never "2-stops")
   if (f.mode === "actual") {
     const range =
       f.stops_min != null && f.stops_max != null && f.stops_min !== f.stops_max
@@ -159,9 +160,13 @@ export function strategyLede(f: StrategyFacts): string {
     return `At the ${f.year} ${f.gp}, most drivers ran ${stops}${range}.`;
   }
   if (f.mode === "historical") {
-    return `Usually a ${stops.replace(" ", "-")} race here, based on recent seasons.`;
+    const basis =
+      f.n_seasons != null
+        ? `the last ${f.n_seasons} season${f.n_seasons === 1 ? "" : "s"}`
+        : "recent seasons";
+    return `Usually a ${hyphenated} race here, based on ${basis}.`;
   }
-  return `The stop-count model points to a ${stops.replace(" ", "-")} race.`;
+  return `The stop-count model points to a ${hyphenated} race.`;
 }
 
 const STRATEGY_SYSTEM = [
