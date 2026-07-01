@@ -2,7 +2,7 @@ import type { ParsedQuery } from "./parser";
 import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts } from "./narrative";
 import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
-import { getCircuitFacts } from "./circuit-facts";
+import { getCircuitFacts } from "./entity-whats";
 import { getGrid, type Grid } from "./grid";
 import { getConcept, matchConcept, type Concept } from "./concepts";
 

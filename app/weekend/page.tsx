@@ -9,7 +9,7 @@ import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { driverName } from "@/app/lib/glyph";
-import { getCircuitFacts, getCircuitName } from "@/app/lib/circuit-facts";
+import { getCircuitFacts, getCircuitName } from "@/app/lib/entity-whats";
 
 export const dynamic = "force-dynamic";
 

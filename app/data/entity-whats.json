@@ -1,0 +1,20 @@
+{
+  "circuit:Austria": {
+    "type": "circuit", "slug": "Austria", "title": "the Red Bull Ring", "track": "the Red Bull Ring",
+    "summary": "The Red Bull Ring is one of the shortest laps on the calendar at about 4.3 km. It sits high in the Styrian hills, where the thinner air trims engine and aero performance. With only ten corners and three long straights, it rewards power and traction and bunches the field into its heavy braking zones.",
+    "source": { "label": "Wikipedia", "url": "https://en.wikipedia.org/wiki/Red_Bull_Ring" },
+    "badge": "drafted", "generatedAt": "2026-07-01T00:00:00Z", "contentHash": "seed"
+  },
+  "driver:VER": {
+    "type": "driver", "slug": "VER", "title": "Max Verstappen",
+    "summary": "A Dutch driver who reached Formula 1 at seventeen and became one of the sport's dominant forces, known for aggressive wheel-to-wheel racing and exceptional wet-weather pace.",
+    "source": { "label": "Wikipedia", "url": "https://en.wikipedia.org/wiki/Max_Verstappen" },
+    "badge": "drafted", "generatedAt": "2026-07-01T00:00:00Z", "contentHash": "seed"
+  },
+  "team:McLaren": {
+    "type": "team", "slug": "McLaren", "title": "McLaren",
+    "summary": "One of the most successful teams in Formula 1 history, founded by Bruce McLaren in the 1960s and long associated with technical innovation and a strong constructors' record.",
+    "source": { "label": "Wikipedia", "url": "https://en.wikipedia.org/wiki/McLaren" },
+    "badge": "drafted", "generatedAt": "2026-07-01T00:00:00Z", "contentHash": "seed"
+  }
+}
