@@ -37,6 +37,8 @@ def race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict:
                 results["ClassifiedPosition"].astype(str).str.fullmatch(r"\d+"), "Abbreviation"
             ]
         )
+    if classified is not None and len(classified) == 0:
+        return {}
     counts: dict[str, int] = {}
     for drv, d in laps.groupby("Driver"):
         if classified is not None and drv not in classified:

@@ -205,7 +205,7 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
             </div>
           )}
           <div className={`font-pixel-serif text-5xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-            Mostly a {dom.n_stops}-stop
+            {strategy.mode === "actual" && dom.share != null && dom.share < 0.5 ? "Most common:" : "Mostly a"} {dom.n_stops}-stop
             {dom.share != null && (
               <span className="ml-2 align-middle font-mono text-base text-muted">{Math.round(dom.share * 100)}% of the grid</span>
             )}

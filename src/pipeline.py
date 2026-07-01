@@ -21,7 +21,7 @@ from src.features.friday import add_friday_features, prior_track_pace
 from src.features.pace import summarize_stints
 from src.features.pit_loss import derive_race_pit_loss
 from src.features.stints import long_run_stints
-from src.features.actual_stops import race_stop_distribution
+from src.features.actual_stops import race_stop_distribution, STOPS_CIRCUITS
 from src.features.strategy import (
     add_history,
     count_stops,
@@ -137,7 +137,7 @@ def build_strategy_table(seasons: list[int] = SEASONS,
 
 
 def build_actual_stops(seasons: list[int] = SEASONS,
-                       circuits: list[str] = DRY_CIRCUITS) -> pd.DataFrame:
+                       circuits: list[str] = STOPS_CIRCUITS) -> pd.DataFrame:
     """Per-race actual stop-count distribution. Loads fastf1 (batch only). Skips races with no
     laps (future/unrun) or no classified finishers so the builder is safe across the calendar.
 

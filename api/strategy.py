@@ -68,6 +68,7 @@ def strategy_response(body: dict) -> tuple[int, dict]:
 
     # No actuals, no FP row, no history: honest low-data state (keep predict_stop_counts' shape).
     pred["mode"] = "historical"
+    pred["sc_caveat"] = ""
     return 200, pred
 
 

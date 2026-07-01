@@ -30,6 +30,7 @@ from src import store
 from src.calendar import RACE_CALENDAR, race_id
 from src.data.grid import load_qualifying_grid
 from src.data.results import load_results
+from src.features.actual_stops import STOPS_CIRCUITS
 from src.pipeline import (
     build_actual_stops,
     build_pace_table,
@@ -137,7 +138,6 @@ def main() -> None:
     store.write_table(pit, store.PIT_LOSS)
     print(f"    {len(pit)} rows, {pit['gp'].nunique()} circuits")
 
-    from src.features.actual_stops import STOPS_CIRCUITS  # local import: script-level constant
     print(f"4b/7 actual stops — fetch {LIVE_SEASON} only, merge...")
     stops = _merge_live(store.ACTUAL_STOPS, build_actual_stops([LIVE_SEASON], STOPS_CIRCUITS))
     store.write_table(stops, store.ACTUAL_STOPS)

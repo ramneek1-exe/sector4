@@ -157,7 +157,8 @@ export function strategyLede(f: StrategyFacts): string {
       f.stops_min != null && f.stops_max != null && f.stops_min !== f.stops_max
         ? ` (spread ${f.stops_min} to ${f.stops_max})`
         : "";
-    return `At the ${f.year} ${f.gp}, most drivers ran ${stops}${range}.`;
+    const lead = f.dominant?.share != null && f.dominant.share < 0.5 ? "the most common was" : "most drivers ran";
+    return `At the ${f.year} ${f.gp}, ${lead} ${stops}${range}.`;
   }
   if (f.mode === "historical") {
     const basis =
