@@ -43,15 +43,13 @@ def test_default_calendar_order_flattens_race_calendar_with_2026():
     assert race_id(2026, "Austria") in order
 
 
-def test_2026_austria_is_last_and_after_every_prior_season():
+def test_2026_rounds_follow_2025_and_end_at_the_current_target():
     order = calendar_order()
-    austria = race_id(2026, "Austria")
-    # Austria is the final 2026 round we list, so it is the last element overall.
-    assert order[-1] == austria
-    # Every 2026 race sits after every 2025 race (true calendar order, no leakage).
     first_2026 = min(i for i, r in enumerate(order) if r.startswith("2026-"))
     last_2025 = max(i for i, r in enumerate(order) if r.startswith("2025-"))
-    assert first_2026 > last_2025
+    assert first_2026 > last_2025  # true calendar order, no leakage
+    # The last listed 2026 round is whatever the current target is (data-driven).
+    assert order[-1] == race_id(2026, RACE_CALENDAR[2026][-1])
 
 
 def test_gp_to_event_covers_every_calendar_circuit():
@@ -72,8 +70,32 @@ def test_full_2026_roster_is_mappable():
         assert gp in STOPS_CIRCUITS
 
 
-def test_race_calendar_stays_completed_rounds_only():
-    # The occurred-gate depends on this: RACE_CALENDAR[2026] is the COMPLETED rounds, NOT the
-    # full schedule. It must NOT contain a not-yet-run round.
-    assert "Belgium" not in RACE_CALENDAR[2026]
-    assert "Great Britain" not in RACE_CALENDAR[2026]
+def test_race_calendar_2026_is_a_contiguous_schedule_prefix():
+    # The derived live calendar is always completed-rounds + the single target, i.e. a
+    # contiguous prefix of the real schedule order (STOPS_CIRCUITS). It must never skip a
+    # round or reach past the target into the future (the fastf1 future-leak guard).
+    cal = RACE_CALENDAR[2026]
+    assert cal == STOPS_CIRCUITS[: len(cal)]
+    assert len(cal) >= 8  # at least through Austria (already run)
+
+
+# Loader tests
+from pathlib import Path
+
+from src.calendar import _FALLBACK_2026, _load_2026
+
+
+def test_load_2026_reads_valid_json(tmp_path):
+    p = tmp_path / "race_calendar.json"
+    p.write_text('{"2026": ["Australia", "China", "Japan"]}')
+    assert _load_2026(p) == ["Australia", "China", "Japan"]
+
+
+def test_load_2026_falls_back_when_missing(tmp_path):
+    assert _load_2026(tmp_path / "nope.json") == _FALLBACK_2026
+
+
+def test_load_2026_falls_back_on_corrupt_json(tmp_path):
+    p = tmp_path / "race_calendar.json"
+    p.write_text("{not json")
+    assert _load_2026(p) == _FALLBACK_2026

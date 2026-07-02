@@ -9,12 +9,35 @@ Pure module: no fastf1, no pandas.
 """
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 # Representative dry circuit set, listed in season race order.
 DRY_CIRCUITS = [
     "Bahrain", "Saudi Arabia", "Spain", "Hungary",
     "Italy", "Mexico City", "Las Vegas", "Abu Dhabi",
 ]
 SEASONS = [2023, 2024, 2025]
+
+# 2026 is the live season; its round list is data-driven (R17 refreshes src/race_calendar.json
+# from fastf1's schedule — see src/data/schedule.py). Read here fastf1-free with a static
+# fallback so the module stays pure and degrades gracefully if the file is missing/corrupt.
+_FALLBACK_2026 = ["Australia", "China", "Japan", "Miami", "Canada", "Monaco",
+                  "Barcelona", "Austria"]
+
+
+def _load_2026(path: Path | None = None) -> list[str]:
+    path = path if path is not None else Path(__file__).with_name("race_calendar.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return _FALLBACK_2026
+    val = data.get("2026")
+    if isinstance(val, list) and val and all(isinstance(x, str) for x in val):
+        return val
+    return _FALLBACK_2026
+
 
 # Real per-season race order. 2023-25 keep the validated dry set (validation parity);
 # 2026 lists the real rounds run so far, in true schedule order, ending at the target
@@ -24,11 +47,7 @@ RACE_CALENDAR: dict[int, list[str]] = {
     2023: DRY_CIRCUITS,
     2024: DRY_CIRCUITS,
     2025: DRY_CIRCUITS,
-    # 2026 rounds 1-8; round 8 (Austria) is the upcoming target, 1-7 completed. NOTE:
-    # 2026 has BOTH "Barcelona Grand Prix" (round 7) and "Spanish Grand Prix" (Madrid,
-    # later) as distinct events; no Bahrain/Saudi at the front this season.
-    2026: ["Australia", "China", "Japan", "Miami", "Canada", "Monaco",
-           "Barcelona", "Austria"],
+    2026: _load_2026(),
 }
 
 # Circuit key (feature-table `gp`) -> results EventName, for joining race results
