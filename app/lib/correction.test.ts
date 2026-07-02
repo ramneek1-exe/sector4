@@ -11,6 +11,7 @@ describe("validateCorrection", () => {
     expect("error" in validateCorrection({ type: "circuit", note: "hi" })).toBe(true);
     expect("error" in validateCorrection({ type: "circuit", slug: "x", note: "  " })).toBe(true);
     expect("error" in validateCorrection({ type: "circuit", slug: "x", note: "a".repeat(2001) })).toBe(true);
+    expect("error" in validateCorrection({ type: "circuit", slug: "s".repeat(121), note: "hi" })).toBe(true);
   });
 });
 

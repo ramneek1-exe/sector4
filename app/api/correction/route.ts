@@ -16,15 +16,21 @@ export async function POST(req: Request) {
   const repo = process.env.GITHUB_CORRECTIONS_REPO; // e.g. "ramneek1-exe/sector4"
   if (!token || !repo) return NextResponse.json({ error: "corrections not configured" }, { status: 503 });
 
-  const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(issuePayload(c)),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(issuePayload(c)),
+    });
+  } catch {
+    // Network-level failure (DNS, timeout, reset): surface as a gateway error, not a 500.
+    return NextResponse.json({ error: "could not file the correction" }, { status: 502 });
+  }
   if (!res.ok) return NextResponse.json({ error: "could not file the correction" }, { status: 502 });
   return NextResponse.json({ ok: true });
 }

@@ -8,9 +8,11 @@ export function validateCorrection(body: unknown): Correction | { error: string 
   if (!b || !TYPES.has(b.type as EntityType)) return { error: "invalid type" };
   if (typeof b.slug !== "string" || !b.slug.trim()) return { error: "slug required" };
   if (typeof b.note !== "string" || !b.note.trim()) return { error: "note required" };
+  const slug = b.slug.trim();
+  if (slug.length > 120) return { error: "slug too long" };
   const note = b.note.trim();
   if (note.length > 2000) return { error: "note too long" };
-  return { type: b.type as EntityType, slug: b.slug.trim(), note };
+  return { type: b.type as EntityType, slug, note };
 }
 
 export function issuePayload(c: Correction): { title: string; body: string; labels: string[] } {
