@@ -30,6 +30,7 @@ from src import store
 from src.calendar import RACE_CALENDAR, race_id
 from src.data.grid import load_qualifying_grid
 from src.data.results import load_results
+from src.data.schedule import derive_live_calendar
 from src.features.actual_stops import STOPS_CIRCUITS
 from src.pipeline import (
     build_actual_stops,
@@ -45,12 +46,12 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 LIVE_SEASON = 2026
 SEASONS = [2023, 2024, 2025, 2026]
-LIVE_CIRCUITS = RACE_CALENDAR[LIVE_SEASON]  # only the live season's circuits are fetched
 API_DIR, DATA_DIR = "api", "data"
 # The qualifying grid is read by the TS layer (app/lib/grid.ts), not the Python API, so it
 # is written straight into app/data — a single static-imported JSON keyed by race_id.
 GRIDS_JSON = os.path.join("app", "data", "grids.json")
 SCHEDULE_JSON = os.path.join("app", "data", "weekend-schedule.json")
+RACE_CALENDAR_JSON = os.path.join("src", "race_calendar.json")
 TABLES = [
     "pace_features.parquet",
     "strategy_features.parquet",
@@ -114,7 +115,32 @@ def _merge_live(base_path: str, fresh: pd.DataFrame) -> pd.DataFrame:
     return merge_refreshed(base, fresh, key="race_id")
 
 
+def _refresh_calendar_and_schedule() -> list[str]:
+    """Derive the live calendar + weekend schedule from fastf1 and persist both JSON files.
+
+    Returns the derived circuit list to use as LIVE_CIRCUITS (NOT the import-cached
+    RACE_CALENDAR[LIVE_SEASON], which would be stale within this process). On a schedule
+    fetch failure, leaves both committed files untouched and returns the committed calendar.
+    """
+    derived = derive_live_calendar(LIVE_SEASON)
+    if derived is None or not derived.get("calendar"):
+        print("0/7 calendar — schedule fetch failed; keeping committed calendar/schedule.")
+        return RACE_CALENDAR[LIVE_SEASON]
+    cal = derived["calendar"]
+    with open(RACE_CALENDAR_JSON, "w") as f:
+        json.dump({str(LIVE_SEASON): cal}, f, indent=2)
+        f.write("\n")
+    os.makedirs(os.path.dirname(SCHEDULE_JSON), exist_ok=True)
+    with open(SCHEDULE_JSON, "w") as f:
+        json.dump(derived["schedule"], f, indent=2)
+        f.write("\n")
+    print(f"0/7 calendar — {len(cal)} rounds, target {derived['schedule']['gp']} "
+          f"(next {derived['schedule']['nextGp']}) -> {RACE_CALENDAR_JSON}, {SCHEDULE_JSON}")
+    return cal
+
+
 def main() -> None:
+    live_circuits = _refresh_calendar_and_schedule()
     _seed_data_from_api()
 
     print(f"1/7 season_results — refresh {LIVE_SEASON}, reuse cached history...")
@@ -123,18 +149,18 @@ def main() -> None:
     print(f"    {len(results)} rows, years {sorted(results['year'].unique())}")
 
     print(f"2/7 pace — fetch {LIVE_SEASON} only, merge with committed history...")
-    pace = _merge_live(store.PACE_TABLE, build_pace_table([LIVE_SEASON], LIVE_CIRCUITS))
+    pace = _merge_live(store.PACE_TABLE, build_pace_table([LIVE_SEASON], live_circuits))
     store.write_table(pace, store.PACE_TABLE)
     print(f"    {len(pace)} rows, {pace['race_id'].nunique()} weekends")
 
     print(f"3/7 strategy — fetch {LIVE_SEASON} only, merge...")
     strat = _merge_live(store.STRATEGY_TABLE,
-                        build_strategy_table([LIVE_SEASON], LIVE_CIRCUITS))
+                        build_strategy_table([LIVE_SEASON], live_circuits))
     store.write_table(strat, store.STRATEGY_TABLE)
     print(f"    {len(strat)} rows, {strat['race_id'].nunique()} weekends")
 
     print(f"4/7 pit-loss — fetch {LIVE_SEASON} only, merge...")
-    pit = _merge_live(store.PIT_LOSS, build_pit_loss([LIVE_SEASON], LIVE_CIRCUITS))
+    pit = _merge_live(store.PIT_LOSS, build_pit_loss([LIVE_SEASON], live_circuits))
     store.write_table(pit, store.PIT_LOSS)
     print(f"    {len(pit)} rows, {pit['gp'].nunique()} circuits")
 
