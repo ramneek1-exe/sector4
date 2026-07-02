@@ -40,6 +40,13 @@ if (!ANTHROPIC_API_KEY) {
 const HAIKU = "claude-haiku-4-5-20251001";
 const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
+// Be polite to the Wikipedia REST API: a small gap between entities + retry on
+// rate-limit (429) / transient (503) with exponential backoff. Firing ~60 requests
+// back-to-back gets the runner IP rate-limited partway through.
+const THROTTLE_MS = 300;
+const MAX_RETRIES = 5;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 // ---------------------------------------------------------------------------
 // Pure helpers (duplicated from app/lib/entity-merge.ts + app/lib/paraphrase.ts)
 // Source of truth for these functions is in those TypeScript files; keep in sync.
@@ -81,12 +88,23 @@ function sanitizeParaphrase(text, maxSentences = 3) {
 // @param {string} title  Exact Wikipedia article title
 // @returns {Promise<{extract: string, url: string}>}
 // ---------------------------------------------------------------------------
-async function fetchWikipedia(title) {
+async function fetchWikipedia(title, attempt = 0) {
   const encoded = encodeURIComponent(title.replace(/ /g, "_"));
   const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encoded}`;
   const res = await fetch(url, {
     headers: { "User-Agent": "sector4-entity-whats/1.0 (sector4.net)" },
   });
+  // Rate-limited or transient upstream error: back off and retry (honour Retry-After).
+  if ((res.status === 429 || res.status === 503) && attempt < MAX_RETRIES) {
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const waitMs =
+      Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : Math.min(1000 * 2 ** attempt, 15000);
+    console.log(`  [retry ${attempt + 1}/${MAX_RETRIES}] ${title} — HTTP ${res.status}, waiting ${waitMs}ms`);
+    await sleep(waitMs);
+    return fetchWikipedia(title, attempt + 1);
+  }
   if (!res.ok) {
     throw new Error(`Wikipedia fetch failed for "${title}": HTTP ${res.status}`);
   }
@@ -184,6 +202,9 @@ async function main() {
     const track = type === "circuit" ? title : undefined;
 
     try {
+      // Polite gap between entities so a burst does not trip Wikipedia's rate limit.
+      await sleep(THROTTLE_MS);
+
       // Fetch Wikipedia
       const { extract, url } = await fetchWikipedia(title);
 
