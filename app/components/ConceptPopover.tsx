@@ -6,6 +6,8 @@ import Link from "next/link";
 import { getConcept } from "@/app/lib/concepts";
 import { computePopoverPosition } from "@/app/lib/linkify";
 import { TrustBadge } from "@/app/components/TrustBadge";
+import { CorrectionForm } from "@/app/components/CorrectionForm";
+import { parsePopoverKey } from "@/app/lib/entity-whats";
 
 type OpenFn = (slug: string, anchor: DOMRect) => void;
 
@@ -38,7 +40,8 @@ export function ConceptPopoverProvider({ children }: { children: React.ReactNode
 const POPOVER_WIDTH = 288; // matches w-72
 
 function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRect; onClose: () => void }) {
-  const concept = getConcept(slug);
+  const parsed = parsePopoverKey(slug);
+  const concept = parsed?.kind === "concept" ? getConcept(parsed.slug) : undefined;
   const ref = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<number | undefined>(undefined);
   const [show, setShow] = useState(false);
@@ -83,7 +86,8 @@ function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRe
     };
   }, [onClose]);
 
-  if (typeof document === "undefined" || !concept) return null;
+  if (typeof document === "undefined" || parsed === null) return null;
+  if (parsed.kind === "concept" && !concept) return null;
 
   return createPortal(
     <div
@@ -101,19 +105,42 @@ function ConceptPopover({ slug, anchor, onClose }: { slug: string; anchor: DOMRe
         show ? "scale-100 opacity-100" : "scale-95 opacity-0"
       }`}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span id={`concept-pop-${slug}`} className="font-grotesk text-sm font-bold text-ink">
-          {concept.term}
-        </span>
-        <TrustBadge badge={concept.badge} />
-      </div>
-      <p className="mb-3 font-lastik text-sm leading-snug text-ink/80">{concept.summary}</p>
-      <Link
-        href={`/learn/${slug}`}
-        className="cta-grow relative inline-block font-grotesk text-xs font-semibold uppercase tracking-wide text-accent"
-      >
-        Read more →
-      </Link>
+      {parsed.kind === "concept" && concept ? (
+        <>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span id={`concept-pop-${slug}`} className="font-grotesk text-sm font-bold text-ink">
+              {concept.term}
+            </span>
+            <TrustBadge badge={concept.badge} />
+          </div>
+          <p className="mb-3 font-lastik text-sm leading-snug text-ink/80">{concept.summary}</p>
+          <Link
+            href={`/learn/${parsed.slug}`}
+            className="cta-grow relative inline-block font-grotesk text-xs font-semibold uppercase tracking-wide text-accent"
+          >
+            Read more →
+          </Link>
+        </>
+      ) : parsed.kind === "entity" ? (
+        <>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span id={`concept-pop-${slug}`} className="font-grotesk text-sm font-bold text-ink">
+              {parsed.what.title}
+            </span>
+            <TrustBadge badge={parsed.what.badge} />
+          </div>
+          <p className="mb-3 font-lastik text-sm leading-snug text-ink/80">{parsed.what.summary}</p>
+          <a
+            href={parsed.what.source.url}
+            target="_blank"
+            rel="noreferrer"
+            className="cta-grow relative inline-block font-grotesk text-xs font-semibold uppercase tracking-wide text-accent"
+          >
+            Source: {parsed.what.source.label} →
+          </a>
+          <CorrectionForm type={parsed.what.type} slug={parsed.what.slug} />
+        </>
+      ) : null}
     </div>,
     document.body,
   );

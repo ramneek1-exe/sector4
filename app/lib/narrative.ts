@@ -1,9 +1,10 @@
 import { HAIKU, type LlmClient } from "./anthropic";
 
-// `context` (on every facts type) is a short array of curated, allowlisted circuit
-// facts (app/data/circuit-facts.json) — the ONLY outside-the-numbers material a narrative
-// may draw on. The prompts let the model add at most one sentence FROM that array, never
-// from its own general knowledge, so explanations read smarter while staying grounded.
+// `context` (on every facts type) is a short array of allowlisted, cited circuit facts
+// (sentences from the entity what in app/data/entity-whats.json, via getCircuitFacts) —
+// the ONLY outside-the-numbers material a narrative may draw on. The prompts let the model
+// add at most one sentence FROM that array, never from its own general knowledge, so
+// explanations read smarter while staying grounded.
 export type StatFacts = {
   stat: string;
   gp: string;
