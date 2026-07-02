@@ -7,6 +7,40 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## 2026-07-02 session — data-currency automation + R17 hardening: MERGED to local `main` (merge `24761d6`)
+> Closes OPEN TODOs #2 (data-currency automation) and #4 (R17 parquet non-determinism + China
+> pit-loss noise). Built subagent-driven (spec/plan `docs/superpowers/{specs,plans}/
+> 2026-07-02-data-currency-automation*`; ledger `.superpowers/sdd/progress.md`). 7 tasks + a
+> whole-branch (opus) review + 1 fix-wave; 185 pytest + 133 vitest green. **NOTE: merged to LOCAL
+> `main` only — push to origin (Vercel prod deploy) is a separate step.**
+> **What shipped:** (1) **`src/data/schedule.py:derive_live_calendar(year)`** derives the live
+> calendar + weekend schedule from `fastf1.get_event_schedule` by **race-session DATE** (leak-safe —
+> never inspects lap data; fastf1 leaks future laps). (2) **`RACE_CALENDAR[2026]` is now data-driven**
+> from committed **`src/race_calendar.json`** (read fastf1-free by `src/calendar.py:_load_2026` with a
+> hardcoded `_FALLBACK_2026`; bundled into serverless via the existing `{src/**}` glob — no vercel.json
+> change). 2023-25 stay hardcoded `DRY_CIRCUITS`. (3) **`build_2026.py` step 0** writes
+> `src/race_calendar.json` + `app/data/weekend-schedule.json` FIRST and feeds the derived list as
+> `LIVE_CIRCUITS` (fetch failure → leaves both files untouched). So R17 **self-updates** the calendar +
+> upcoming weekend each run — no more manual `RACE_CALENDAR`/`weekend-schedule.json` bumps. **This merge
+> also flipped Austria → Great Britain** (round 9, the current target) in both JSONs. (4) **R17
+> content-fingerprint deploy gate:** `scripts/data_fingerprint.py` writes `api/data-fingerprint.json`
+> (order-independent per-table content hashes); the workflow commits/deploys ONLY when the fingerprint
+> or a tracked JSON changed, else discards the non-deterministic parquet churn (`git checkout --
+> api/*.parquet`). Both workflow copies updated. (5) **China thin-sample pit-loss:** `lookup._pit_loss`
+> blends a multi-year median when the DEFAULT (latest-season) row has `n_stops < 12` (China 7 / Japan 10
+> caught; Las Vegas 12+ unaffected); explicit-year requests are never blended.
+> **FIX-WAVE (final review):** `race_stop_distribution` now **fails CLOSED** — returns `{}` whenever
+> finishers can't be classified (no results / no `ClassifiedPosition` / zero classified), instead of
+> counting every driver. This closes a latent fail-open that automation makes riskier: the auto-derived
+> calendar always includes the un-raced target (intended, matches the pre-existing "issue before the
+> race" design), so if fastf1 leaks pre-race laps for it with unclassified results, the old code would
+> have written a bogus actuals row. Regression test added (`test_leaked_target_laps_with_no_
+> classification_produce_no_row`). NOTE: the calendar design (target inclusion) is UNCHANGED.
+> **OWNER STEP (push):** `git push origin main`. The push includes
+> `.github/workflows/refresh-weekend-data.yml`; if the push is rejected for lacking GitHub's `workflow`
+> scope, push via SSH or a `workflow`-scoped token (the CI bot's PAT lacks it, but a human push with
+> proper scope carries the file fine). After deploy, confirm "next race"/`/weekend` reads Great Britain.
+>
 > ## 2026-07-01 session — all MERGED to `main` + LIVE on prod
 > Shipped, in order: **(1) Mobile hamburger nav** (merge `34ff737`) — below `md` the inline row
 > becomes a full-screen GSAP overlay portaled to `document.body` (the header's `backdrop-filter`
@@ -171,13 +205,13 @@
 > hamburger, the `test_unrun_race_is_empty_not_error` failure, AND M6-C are all DONE — see the entries
 > above.) Remaining:
 > 1. **M7 — breadth + polish (the next milestone).** Its own spec→plan→build.
-> 2. **Data-currency automation.** fastf1's real 2026 data is ahead of the app's calendar; today the
->    owner must bump `RACE_CALENDAR[2026]` + `weekend-schedule.json` per weekend. Consider automating
->    the "which rounds have occurred" detection (occurred-gate already guards actuals) so R17 self-updates.
+> 2. ✅ **Data-currency automation — DONE (2026-07-02, merge `24761d6`; see the session entry above).**
+>    R17 now self-derives `RACE_CALENDAR[2026]` + `weekend-schedule.json` from fastf1's schedule by race
+>    date. (Push to origin still pending — owner step.)
 > 3. **Ops hygiene:** rotate the PREVIEW `CRON_SECRET` off the throwaway `s4-cron-test` value.
-> 4. **Minor:** R17 parquet non-determinism (commits/deploys every scheduled run even with no data
->    change — tighten with a content check); China single-sample 2026 pit-loss noise (min-stop threshold
->    or multi-year median).
+> 4. ✅ **R17 parquet non-determinism + China pit-loss noise — DONE (2026-07-02, same merge).** Content-
+>    fingerprint deploy gate (`api/data-fingerprint.json`) so R17 deploys only on real change; China/thin-
+>    sample pit-loss now blends a multi-year median (`n_stops < 12`).
 
 ## ✨ Post-M5 fine-tuning (2026-06-22) — output quality, NOT M6
 
