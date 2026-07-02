@@ -7,7 +7,7 @@ longer hand-bumped. Detection is by RACE-SESSION DATE, never lap data: fastf1 le
 race laps (British R9 had laps pre-race), so a date/clock gate is the only safe signal.
 
 The pure core (EventInfo/pre_quali_time/derive_calendar) is fastf1-free and fully unit
-tested; derive_live_calendar is the thin fastf1 wrapper (added in the next task).
+tested; derive_live_calendar is the thin fastf1 wrapper that sits alongside it in this file.
 """
 from __future__ import annotations
 

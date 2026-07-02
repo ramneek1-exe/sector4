@@ -57,3 +57,36 @@ def test_live_season_skips_unrun_rounds(monkeypatch):
     pipeline.build_actual_stops([live], ["Belgium", completed_round])
     assert (live, "Belgium") not in loaded      # gated: never attempted
     assert (live, completed_round) in loaded          # a completed round is attempted
+
+
+def test_leaked_target_laps_with_no_classification_produce_no_row(monkeypatch):
+    # The live target (RACE_CALENDAR[live][-1]) IS in the completed-gate list by design (the
+    # "issue predictions before the race" calendar), so build_actual_stops attempts to load it.
+    # If fastf1 leaks pre-race laps for it (as observed for British R9) and results carry no
+    # classification, race_stop_distribution must fail CLOSED so no bogus row is emitted.
+    live = max(RACE_CALENDAR)
+    target = RACE_CALENDAR[live][-1]
+
+    class FakeSession:
+        def __init__(self, laps, results):
+            self.laps = laps
+            self.results = results
+
+    leaked_laps = _laps({
+        "VER": ["SOFT", "HARD"],
+        "HAM": ["SOFT", "MEDIUM"],
+    })
+    # Results with no ClassifiedPosition column at all -> cannot classify.
+    leaked_results = pd.DataFrame([
+        {"Abbreviation": "VER"},
+        {"Abbreviation": "HAM"},
+    ])
+
+    def fake_load_session(year, gp, session):
+        if (year, gp) == (live, target):
+            return FakeSession(leaked_laps, leaked_results)
+        return None
+
+    monkeypatch.setattr(pipeline, "load_session", fake_load_session)
+    out = pipeline.build_actual_stops([live], [target])
+    assert out.empty or out[out["gp"] == target].empty

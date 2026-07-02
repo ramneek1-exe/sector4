@@ -142,10 +142,12 @@ def build_actual_stops(seasons: list[int] = SEASONS,
     laps (future/unrun) or no classified finishers so the builder is safe across the calendar.
 
     For the LIVE (latest) season, only rounds that have actually occurred are built — i.e. those
-    listed in RACE_CALENDAR[live], the app's completed-round set. A not-yet-run round is skipped
-    even if fastf1 has leaked future session data (it exposes laps for a scheduled-but-unraced
-    weekend). Past seasons are fully complete, so every circuit builds (this is what gives an
-    upcoming circuit its prior-season historical norm)."""
+    listed in RACE_CALENDAR[live] (completed rounds + the current upcoming target). A not-yet-run
+    round outside that list is skipped even if fastf1 has leaked future session data (it exposes
+    laps for a scheduled-but-unraced weekend); the upcoming target itself is further guarded by
+    race_stop_distribution's fail-closed classification check, so leaked laps for it still
+    produce no row. Past seasons are fully complete, so every circuit builds (this is what gives
+    an upcoming circuit its prior-season historical norm)."""
     live = max(RACE_CALENDAR)
     rows = []
     for year in seasons:

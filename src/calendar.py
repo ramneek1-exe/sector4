@@ -40,9 +40,10 @@ def _load_2026(path: Path | None = None) -> list[str]:
 
 
 # Real per-season race order. 2023-25 keep the validated dry set (validation parity);
-# 2026 lists the real rounds run so far, in true schedule order, ending at the target
-# (Austria). The leakage guard (src.store.prior_weekends) depends on this being true
-# calendar order — never alphabetical. Source: scripts/derisk_2026.py (M5).
+# 2026 is data-driven from src/race_calendar.json (written by
+# src/data/schedule.py:derive_live_calendar) = completed rounds + the single upcoming
+# target, in true schedule order. The leakage guard (src.store.prior_weekends) depends
+# on this being true calendar order — never alphabetical.
 RACE_CALENDAR: dict[int, list[str]] = {
     2023: DRY_CIRCUITS,
     2024: DRY_CIRCUITS,
