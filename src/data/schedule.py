@@ -13,10 +13,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
+import fastf1
 import pandas as pd
 
 from src.calendar import GP_TO_EVENT
+from src.data.load import enable_cache
 
 logger = logging.getLogger(__name__)
 
@@ -88,3 +91,55 @@ def derive_calendar(events: list[EventInfo], now: pd.Timestamp, year: int,
         "nextGp": next_gp,
     }
     return {"calendar": calendar, "schedule": schedule}
+
+
+def _session_dt(event, name: str) -> pd.Timestamp | None:
+    """A session's naive-UTC datetime by fastf1 session name, or None if unavailable."""
+    try:
+        ts = event.get_session_date(name, utc=True)
+    except Exception:  # noqa: BLE001 - missing/unknown session degrades to None
+        return None
+    return None if ts is None or pd.isna(ts) else pd.Timestamp(ts)
+
+
+def _col_dt(event, col: str) -> pd.Timestamp | None:
+    """A schedule DateUtc column value as a naive Timestamp, or None."""
+    val = event.get(col)
+    return None if val is None or pd.isna(val) else pd.Timestamp(val)
+
+
+def _event_info(rnd: int, event) -> EventInfo | None:
+    """Build an EventInfo from a fastf1 Event row; None if no race datetime resolvable."""
+    race_dt = _session_dt(event, "Race")
+    if race_dt is None:
+        ed = _col_dt(event, "EventDate")
+        race_dt = ed + pd.Timedelta(hours=22) if ed is not None else None  # end-of-race-day
+    if race_dt is None:
+        return None
+    quali_dt = _session_dt(event, "Qualifying") or (race_dt - pd.Timedelta(days=1))
+    sess_dts = [_col_dt(event, f"Session{i}DateUtc") for i in range(1, 6)]
+    return EventInfo(rnd, event["EventName"], race_dt, quali_dt, pre_quali_time(sess_dts, quali_dt))
+
+
+def derive_live_calendar(year: int, now: pd.Timestamp | None = None) -> dict | None:
+    """Fetch the season schedule (fastf1) and derive {calendar, schedule}; None on failure.
+
+    Reads only get_event_schedule (dates), never lap data, so it is leak-safe and cheap.
+    """
+    if now is None:
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+    now = pd.Timestamp(now)
+    enable_cache()
+    try:
+        sched = fastf1.get_event_schedule(year, include_testing=False)
+    except Exception as e:  # noqa: BLE001 - a transient fetch failure must not corrupt files
+        logger.warning("schedule fetch failed for %s: %s", year, e)
+        return None
+    events: list[EventInfo] = []
+    for rnd in sorted({int(r) for r in sched["RoundNumber"] if int(r) != 0}):
+        info = _event_info(rnd, sched.get_event_by_round(rnd))
+        if info is not None:
+            events.append(info)
+    if not events:
+        return None
+    return derive_calendar(events, now, year)
