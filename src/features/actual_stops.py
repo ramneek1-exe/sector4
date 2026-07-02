@@ -16,8 +16,9 @@ import pandas as pd
 
 # The full 2026 circuit roster in schedule order. build_actual_stops sweeps ALL of these so
 # every circuit has prior-season rows for the historical-norm answer; the occurred-gate still
-# limits which get a 2026 ACTUALS row to RACE_CALENDAR[2026] (the completed rounds). Do NOT
-# fold this into RACE_CALENDAR — that would break the occurred-gate (see the plan's Task 7).
+# limits which get a 2026 ACTUALS row to RACE_CALENDAR[2026] (completed rounds + the current
+# upcoming target). Do NOT fold this into RACE_CALENDAR — that would break the occurred-gate
+# (see the plan's Task 7).
 STOPS_CIRCUITS: list[str] = [
     "Australia", "China", "Japan", "Miami", "Canada", "Monaco", "Barcelona", "Austria",
     "Great Britain", "Belgium", "Hungary", "Netherlands", "Italy", "Spain", "Azerbaijan",
@@ -28,7 +29,9 @@ STOPS_CIRCUITS: list[str] = [
 def race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict:
     """Actual stop distribution among classified finishers, robust to red-flag phantom stints.
 
-    Returns {} if there are no classified finishers (so the builder skips the race).
+    Returns {} when finishers cannot be classified (no results, no ClassifiedPosition column,
+    or zero classified finishers) — fail-closed, so a scheduled-but-unraced round with leaked
+    laps is never counted.
     """
     classified = None
     if results is not None and "ClassifiedPosition" in results:
@@ -37,7 +40,7 @@ def race_stop_distribution(laps: pd.DataFrame, results: pd.DataFrame) -> dict:
                 results["ClassifiedPosition"].astype(str).str.fullmatch(r"\d+"), "Abbreviation"
             ]
         )
-    if classified is not None and len(classified) == 0:
+    if not classified:  # None (no results/ClassifiedPosition) or empty -> cannot classify, skip
         return {}
     counts: dict[str, int] = {}
     for drv, d in laps.groupby("Driver"):
