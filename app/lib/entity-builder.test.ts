@@ -14,7 +14,7 @@ const stubSummarizer: Summarizer = async (_extract) =>
   "A compact circuit — high in the Styrian hills. It rewards raw power and traction. The lap takes about a minute.";
 
 describe("buildEntityRecord (assembly stub test)", () => {
-  it("assembles a drafted record from stubbed fetch+summarize", async () => {
+  it("assembles a verified record from stubbed fetch+summarize", async () => {
     const record = await buildEntityRecord(
       { type: "circuit", slug: "Austria", title: "Red Bull Ring", track: "the Red Bull Ring" },
       undefined,
@@ -22,7 +22,7 @@ describe("buildEntityRecord (assembly stub test)", () => {
       stubFetcher,
       stubSummarizer,
     );
-    expect(record.badge).toBe("drafted");
+    expect(record.badge).toBe("verified");
     expect(record.type).toBe("circuit");
     expect(record.slug).toBe("Austria");
     expect(record.track).toBe("the Red Bull Ring");
@@ -59,7 +59,7 @@ describe("buildEntityRecord (assembly stub test)", () => {
     expect(second.badge).toBe("verified");
   });
 
-  it("resets verified badge to drafted when summary changes", async () => {
+  it("re-verifies when the summary changes", async () => {
     const first = await buildEntityRecord(
       { type: "team", slug: "McLaren", title: "McLaren" },
       undefined,
@@ -77,6 +77,6 @@ describe("buildEntityRecord (assembly stub test)", () => {
       stubFetcher,
       changedSummarizer,
     );
-    expect(second.badge).toBe("drafted");
+    expect(second.badge).toBe("verified");
   });
 });

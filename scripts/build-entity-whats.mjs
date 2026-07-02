@@ -66,7 +66,8 @@ function contentHash(summary) {
 function mergeWhat(prev, next, now) {
   const hash = contentHash(next.summary);
   const changed = !prev || prev.contentHash !== hash;
-  const badge = !prev ? "drafted" : changed ? "drafted" : prev.badge;
+  // Verified by default (see app/lib/entity-merge.ts); NEW/changed -> verified, unchanged keeps prev.
+  const badge = changed ? "verified" : prev.badge;
   return { ...next, badge, generatedAt: now, contentHash: hash };
 }
 
@@ -123,10 +124,19 @@ async function fetchWikipedia(title, attempt = 0) {
 // @param {string} extract  Wikipedia extract text
 // @returns {Promise<string>}  Raw paraphrase (pre-sanitize)
 // ---------------------------------------------------------------------------
-async function callHaiku(extract) {
+// Per-type focus so the paraphrase stays about the entity's Formula One role, not
+// unrelated corporate/parent-company history (matters most for teams).
+const FOCUS = {
+  circuit: "This is a motor-racing circuit. Focus on the track and the Formula One grand prix held there.",
+  driver: "This is a Formula One driver. Focus on their racing career and their current Formula One team.",
+  team: "This is a Formula One team. Focus on their Formula One identity, history, and notable results. Ignore unrelated parent-company or road-car history.",
+};
+
+async function callHaiku(extract, type) {
   const SYSTEM = [
-    "You are a concise sports-encyclopaedia writer.",
+    "You are a concise Formula One encyclopaedia writer.",
     "Write a SHORT ORIGINAL paraphrase of the provided Wikipedia extract.",
+    FOCUS[type] ?? "",
     "Rules:",
     "- 2-3 sentences only.",
     "- Never quote or reproduce passages verbatim.",
@@ -209,7 +219,7 @@ async function main() {
       const { extract, url } = await fetchWikipedia(title);
 
       // Call Haiku
-      const raw = await callHaiku(extract);
+      const raw = await callHaiku(extract, type);
 
       // Sanitize
       const summary = sanitizeParaphrase(raw);

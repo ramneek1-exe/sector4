@@ -49,7 +49,14 @@ function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
 describe("answerQuery", () => {
   it("returns a supported answer for a pit_loss lookup", async () => {
     const out = await answerQuery(deps(), "pit lane Monaco?");
-    expect(out).toEqual({ supported: true, facts: FACTS, narrative: "Monaco loses about 19.5s." });
+    // Circuits with an entity what get allowlisted `context` attached (varies with the
+    // regenerated data), so assert the stable core rather than deep-equalling the object.
+    expect(out.supported).toBe(true);
+    if (out.supported && "facts" in out) {
+      expect(out.facts.value).toBe(19.5);
+      expect(out.facts.gp).toBe("Monaco");
+      expect(out.narrative).toBe("Monaco loses about 19.5s.");
+    }
   });
 
   it("returns an honest unsupported message for unhandled intents", async () => {
@@ -116,7 +123,12 @@ describe("answerQuery", () => {
     );
     expect(askedYear).toBe(2024);
     expect(askedGp).toBe("Italy"); // Monza -> Italy
-    expect(out).toEqual({ supported: true, podium: PODIUM, narrative: "NOR is the strongest podium pick at Monza." });
+    // Italy has an entity what, so `context` is attached; assert the stable core.
+    expect(out.supported).toBe(true);
+    if (out.supported && "podium" in out) {
+      expect(out.podium.drivers).toEqual(PODIUM.drivers);
+      expect(out.narrative).toBe("NOR is the strongest podium pick at Monza.");
+    }
   });
 
   it("defaults the year to the live 2026 season when the podium question names none", async () => {

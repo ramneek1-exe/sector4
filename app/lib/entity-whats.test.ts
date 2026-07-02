@@ -14,7 +14,7 @@ describe("entity-whats accessors", () => {
     expect(facts.every((f) => f.trim().length > 0 && !f.includes("  "))).toBe(true);
   });
   it("getCircuitName returns the track display name, or the gp key when absent", () => {
-    expect(getCircuitName("Austria")).toBe("the Red Bull Ring");
+    expect(getCircuitName("Austria")).toBe("Red Bull Ring");
     expect(getCircuitName("Nowhere")).toBe("Nowhere");
   });
 });
