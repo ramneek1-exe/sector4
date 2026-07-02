@@ -59,3 +59,36 @@ def test_pit_loss_non_derived_circuit_is_honestly_unavailable():
     assert out["value"] is None
     assert out["units"] is None
     assert out["source"] == "no race data for this circuit"
+
+
+def _pit_df(rows):
+    return pd.DataFrame(rows)
+
+
+def test_thin_latest_sample_blends_multi_year_median():
+    # Latest (2026) has a thin sample; a prior full-sample year exists -> blend the median.
+    pit = _pit_df([
+        {"race_id": "2025-China", "year": 2025, "gp": "China", "pit_loss_s": 22.0, "n_stops": 30},
+        {"race_id": "2026-China", "year": 2026, "gp": "China", "pit_loss_s": 15.4, "n_stops": 5},
+    ])
+    out = lookup_stat("pit_loss", "China", pit_table=pit)
+    assert out["value"] == 18.7  # median(22.0, 15.4), rounded
+    assert any("season" in i.lower() for i in out["insights"])
+
+
+def test_adequate_latest_sample_is_unchanged():
+    pit = _pit_df([
+        {"race_id": "2025-China", "year": 2025, "gp": "China", "pit_loss_s": 22.0, "n_stops": 30},
+        {"race_id": "2026-China", "year": 2026, "gp": "China", "pit_loss_s": 20.5, "n_stops": 28},
+    ])
+    out = lookup_stat("pit_loss", "China", pit_table=pit)
+    assert out["value"] == 20.5  # latest respected; no blend
+
+
+def test_explicit_year_is_respected_even_if_thin():
+    pit = _pit_df([
+        {"race_id": "2025-China", "year": 2025, "gp": "China", "pit_loss_s": 22.0, "n_stops": 30},
+        {"race_id": "2026-China", "year": 2026, "gp": "China", "pit_loss_s": 15.4, "n_stops": 5},
+    ])
+    out = lookup_stat("pit_loss", "China", pit_table=pit, year=2026)
+    assert out["value"] == 15.4  # asked for 2026 explicitly -> no blend

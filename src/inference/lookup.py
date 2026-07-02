@@ -18,6 +18,10 @@ PIT_LOSS = "pit_loss"
 TYRE_DEG = "tyre_deg"
 STINT_LENGTH = "stint_length"
 
+# Below this many clean stop-pair samples, a single season's pit-loss median is noisy; the
+# default (latest-season) lookup blends a multi-year median instead (China 2026 ~ 7 samples).
+MIN_PIT_LOSS_SAMPLES = 12
+
 
 def _pit_loss_insights(pit: pd.DataFrame, value: float) -> list[str]:
     """Grounded one-liners explaining a pit-loss number, computed from our own table."""
@@ -43,15 +47,27 @@ def _pit_loss(gp: str, year: int | None, pit: pd.DataFrame) -> dict:
     if rows.empty:
         return {"stat": PIT_LOSS, "gp": gp, "value": None, "units": None, "year": None,
                 "source": "no race data for this circuit", "insights": []}
+    blended = False
     if year is not None and (rows["year"] == year).any():
-        row = rows[rows["year"] == year].iloc[0]
+        row = rows[rows["year"] == year].iloc[0]  # explicit year -> respect verbatim
+        value, rep_year = round(float(row["pit_loss_s"]), 1), int(row["year"])
     else:
         row = rows.sort_values("year").iloc[-1]  # default: latest season we hold
-    value = round(float(row["pit_loss_s"]), 1)
+        rep_year = int(row["year"])
+        if int(row["n_stops"]) < MIN_PIT_LOSS_SAMPLES and len(rows) > 1:
+            value = round(float(rows["pit_loss_s"].median()), 1)  # thin sample -> multi-year median
+            blended = True
+        else:
+            value = round(float(row["pit_loss_s"]), 1)
+    insights = _pit_loss_insights(pit, value)
+    if blended:
+        insights.append(
+            f"This weekend's sample was small, so this is a median across {len(rows)} recent seasons."
+        )
     return {"stat": PIT_LOSS, "gp": gp, "value": value, "units": "s",
-            "year": int(row["year"]),
+            "year": rep_year,
             "source": "derived from race pit-stop laps (incl. the stationary stop)",
-            "insights": _pit_loss_insights(pit, value)}
+            "insights": insights}
 
 
 def lookup_stat(stat: str, gp: str, table: pd.DataFrame | None = None,
