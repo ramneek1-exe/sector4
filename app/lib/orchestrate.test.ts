@@ -188,7 +188,7 @@ describe("answerQuery", () => {
       }),
       "who podiums in Austria?",
     );
-    // Austria is authored in circuit-facts.json, so context flows through (capped at 2).
+    // Austria has an entity what (entity-whats.json), so context flows through (capped at 2).
     expect(narrated?.context?.length).toBe(2);
     expect(out.supported).toBe(true);
     if (out.supported && "podium" in out) expect(out.podium.context?.length).toBe(2);

@@ -9,8 +9,8 @@ import { getConcept, matchConcept, type Concept } from "./concepts";
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
 
-// Curated, allowlisted circuit facts (app/data/circuit-facts.json) the narrative may draw
-// ONE detail from — the only outside-the-numbers material allowed (PRD: no invented facts).
+// Allowlisted, cited circuit facts (from the entity what, via getCircuitFacts) the narrative
+// may draw ONE detail from — the only outside-the-numbers material allowed (PRD: no invented facts).
 // Capped at 2 to keep the prompt tight; empty for circuits we haven't authored yet.
 const CONTEXT_LIMIT = 2;
 

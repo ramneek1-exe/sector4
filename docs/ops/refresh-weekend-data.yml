@@ -44,8 +44,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+
+      - name: Install Node dependencies
+        run: npm ci
 
       - name: Build feature tables (fastf1)
         run: PYTHONPATH=. python scripts/build_2026.py
@@ -56,11 +64,30 @@ jobs:
              data/team_map.parquet data/season_results.parquet data/pit_loss.parquet api/
           cp data/podium_features.parquet api/podium_features.parquet
 
+      # Regenerate the entity whats (Wikipedia -> Haiku paraphrase -> cite -> cache).
+      # Requires ANTHROPIC_API_KEY as a repo Actions secret; the script exits 1 (fatal) if
+      # it is missing so a silent no-generation run is impossible. Exit 2 means SOME entities
+      # hit a fetch/Haiku error and were skipped (prior records preserved) — non-fatal, so a
+      # single upstream hiccup never blocks the weekend data deploy.
+      - name: Generate entity whats
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          code=0
+          node scripts/build-entity-whats.mjs || code=$?
+          if [ "$code" = "1" ]; then
+            echo "Fatal: entity-whats generation failed (missing key or crash)."
+            exit 1
+          fi
+          if [ "$code" = "2" ]; then
+            echo "Warning: some entities were skipped (upstream error); prior records kept."
+          fi
+
       - name: Commit & push if changed (triggers Vercel deploy)
         run: |
           git config user.name "sector4-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add api/*.parquet app/data/grids.json
+          git add api/*.parquet app/data/grids.json app/data/entity-whats.json
           if git diff --cached --quiet; then
             echo "No data changes — nothing to deploy."
           else
