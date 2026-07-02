@@ -41,6 +41,25 @@
 > **NEXT: M6-C (entity-what pipeline).** Built subagent-driven (specs/plans in
 > `docs/superpowers/.../2026-06-28-mobile-*`, `2026-07-01-stops-pitloss-*`).
 >
+> ## M6-C — IN PROGRESS (branch `m6c-entity-whats`, NOT merged) — session ended 2026-07-01 (IDE crash)
+> The entity-what pipeline (PRD §6.6): precompute cited/badged whats for circuits+drivers+teams into a
+> committed `app/data/entity-whats.json` (generated in R17 via Wikipedia + Haiku), surfaced through the
+> generalized M6-B popover (inline circuit/team name links + driver-glyph tap) + the `/weekend` block,
+> with a "spotted something wrong?" form that opens a GitHub issue. Spec/plan:
+> `docs/superpowers/{specs,plans}/2026-07-01-m6c-entity-whats*`. Owner decisions: full scope (all 3
+> entity types); **precompute** (not on-demand); Wikipedia allowlist; corrections → GitHub issue.
+> **>>> RESUME POINTER: read `.superpowers/sdd/progress.md` (the SDD ledger) — it has the exact
+> task-by-task state and a "RESUME HERE" block. <<<** Summary: Tasks 1-5 COMPLETE + reviewed/approved
+> (commits 51901d0, 2796216, 5bcc65d, 1b9a8da, 32a8e36+cafd87a). **Task 6** (generation script
+> `scripts/build-entity-whats.mjs` + `app/lib/paraphrase.ts` + `app/data/entity-titles.json`)
+> IMPLEMENTED + committed (7b3200a) but its TASK REVIEW is UNFINISHED (reviewer subagent hit a usage
+> limit; I was reviewing it myself — 2 open questions in the ledger: entity-builder.ts real-vs-dead, and
+> the prompt-only verbatim guard). **Task 7** (wire the script into R17 + full verify) NOT started, then
+> the final whole-branch review + merge/push. **Live generation is DEFERRED** — the sandbox has no
+> network, so `entity-whats.json` still holds 3 SEED records; real data lands when R17 runs. **Owner
+> setup pending:** Vercel env vars `GITHUB_CORRECTIONS_TOKEN` (issues:write PAT) + `GITHUB_CORRECTIONS_REPO`
+> for `/api/correction`, and confirm `ANTHROPIC_API_KEY` is a repo Actions secret for R17.
+>
 > **M4 — telemetry differentiators: MERGED to `main` and live on PRODUCTION
 > (`sector4-zeta.vercel.app`).** Pace-gap context (Model A, supporting) + stop-count strategy
 > (Model B, race-level call leads, SC caveat always on, deg→stops teachable narrative) are
