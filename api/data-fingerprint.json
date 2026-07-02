@@ -1,0 +1,9 @@
+{
+  "actual_stops.parquet": "5417585a9832af61564251fa7355499d305fbd3c6ed4798abab4d347a430c650",
+  "pace_features.parquet": "ccc0bd170f0b4cb7e1d17fbc465b73f91884ea1d91247d12baa7280d867cc8a9",
+  "pit_loss.parquet": "37a1b649eaa68e49b5bc4e8ab3192fba3909556cbc0f9d699f3b70ccec700dec",
+  "podium_features.parquet": "8acafd6881e82eb2641d4b3dc6cc54cdcb4c0e230f4aaccd62f16a7064806563",
+  "season_results.parquet": "af753dd76f8cce9666c8f1e9e39b0f5bd273839185d163274b774e389f1c31ed",
+  "strategy_features.parquet": "08df015393cf072d6479b30ef6800ec0f08c8135415c38aed23db745488ea10d",
+  "team_map.parquet": "c385ef309daa63c04d496101e7840a3a01e262b522d818c89ebd30f68f87d0c5"
+}
