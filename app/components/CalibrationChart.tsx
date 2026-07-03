@@ -1,7 +1,7 @@
 // Cumulative season calibration chart (M7): a dependency-free inline-SVG line chart.
 // Primary solid line = cumulative top-3 hit rate (0..1, the headline metric). Secondary
-// dashed line = cumulative Brier, normalized to its own range so a HIGHER line means a
-// LOWER (better) Brier. Server-renderable, static (no motion), theme-token colors.
+// dashed line = cumulative Brier plotted on the same true 0..1 axis as 1 - meanBrier, so a
+// HIGHER line means a LOWER (better) Brier. Server-renderable, static (no motion), theme-token colors.
 import type { CumulativePoint } from "@/app/lib/calibration";
 import { buildLinePath } from "@/app/lib/chart-path";
 
@@ -14,18 +14,8 @@ const shortGp = (gp: string) => (gp.length > 6 ? gp.slice(0, 3).toUpperCase() : 
 export function CalibrationChart({ series }: { series: CumulativePoint[] }) {
   if (series.length < 2) return null;
 
-  const briers = series.map((p) => p.meanBrier);
-  const bMin = Math.min(...briers);
-  const bMax = Math.max(...briers);
-  const bRange = bMax - bMin || 1;
-
   const top3Points = buildLinePath(series.map((p) => p.top3Rate), W, H, PAD);
-  const brierPoints = buildLinePath(
-    briers.map((b) => 1 - (b - bMin) / bRange),
-    W,
-    H,
-    PAD,
-  );
+  const brierPoints = buildLinePath(series.map((p) => 1 - p.meanBrier), W, H, PAD);
 
   const innerW = W - PAD.left - PAD.right;
   const xAt = (i: number) =>

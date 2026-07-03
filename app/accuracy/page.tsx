@@ -69,6 +69,9 @@ export default async function AccuracyPage() {
         </p>
       ) : (
         <>
+          <p className="mb-3 font-grotesk text-xs text-muted">
+            These are our past results, not forecast probabilities.
+          </p>
           <dl className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Stat label="Races scored" value={String(summary.nRaces)} />
             <Stat
