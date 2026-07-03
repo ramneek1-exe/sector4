@@ -22,9 +22,15 @@ historical norm + caveat, no allocation input).
 
 ## 2. Data & inference — `src/inference/strategy.py`
 
-The pipeline already computes `dominant_compound` per race (the dry compound SOFT/MEDIUM/HARD
-that took the most race laps) in `strategy_features.parquet`, which is already bundled to
-`api/`. No pipeline or table changes.
+**Data source (owner decision, revised at planning):** the bundled `strategy_features.parquet`
+(driver-level, already in `api/`) carries a leakage-safe **`hist_dominant`** column — for each
+`(year, gp)` row it is the mode of that circuit's dominant dry compound over **strictly-earlier
+years** (`year < row.year`), computed by `src/features/strategy.py:add_history`. The raw
+per-race `dominant_compound` is intentionally NOT persisted (it is race-derived; excluded as a
+leakage guard). **v1 uses `hist_dominant` only — no share/count, no pipeline change, no schema
+change, no new table.** Accepted trade-off: no "X of N runnings" figure, and an upcoming race
+(no row for its year) uses the latest prior running's `hist_dominant`, which lags the most
+recent running by one year.
 
 New fastf1-free function (same module as `predict_stop_counts`, reads the same table):
 
@@ -33,23 +39,25 @@ def dominant_compound_norm(year: int, gp: str, table: pd.DataFrame | None = None
     ...
 ```
 
-- Filters `table` to `gp == gp AND year < year` (leakage-safe: strictly-prior years only,
-  matching the existing leakage guards).
-- Returns the **mode** of `dominant_compound` over those prior years plus honesty metadata:
+Resolution (leakage-safe — never reads a row from `year` or later for the compound value,
+since `hist_dominant` is itself prior-years-only):
+1. Reduce `table` to one `(year, hist_dominant)` per running for this `gp`
+   (`table[table.gp == gp][["year", "hist_dominant"]].drop_duplicates()`).
+2. If a row exists for the exact target `year` with a non-null `hist_dominant`, use it.
+3. Else use the **latest prior-year** row (`year' < year`) with a non-null `hist_dominant`.
+4. Else `compound: None`.
 
-  ```
-  { "year": year, "gp": gp,
-    "compound": "MEDIUM" | "SOFT" | "HARD" | None,
-    "n_years": int,        # how many prior runnings had a dominant compound
-    "share": float | None, # fraction of prior runnings that had the modal compound, rounded
-    "considered": [2023, 2024, 2025] }  # the prior years counted
-  ```
+Returns:
 
-- No prior history (or no dry `dominant_compound` in prior years) → `compound: None`,
-  `n_years: 0`, `share: None`, `considered: []` (honest "not enough history here").
-- Round `share` here (house rule: round every number that reaches output).
-- Ties: `pandas` mode returns the alphabetically-first on a tie; pick a deterministic rule
-  (mode's first value) and note it. Share still reflects that compound's count.
+```
+{ "year": year, "gp": gp,
+  "compound": "MEDIUM" | "SOFT" | "HARD" | None,
+  "basis_year": int | None }   # the running whose hist_dominant was used (grounding); None when compound is None
+```
+
+- `hist_dominant` may be `None`/`NaN` (earliest years, or absent circuit) → skip those rows;
+  if none qualify, `compound: None` (honest "not enough history for this circuit").
+- No numbers reach output here beyond `basis_year` (an int) and `year`; nothing to round.
 
 **Tests** (`tests/`): mode over prior years only (a later-year row never leaks into an
 earlier target); share/n_years correct; empty/sparse → `None` shape; single prior year; a
@@ -81,7 +89,8 @@ The `handler.do_POST` dispatches on `kind`. One new branch, reuses the bundled t
 ### 4.2 narrative.ts — `generateCompoundNarrative`
 Grounded, honest, no invented facts, no em-dashes. Must:
 - Frame the answer as the **historical/typical** compound here (explicitly NOT a telemetry
-  prediction), citing the share ("usually MEDIUM here, 2 of the last 3 runnings").
+  prediction), e.g. "historically the dominant compound at {gp} has been MEDIUM." No share or
+  "X of N" figure (not available in v1).
 - Always include the **Pirelli-allocation caveat** (actual call depends on this weekend's tyre
   allocation).
 - Degrade gracefully when `compound: None` (honest "not enough history for this circuit").
@@ -99,7 +108,7 @@ A compact answer card leading with a **compound-colored ASCII tyre glyph**:
   invisible on the `#FAFAFA` bg).
 - Overlay a crisp **S / M / H** letter, contrast-guarded against the tyre color via the
   existing `app/lib/contrast.ts` (same technique as the helmet numbers).
-- Below the glyph: the grounded narrative + the honest "X of the last N runnings" share.
+- Below the glyph: the grounded narrative (no share figure in v1).
 - `compound: None` → the glyph is omitted (or a neutral placeholder) and the card shows only
   the honest "not enough history" copy.
 - Reduced-motion respected (AsciiEmblem already gates its reveal); theme tokens only.
@@ -114,7 +123,9 @@ A compact answer card leading with a **compound-colored ASCII tyre glyph**:
 
 ## 6. Testing & verification
 
-- Python unit tests for `dominant_compound_norm` (§2) — leakage, share/n_years, sparse, tie.
+- Python unit tests for `dominant_compound_norm` (§2) — exact-year row used; upcoming falls
+  back to latest prior running; null `hist_dominant` skipped; no history → `compound: None`;
+  never reads the target year's own compound (leakage).
 - `compound_response` request/validation covered (extend the strategy api test if present, or
   add one): missing year/gp → 400; valid → the norm shape; `kind` default still stop-count.
 - Frontend: `npm run build` + `tsc` clean; existing pytest + vitest suites stay green.
