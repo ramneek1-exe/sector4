@@ -6,10 +6,12 @@ import {
   generatePodiumNarrative,
   generatePaceNarrative,
   generateStrategyNarrative,
+  generateCompoundNarrative,
   type StatFacts,
   type PodiumFacts,
   type PaceFacts,
   type StrategyFacts,
+  type CompoundFacts,
 } from "@/app/lib/narrative";
 import { answerQuery } from "@/app/lib/orchestrate";
 
@@ -50,6 +52,9 @@ export async function POST(req: Request) {
         narratePace: (facts) => generatePaceNarrative(client, facts),
         predictStrategy: (year, gp) => postJson<StrategyFacts>(origin, "/api/strategy", { year, gp }),
         narrateStrategy: (facts) => generateStrategyNarrative(client, facts),
+        predictCompound: (year, gp) =>
+          postJson<CompoundFacts>(origin, "/api/strategy", { kind: "compound", year, gp }),
+        narrateCompound: (facts) => generateCompoundNarrative(client, facts),
       },
       query,
     );

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { answerQuery, type AnswerDeps } from "./orchestrate";
-import type { PodiumFacts, PaceFacts, StrategyFacts } from "./narrative";
+import type { PodiumFacts, PaceFacts, StrategyFacts, CompoundFacts } from "./narrative";
 
 const FACTS = { stat: "pit_loss", gp: "Monaco", value: 19.5, units: "s", source: "curated track features" };
 
@@ -29,6 +29,10 @@ const STRATEGY: StrategyFacts = {
   drivers: [{ driver: "VER", team: "Red Bull Racing", n_stops: 2, confidence: 0.7 }],
 };
 
+const COMPOUND: CompoundFacts = {
+  year: 2024, gp: "Bahrain", compound: "MEDIUM", basis_year: 2023,
+};
+
 function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
   return {
     parse: async () => ({ intent: "lookup_stat", stat: "pit_loss", gp: "Monaco" }),
@@ -42,6 +46,8 @@ function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
     narratePace: async () => "NOR holds a small long-run edge.",
     predictStrategy: async () => STRATEGY,
     narrateStrategy: async () => "Bahrain leans two-stop.",
+    predictCompound: async () => COMPOUND,
+    narrateCompound: async () => "Bahrain has historically favored the medium.",
     ...over,
   };
 }
@@ -60,9 +66,25 @@ describe("answerQuery", () => {
   });
 
   it("returns an honest unsupported message for unhandled intents", async () => {
-    const out = await answerQuery(deps({ parse: async () => ({ intent: "predict_compound" }) }), "what compound?");
+    // lookup_stat with a stat outside LOOKUP_STATS falls through every routed branch.
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "lookup_stat", stat: "unknown_stat", gp: "Monaco" }) }),
+      "some unrouted stat?",
+    );
     expect(out.supported).toBe(false);
     if (!out.supported) expect(out.message).toMatch(/podium prediction/i);
+  });
+
+  it("routes a compound question to a supported compound answer", async () => {
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "predict_compound", gp: "Bahrain", year: 2024 }) }),
+      "what tyre is usually dominant at Bahrain?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "compound" in out) {
+      expect(out.compound.compound).toBe("MEDIUM");
+      expect(out.narrative).toBe("Bahrain has historically favored the medium.");
+    }
   });
 
   it("routes explain_concept to a concept answer without calling lookup", async () => {

@@ -8,11 +8,12 @@ import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
+import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts, CompoundFacts } from "@/app/lib/narrative";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";
 import { TrustBadge } from "@/app/components/TrustBadge";
+import { CompoundCard } from "@/app/components/CompoundCard";
 import type { Concept } from "@/app/lib/concepts";
 import Link from "next/link";
 
@@ -400,6 +401,9 @@ export default function Home() {
           )}
           {answer && "supported" in answer && answer.supported && "strategy" in answer && (
             <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "compound" in answer && (
+            <CompoundCard compound={answer.compound} narrative={answer.narrative} />
           )}
           {answer && "supported" in answer && answer.supported && "concept" in answer && (
             <ConceptCard concept={answer.concept} />
