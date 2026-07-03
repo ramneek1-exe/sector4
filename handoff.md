@@ -7,12 +7,40 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
-> ## 2026-07-02 session — data-currency automation + R17 hardening: MERGED to local `main` (merge `24761d6`)
+> ## 2026-07-02 session — M7 slice 1: season calibration curve (`/accuracy`): MERGED to `origin/main` (PR #11, merge `29cbe12`) — deploying
+> **First of M7's independent sub-projects.** Makes the honesty thesis VISIBLE: a new `/accuracy`
+> "track record" page that scores every issued podium against the real finish and shows the season
+> trend (calibration expected to sharpen as 2026 accumulates). Reads the record the M5 cron already
+> logs. **DISPLAY-ONLY by owner decision:** no isotonic/Platt fit, no bands→% flip, OWN SCORES ONLY
+> (no baseline). Spec/plan `docs/superpowers/{specs,plans}/2026-07-02-m7-calibration-curve*`; ledger
+> `.superpowers/sdd/progress.md`. Built subagent-driven: 5 tasks + per-task reviews + opus whole-branch
+> review (MERGE-READY, data contract traced exact) + 1 fix-wave.
+> **What shipped:** (1) **`app/lib/calibration.ts`** — pure `summarize()`/`calibrationStatus()`/
+> `raceDetail()`; ALL rounding centralized here. (2) **`app/lib/chart-path.ts` + `app/components/
+> CalibrationChart.tsx`** — dependency-free inline-SVG cumulative trend chart (top-3 hit rate primary
+> line, Brier co-metric); server-renderable + static. (3) **`app/accuracy/page.tsx`** — server component
+> reading the live Blob season index (`seasonIndexKey`), four honest states by race count (empty /
+> reliability banner always-on / scorecard / race-by-race, chart only at ≥3 races); missing snapshot
+> degrades to score-only row. (4) **`SiteNav`** gained the "Accuracy" link. **Read-only over Blob — NO
+> changes to the cron, `actuals.ts`, the snapshot write path, Python, or R17.**
+> **Gate-check wired but held `false` (`CALIBRATION_MIN_RACES`):** the future %-upgrade slice just flips
+> `status.ready` on — this v1 never shows a calibrated %. **HONESTY FIX from review:** the Brier line was
+> min-max self-normalized (always spanned full height → visually overstated improvement on the honesty
+> page); fixed to plot `1 - meanBrier` on the true shared 0..1 axis (Brier is bounded [0,1]).
+> **VERIFY ON PROD/PREVIEW:** only the EMPTY state was checkable locally (local Blob is empty); the
+> populated scorecard/chart/rows need real Blob data — eyeball `/accuracy` once the deploy lands (Austria
+> R8 final was scored, so ≥1 row should exist). 142 vitest pass/2 skip, build clean, `/accuracy` dynamic
+> route, zero Python touched. **REMAINING M7 slices (each its own spec→plan→build): dominant-compound
+> query type, explainers 8→15, visual polish, optional championship projection.**
+>
+> ## 2026-07-02 session — data-currency automation + R17 hardening: MERGED + PUSHED to `origin/main` (merge `24761d6`, head `07a3fd8`) — LIVE
 > Closes OPEN TODOs #2 (data-currency automation) and #4 (R17 parquet non-determinism + China
 > pit-loss noise). Built subagent-driven (spec/plan `docs/superpowers/{specs,plans}/
 > 2026-07-02-data-currency-automation*`; ledger `.superpowers/sdd/progress.md`). 7 tasks + a
-> whole-branch (opus) review + 1 fix-wave; 185 pytest + 133 vitest green. **NOTE: merged to LOCAL
-> `main` only — push to origin (Vercel prod deploy) is a separate step.**
+> whole-branch (opus) review + 1 fix-wave; 185 pytest + 133 vitest green. **PUSHED to `origin/main`
+> (head `07a3fd8`) — live on Vercel prod. The live `.github/workflows/refresh-weekend-data.yml` was
+> synced via the GitHub web editor (commit `07a3fd8`, "Add content fingerprint computation step",
+> committer `GitHub`), and now matches the `docs/ops/` template byte-for-byte.**
 > **What shipped:** (1) **`src/data/schedule.py:derive_live_calendar(year)`** derives the live
 > calendar + weekend schedule from `fastf1.get_event_schedule` by **race-session DATE** (leak-safe —
 > never inspects lap data; fastf1 leaks future laps). (2) **`RACE_CALENDAR[2026]` is now data-driven**
@@ -36,10 +64,10 @@
 > race" design), so if fastf1 leaks pre-race laps for it with unclassified results, the old code would
 > have written a bogus actuals row. Regression test added (`test_leaked_target_laps_with_no_
 > classification_produce_no_row`). NOTE: the calendar design (target inclusion) is UNCHANGED.
-> **OWNER STEP (push):** `git push origin main`. The push includes
-> `.github/workflows/refresh-weekend-data.yml`; if the push is rejected for lacking GitHub's `workflow`
-> scope, push via SSH or a `workflow`-scoped token (the CI bot's PAT lacks it, but a human push with
-> proper scope carries the file fine). After deploy, confirm "next race"/`/weekend` reads Great Britain.
+> **OWNER STEP (push): DONE (2026-07-02).** `origin/main` == local `main` at `07a3fd8`; deployed to prod.
+> The live `.github/workflows/refresh-weekend-data.yml` was updated through the GitHub web editor (the
+> token-scope route around the missing `workflow` scope) and is byte-identical to the `docs/ops/`
+> template. Confirm on prod that "next race"/`/weekend` reads Great Britain.
 >
 > ## 2026-07-01 session — all MERGED to `main` + LIVE on prod
 > Shipped, in order: **(1) Mobile hamburger nav** (merge `34ff737`) — below `md` the inline row
@@ -199,15 +227,21 @@
 > across sections); **bigger "← Learn" back link** (PP NeueBit `text-xl`, growing underline). All motion
 > gated by `prefers-reduced-motion`. 109 vitest pass/2 skip, `npm run build` clean.
 >
-> **Remaining M6:** none — M6-A/B/C all shipped. Next milestone is **M7 (breadth + polish).**
+> **Remaining M6:** none — M6-A/B/C all shipped. **M7 (breadth + polish) is UNDERWAY: slice 1 (the
+> `/accuracy` season calibration curve) MERGED (PR #11, `29cbe12`) — see the top entry.** Remaining M7
+> slices: dominant-compound query type, explainers 8→15, visual polish, optional championship projection.
 >
 > **OPEN TODOs / known gaps (updated 2026-07-02):** (old TODOs #1 stop-count data + #2 mobile
 > hamburger, the `test_unrun_race_is_empty_not_error` failure, AND M6-C are all DONE — see the entries
 > above.) Remaining:
-> 1. **M7 — breadth + polish (the next milestone).** Its own spec→plan→build.
-> 2. ✅ **Data-currency automation — DONE (2026-07-02, merge `24761d6`; see the session entry above).**
->    R17 now self-derives `RACE_CALENDAR[2026]` + `weekend-schedule.json` from fastf1's schedule by race
->    date. (Push to origin still pending — owner step.)
+> 1. **M7 — breadth + polish (UNDERWAY).** ✅ Slice 1 (`/accuracy` season calibration curve) MERGED
+>    (PR #11, `29cbe12`) — verify populated states on the live deploy. Remaining slices (each its own
+>    spec→plan→build): dominant-compound query type, explainers 8→15, visual polish, optional
+>    championship projection.
+> 2. ✅ **Data-currency automation — DONE + PUSHED (2026-07-02, merge `24761d6`, head `07a3fd8`; live on
+>    prod). See the session entry above.** R17 now self-derives `RACE_CALENDAR[2026]` +
+>    `weekend-schedule.json` from fastf1's schedule by race date. Live workflow synced via the GitHub
+>    web editor (matches `docs/ops/` template).
 > 3. **Ops hygiene:** rotate the PREVIEW `CRON_SECRET` off the throwaway `s4-cron-test` value.
 > 4. ✅ **R17 parquet non-determinism + China pit-loss noise — DONE (2026-07-02, same merge).** Content-
 >    fingerprint deploy gate (`api/data-fingerprint.json`) so R17 deploys only on real change; China/thin-
