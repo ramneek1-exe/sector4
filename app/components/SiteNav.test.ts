@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import { NAV_LINKS, isActiveLink } from "./SiteNav";
 
 describe("NAV_LINKS", () => {
-  it("is the three nav links in order", () => {
-    expect(NAV_LINKS.map((l) => l.href)).toEqual(["/", "/learn", "/weekend"]);
-    expect(NAV_LINKS.map((l) => l.label)).toEqual(["Ask", "Learn", "Upcoming weekend"]);
+  it("is the four nav links in order", () => {
+    expect(NAV_LINKS.map((l) => l.href)).toEqual(["/", "/learn", "/accuracy", "/weekend"]);
+    expect(NAV_LINKS.map((l) => l.label)).toEqual([
+      "Ask",
+      "Learn",
+      "Accuracy",
+      "Upcoming weekend",
+    ]);
   });
 });
 

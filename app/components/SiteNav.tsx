@@ -13,6 +13,7 @@ export const NAV_H = 68; // px (h-[68px]) — the layout pads the body by this s
 export const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Ask" },
   { href: "/learn", label: "Learn" },
+  { href: "/accuracy", label: "Accuracy" },
   { href: "/weekend", label: "Upcoming weekend" },
 ];
 
