@@ -66,12 +66,14 @@ export function AsciiEmblem({
   cols = 28,
   animate = true,
   className = "",
+  color,
 }: {
   kind: EmblemKind;
   size?: number;
   cols?: number;
   animate?: boolean;
   className?: string;
+  color?: string;
 }) {
   const [grid, setGrid] = useState<AsciiGrid | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -86,7 +88,7 @@ export function AsciiEmblem({
     let cancelled = false;
     const { w, h } = emblemViewBox(kind);
     const rows = asciiRowsFor(w, h, cols, 1); // square cells
-    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(emblemSvgMarkup(kind))}`;
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(emblemSvgMarkup(kind, color))}`;
     const img = new Image();
     img.onload = () => {
       if (cancelled) return;
@@ -107,7 +109,7 @@ export function AsciiEmblem({
     return () => {
       cancelled = true;
     };
-  }, [kind, cols]);
+  }, [kind, cols, color]);
 
   // 2. Draw the dither field, optionally with a scattered develop reveal.
   useEffect(() => {
