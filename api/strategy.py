@@ -23,7 +23,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.inference.stops import actual_stops, historical_stop_norm  # noqa: E402
-from src.inference.strategy import predict_stop_counts  # noqa: E402
+from src.inference.strategy import predict_stop_counts, dominant_compound_norm  # noqa: E402
 from src.inference.teams import attach_teams  # noqa: E402
 
 _TABLE = pd.read_parquet(Path(__file__).with_name("strategy_features.parquet"))
@@ -72,6 +72,25 @@ def strategy_response(body: dict) -> tuple[int, dict]:
     return 200, pred
 
 
+def compound_response(body: dict) -> tuple[int, dict]:
+    """Historical 'typical compound here' (no telemetry edge; a NORM, not a prediction)."""
+    year, gp = body.get("year"), body.get("gp")
+    if year is None or not gp:
+        return 400, {"error": "year and gp are required"}
+    try:
+        year = int(year)
+    except (TypeError, ValueError):
+        return 400, {"error": "year must be an integer"}
+    return 200, dominant_compound_norm(year, gp, table=_TABLE)
+
+
+def route(body: dict) -> tuple[int, dict]:
+    """Dispatch by `kind`: compound norm vs the default stop-count response."""
+    if body.get("kind") == "compound":
+        return compound_response(body)
+    return strategy_response(body)
+
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):  # noqa: N802 (Vercel/BaseHTTPRequestHandler contract)
         length = int(self.headers.get("Content-Length", 0))
@@ -81,7 +100,7 @@ class handler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             status, payload = 400, {"error": "invalid JSON body"}
         else:
-            status, payload = strategy_response(body)
+            status, payload = route(body)
         encoded = json.dumps(payload).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
