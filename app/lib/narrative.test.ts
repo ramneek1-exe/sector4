@@ -4,8 +4,10 @@ import {
   generatePaceNarrative,
   generateStrategyNarrative,
   strategyLede,
+  compoundLede,
   type PaceFacts,
   type StrategyFacts,
+  type CompoundFacts,
 } from "./narrative";
 
 const fakeClient = (text: string) => ({
@@ -72,4 +74,20 @@ test("historical mode ledes with the norm", () => {
   const f = { year: 2026, gp: "Great Britain", mode: "historical" as const, qualitative: false, sc_caveat: "",
     n_seasons: 3, dominant: { n_stops: 2, share: null, n_drivers: null }, drivers: [] };
   expect(strategyLede(f)).toMatch(/usually a 2-stop/i);
+});
+
+const base: CompoundFacts = { year: 2026, gp: "Italy", compound: "MEDIUM", basis_year: 2025 };
+
+describe("compoundLede", () => {
+  it("names the historical dominant compound in lower case", () => {
+    const s = compoundLede(base);
+    expect(s).toContain("Italy");
+    expect(s).toContain("medium");
+    expect(s).not.toContain("—"); // no em-dash
+  });
+
+  it("degrades honestly when there is no history", () => {
+    const s = compoundLede({ ...base, compound: null, basis_year: null });
+    expect(s.toLowerCase()).toContain("enough history");
+  });
 });

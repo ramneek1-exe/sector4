@@ -195,3 +195,50 @@ export async function generateStrategyNarrative(client: LlmClient, facts: Strate
   });
   return msg.content.filter((b: any) => b.type === "text").map((b: any) => b.text).join("").trim();
 }
+
+export type CompoundFacts = {
+  year: number;
+  gp: string;
+  compound: "SOFT" | "MEDIUM" | "HARD" | null;
+  basis_year: number | null;
+  context?: string[];
+};
+
+// Grounded one-liner the generator leads with. No invented facts; no em-dashes.
+export function compoundLede(f: CompoundFacts): string {
+  if (!f.compound) {
+    return `There isn't enough history to call a typical tyre compound at the ${f.gp} yet.`;
+  }
+  const name = f.compound.toLowerCase();
+  return `Historically the dominant tyre at the ${f.gp} has been the ${name} compound.`;
+}
+
+const COMPOUND_SYSTEM = [
+  "You write a short, honest explanation (2-3 sentences) about which tyre compound is TYPICALLY dominant at a Formula 1 circuit.",
+  "You may use ONLY the facts in the JSON the user provides (the lede line, the compound, and any `context`).",
+  "The first line of the user message is a grounded lede; build naturally from it rather than repeating it verbatim.",
+  "This is a HISTORICAL pattern (the compound that took the most race laps here in past years), NOT a telemetry prediction. Never present it as a forecast of this weekend.",
+  "You MUST note that the actual dominant compound depends on this weekend's Pirelli tyre allocation, which this historical view does not account for.",
+  "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short detail from it, only from that array, never your own outside knowledge.",
+  "Do not invent drivers, teams, numbers, causes, or comparisons not in the JSON.",
+  "If compound is null (a low-data state), say plainly there isn't enough history for this circuit yet.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
+].join(" ");
+
+export async function generateCompoundNarrative(
+  client: LlmClient,
+  facts: CompoundFacts,
+): Promise<string> {
+  const lede = compoundLede(facts);
+  const msg = await client.messages.create({
+    model: HAIKU,
+    max_tokens: 200,
+    system: COMPOUND_SYSTEM,
+    messages: [{ role: "user", content: `${lede}\n\n${JSON.stringify(facts)}` }],
+  });
+  return msg.content
+    .filter((b: any) => b.type === "text")
+    .map((b: any) => b.text)
+    .join("")
+    .trim();
+}
