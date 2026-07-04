@@ -111,5 +111,11 @@ def predict_upcoming_podium(
     if entry_drivers is None:
         entry_drivers = latest_entry_list(season_results, year)
     target = build_podium_target(season_results, pace_hist, year, gp, entry_drivers, grid)
+    # Drop any pre-existing rows for the target weekend before appending the freshly-built
+    # target. An un-raced target can leak into `history` (fastf1 exposes future sessions,
+    # so the podium table build may include the upcoming round with null team); left in,
+    # those rows duplicate every driver and inject null-team entries that render grey.
+    # The runtime target — which carries team + Friday features — is the only valid gp rep.
+    history = history[history["race_id"] != race_id(year, gp)]
     table = pd.concat([history, target], ignore_index=True)
     return predict_podium(year, gp, mode=mode, table=table)
