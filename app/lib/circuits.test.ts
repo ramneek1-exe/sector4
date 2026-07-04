@@ -15,6 +15,13 @@ describe("normalizeCircuit", () => {
     expect(normalizeCircuit("mexico")).toBe("Mexico City");
   });
 
+  it("resolves British GP name variants (incl. the parser's 'United Kingdom')", () => {
+    expect(normalizeCircuit("british gp")).toBe("Great Britain");
+    expect(normalizeCircuit("the British Grand Prix")).toBe("Great Britain");
+    expect(normalizeCircuit("United Kingdom")).toBe("Great Britain");
+    expect(normalizeCircuit("Silverstone")).toBe("Great Britain");
+  });
+
   it("normalizes the remaining 2026 roster circuits (upcoming races)", () => {
     expect(normalizeCircuit("Spa")).toBe("Belgium");
     expect(normalizeCircuit("the Belgian Grand Prix")).toBe("Belgium");
