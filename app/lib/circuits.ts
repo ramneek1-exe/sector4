@@ -92,6 +92,8 @@ const ALIASES: Record<string, string> = {
   britain: "Great Britain",
   british: "Great Britain",
   "great britain": "Great Britain",
+  "united kingdom": "Great Britain",
+  england: "Great Britain",
   silverstone: "Great Britain",
   uk: "Great Britain",
   // remaining 2026 rounds (added so upcoming-race stop/pit-loss queries resolve)
