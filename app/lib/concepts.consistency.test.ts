@@ -80,4 +80,22 @@ describe("concepts.json integrity", () => {
       }
     }
   });
+
+  it("ships all 24 concepts", () => {
+    expect(concepts.length).toBe(24);
+  });
+
+  it("the original 8 are verified and the 16 new are drafted", () => {
+    const verified = concepts.filter((c) => c.badge === "verified").length;
+    const drafted = concepts.filter((c) => c.badge === "drafted").length;
+    expect(verified).toBe(8);
+    expect(drafted).toBe(16);
+  });
+
+  it("covers all five groups", () => {
+    const groups = new Set(concepts.map((c) => c.group));
+    expect(groups).toEqual(
+      new Set(["Tyres & strategy", "Pace & sessions", "Air & aero", "Race control", "Power & energy"]),
+    );
+  });
 });

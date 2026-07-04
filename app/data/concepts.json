@@ -136,7 +136,7 @@
       "In its place, 2026 cars run active aerodynamics. The driver switches the front and rear wings between a high-downforce mode for the corners and a low-drag 'straight' mode for the straights. Overtaking is helped instead by a manual override boost, an 'overtake' mode that hands the chasing car extra electrical power. With the new power units drawing close to half their output from the battery, recovering and deploying that energy ('regen') over a lap becomes a big part of both attack and defence."
     ],
     "whyItMatters": "Where a track lets a driver deploy the overtake boost and recover energy shapes how easily positions change. That feeds into how a predicted strategy actually plays out on Sunday.",
-    "related": ["dirty-air"],
+    "related": ["dirty-air", "power-modes", "energy-harvesting"],
     "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
@@ -372,6 +372,82 @@
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
+    ]
+  },
+  {
+    "slug": "fuel-effect",
+    "term": "Fuel Effect",
+    "group": "Power & energy",
+    "summary": "A car starts the race heaviest, with a full fuel load, and gets quicker lap on lap as that fuel burns off.",
+    "aliases": ["fuel effect", "fuel load", "fuel burn", "fuel correction"],
+    "body": [
+      "A Formula 1 car is heaviest at the start of a stint, when it's carrying all the fuel it needs. Every lap burns some of that off, and the car gets lighter and faster as a result, worth roughly a few hundredths of a second per lap for every kilogram shed.",
+      "That means a driver's very first laps on a full tank are never their true pace. Someone running long on old fuel can look artificially slow next to a car that's already burned off weight, even if the underlying pace is similar.",
+      "To compare drivers or stints fairly, that fuel weight has to be corrected out of the lap times first. It's one of the basic cleaning steps behind any honest read of race pace."
+    ],
+    "whyItMatters": "Correcting for fuel effect is a first step in our pace pipeline, since skipping it would make heavier, early-stint laps look like a driver problem instead of a fuel one.",
+    "related": ["qualifying-vs-race-pace", "tyre-degradation"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+    ]
+  },
+  {
+    "slug": "lift-and-coast",
+    "term": "Lift and Coast",
+    "group": "Power & energy",
+    "summary": "Easing off the throttle before a braking point to manage the car, rather than braking as late as possible every lap.",
+    "aliases": ["lift and coast", "lift-and-coast", "lico"],
+    "body": [
+      "Lift and coast means a driver backs out of the throttle earlier than flat-out racing would allow, before the braking zone, instead of carrying full speed to the last possible moment.",
+      "In 2026, with the power unit drawing a much bigger share of its output from the battery, lift and coast is primarily an energy-management move: easing off banks extra charge for later deployment. It still helps save fuel, tyres, and brakes too, which matters across a long stint or when nursing a car home.",
+      "It isn't free. Lifting early costs a little lap time on the lap it happens, so teams and drivers are weighing that small loss against the energy, fuel, or component life they get back."
+    ],
+    "whyItMatters": "Laps with visible lift and coast are exactly the kind of laps our pace pipeline has to recognize and treat differently, since they understate a driver's outright pace on purpose.",
+    "related": ["fuel-effect", "energy-harvesting"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+    ]
+  },
+  {
+    "slug": "energy-harvesting",
+    "term": "Energy Harvesting",
+    "group": "Power & energy",
+    "summary": "How a car recovers energy into its battery under braking, feeding the electrical power it deploys elsewhere on the lap.",
+    "aliases": ["harvesting", "energy recovery", "regen", "ERS", "MGU-K"],
+    "body": [
+      "Every time a Formula 1 car brakes, its Motor Generator Unit-Kinetic (MGU-K) can recover some of that energy and store it in the battery instead of losing it all as heat, a process usually shorthanded as regen.",
+      "The 2026 power unit draws close to half its total output from electrical power, up sharply from earlier hybrid eras. That makes harvesting enough energy over a lap, especially under the heavier braking zones, central to how much a driver can deploy later for attack or defence.",
+      "A car that harvests well can spend more freely when it counts. One that struggles to recover energy, on a lap with fewer or gentler braking zones, has less in the bank and has to manage deployment more carefully."
+    ],
+    "whyItMatters": "How well a car harvests shapes what it can deploy through power modes, which is a genuine 2026 storyline behind who can attack or defend late in a stint.",
+    "related": ["power-modes", "lift-and-coast"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+    ]
+  },
+  {
+    "slug": "power-modes",
+    "term": "Power Modes",
+    "group": "Power & energy",
+    "summary": "How a 2026 driver manages and deploys stored electrical power across a lap, including a manual boost for attack or defence.",
+    "aliases": ["overtake mode", "boost mode", "override", "manual override"],
+    "body": [
+      "2026 cars give the driver control over how stored electrical energy is deployed across a lap, balancing it against what's been harvested under braking. Spend too freely too early and there's less left when it matters later.",
+      "On top of that base deployment, a manual override, sometimes called overtake mode, hands the driver a short burst of extra electrical power to help an attack or a defence, echoing the role DRS used to play before 2026.",
+      "It pairs with the aero side of the 2026 rules: a driver switching to the low-drag 'straight' mode on a straight is a separate, aero call, covered under DRS & Active Aero. Power modes are the energy-deployment half of that same 2026 story."
+    ],
+    "whyItMatters": "Where and how a driver can deploy the override boost shapes how easily a position actually changes hands, which is part of how a predicted strategy plays out on Sunday.",
+    "related": ["energy-harvesting", "drs"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
     ]
   }
 ]
