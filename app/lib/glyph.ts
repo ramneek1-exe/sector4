@@ -4,6 +4,18 @@ import { contrastGuard } from "./contrast";
 
 const NEUTRAL = "#9CA3AF"; // grey helmet for unknown/absent team
 
+// The data pipeline (fastf1 season results) emits team-name variants and lineage names
+// that differ from the teams.json color-map keys, which would fall to grey. Map each to
+// its canonical key. New standalone 2026 teams (Audi, Cadillac F1 Team) are added to
+// teams.json directly and need no alias.
+const TEAM_ALIASES: Record<string, string> = {
+  "Red Bull": "Red Bull Racing",
+  "Alpine F1 Team": "Alpine",
+  "RB F1 Team": "Racing Bulls",
+  AlphaTauri: "Racing Bulls",
+  "Alfa Romeo": "Kick Sauber",
+};
+
 export type ResolvedGlyph = {
   code: string;
   number: number | null;
@@ -24,7 +36,8 @@ export function driverName(code: string): string {
 /** Resolve a 3-letter code + team name to render-ready glyph values. Pure. */
 export function resolveGlyph(code: string, team: string | null): ResolvedGlyph {
   const d = (drivers as Record<string, Driver>)[code];
-  const t = team ? (teams as Record<string, Team>)[team] : undefined;
+  const teamKey = team ? (TEAM_ALIASES[team] ?? team) : undefined;
+  const t = teamKey ? (teams as Record<string, Team>)[teamKey] : undefined;
   const helmetFill = t?.primary ?? NEUTRAL;
   const accent = t?.secondary ?? NEUTRAL;
   const personal = d?.personalColor ?? "#FFFFFF";

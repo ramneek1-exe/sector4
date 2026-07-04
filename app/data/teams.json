@@ -9,5 +9,7 @@
   "RB": { "primary": "#6692FF", "secondary": "#1634CB" },
   "Racing Bulls": { "primary": "#6692FF", "secondary": "#2B4562" },
   "Kick Sauber": { "primary": "#52E252", "secondary": "#006B2D" },
-  "Haas F1 Team": { "primary": "#9CA3AF", "secondary": "#DA0000" }
+  "Haas F1 Team": { "primary": "#9CA3AF", "secondary": "#DA0000" },
+  "Audi": { "primary": "#252528", "secondary": "#E30613" },
+  "Cadillac F1 Team": { "primary": "#0A1D3D", "secondary": "#D4AF37" }
 }
