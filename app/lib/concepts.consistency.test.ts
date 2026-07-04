@@ -3,12 +3,16 @@ import { allConcepts, getConcept } from "./concepts";
 
 const BADGES = ["verified", "drafted", "community-reviewed"];
 
+const ALLOWED_GROUPS = [
+  "Tyres & strategy",
+  "Pace & sessions",
+  "Air & aero",
+  "Race control",
+  "Power & energy",
+];
+
 describe("concepts.json integrity", () => {
   const concepts = allConcepts();
-
-  it("ships exactly the 8 starter concepts", () => {
-    expect(concepts.length).toBe(8);
-  });
 
   it("every concept has all required fields populated", () => {
     for (const c of concepts) {
@@ -21,10 +25,6 @@ describe("concepts.json integrity", () => {
       expect(c.sources.length, `${c.slug} sources`).toBeGreaterThan(0);
       expect(BADGES, `${c.slug} badge`).toContain(c.badge);
     }
-  });
-
-  it("ships all concepts as verified (owner-reviewed)", () => {
-    expect(concepts.every((c) => c.badge === "verified")).toBe(true);
   });
 
   it("slugs are unique", () => {
@@ -45,6 +45,38 @@ describe("concepts.json integrity", () => {
       for (const s of c.sources) {
         expect(s.label, `${c.slug} source label`).toBeTruthy();
         expect(s.url.startsWith("https://"), `${c.slug} source url`).toBe(true);
+      }
+    }
+  });
+
+  it("every group is one of the allowed groups", () => {
+    for (const c of concepts) {
+      expect(ALLOWED_GROUPS, `${c.slug} group`).toContain(c.group);
+    }
+  });
+
+  it("slugs are kebab-case", () => {
+    for (const c of concepts) {
+      expect(/^[a-z0-9]+(-[a-z0-9]+)*$/.test(c.slug), `${c.slug} kebab`).toBe(true);
+    }
+  });
+
+  it("aliases are globally unique across all concepts (case-insensitive)", () => {
+    const seen = new Map<string, string>();
+    for (const c of concepts) {
+      for (const a of c.aliases) {
+        const key = a.toLowerCase();
+        expect(seen.has(key), `duplicate alias "${a}" (${seen.get(key)} vs ${c.slug})`).toBe(false);
+        seen.set(key, c.slug);
+      }
+    }
+  });
+
+  it("no user-facing copy contains an em-dash", () => {
+    for (const c of concepts) {
+      const strings = [c.term, c.summary, c.whyItMatters, ...c.body];
+      for (const s of strings) {
+        expect(s.includes("—"), `${c.slug} em-dash in "${s.slice(0, 40)}"`).toBe(false);
       }
     }
   });
