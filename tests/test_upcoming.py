@@ -118,3 +118,23 @@ def test_predict_upcoming_podium_sharpens_to_saturday_with_grid():
         entry_drivers=["VER", "NOR", "SAR"], grid={"VER": 1, "NOR": 2, "SAR": 3},
     )
     assert out["mode"] == "saturday"
+
+
+def test_predict_upcoming_podium_ignores_leaked_target_rows_in_history():
+    # A stale/leaked row for the TARGET weekend already in the history table (e.g. fastf1
+    # leaking future-race data) must NOT duplicate drivers or inject null-team rows. The
+    # freshly-built target (which carries team) is the only valid representation of this gp.
+    leaked = pd.DataFrame([{
+        "race_id": race_id(2026, "Austria"), "year": 2026, "gp": "Austria", "Driver": "VER",
+        "champ_rank_before": 1, "champ_points_before": 50, "form_finish_avg3": 1,
+        "prior_track_pace": -0.1, "grid_position": 1, "podium": 1, "finish_pos": 1,
+        "team": None,
+    }])
+    hist = pd.concat([_podium_history(), leaked], ignore_index=True)
+    out = predict_upcoming_podium(
+        hist, _season_results(), _pace_hist(), 2026, "Austria",
+        entry_drivers=["VER", "NOR", "SAR"],
+    )
+    codes = [d["driver"] for d in out["drivers"]]
+    assert len(codes) == len(set(codes)) == 3  # no duplicated VER from the leaked row
+    assert all(d.get("team") is not None for d in out["drivers"])  # no null-team leak
