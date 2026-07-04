@@ -45,21 +45,24 @@ export async function GET(req: Request) {
   if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  // `?force=1` overwrites an existing snapshot for the due checkpoint (used to re-issue
+  // after a data fix). Still auth-gated; without it the job stays idempotent.
+  const force = ["1", "true"].includes(new URL(req.url).searchParams.get("force") ?? "");
   try {
-    return await run();
+    return await run(force);
   } catch (e) {
     console.error("cron snapshot failed", e);
     return NextResponse.json({ error: "snapshot failed" }, { status: 500 });
   }
 }
 
-async function run() {
+async function run(force = false) {
   const s = schedule as SessionSchedule;
   const due = dueCheckpoint(new Date(), s);
   if (!due) return NextResponse.json({ status: "no checkpoint due" });
 
   const key = snapshotKey(s.year, s.gp, due);
-  if (await getJson<WeekendSnapshot>(key)) {
+  if (!force && (await getJson<WeekendSnapshot>(key))) {
     return NextResponse.json({ status: "already snapshotted", checkpoint: due });
   }
 
@@ -69,18 +72,22 @@ async function run() {
     const actualFinish = await getActualFinish(s.year, s.gp);
     snap.actuals = actualFinish;
     if (actualFinish.length > 0) {
-      const cal = computeCalibrationRow(
-        snap.podium as { drivers: { driver: string; p_podium: number }[] },
-        actualFinish,
-      );
       const idxKey = seasonIndexKey(s.year);
       const idx = (await getJson<unknown[]>(idxKey)) ?? [];
-      idx.push({ gp: s.gp, issuedAt: snap.issuedAt, ...cal });
-      await putJson(idxKey, idx);
+      // Idempotent: never double-count a gp in the calibration index (matters when
+      // `force` re-runs a final snapshot that was already scored).
+      if (!idx.some((r) => (r as { gp?: string }).gp === s.gp)) {
+        const cal = computeCalibrationRow(
+          snap.podium as { drivers: { driver: string; p_podium: number }[] },
+          actualFinish,
+        );
+        idx.push({ gp: s.gp, issuedAt: snap.issuedAt, ...cal });
+        await putJson(idxKey, idx);
+      }
     }
   }
 
   await putJson(key, snap);
   await putJson(latestKey(s.year, s.gp), snap);
-  return NextResponse.json({ status: "snapshotted", checkpoint: due });
+  return NextResponse.json({ status: "snapshotted", checkpoint: due, forced: force });
 }
