@@ -142,5 +142,62 @@
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
     ]
+  },
+  {
+    "slug": "tyre-compounds",
+    "term": "Tyre Compounds",
+    "group": "Tyres & strategy",
+    "summary": "The range of dry tyres a team can pick from, and the trade of outright speed against how long they last.",
+    "aliases": ["compound", "compounds", "tyre compound", "soft tyre", "medium tyre", "hard tyre"],
+    "body": [
+      "Pirelli brings a range of dry-weather tyres graded from the hardest to the softest. For each weekend it nominates three of them, and those become the soft, medium, and hard for that event. So the 'soft' at one track can be a different underlying rubber than the 'soft' at another.",
+      "Softer tyres grip harder and set faster lap times, but they wear out sooner. Harder tyres give up some outright pace for a longer, steadier life. Choosing which to run, and for how long, is the heart of race strategy.",
+      "Because the three chosen tyres differ track to track, the compound that ends up dominating a race is partly a function of what was brought that weekend."
+    ],
+    "whyItMatters": "The compound mix shapes how many stops a race needs and which tyre tends to dominate, which is exactly what our strategy and compound answers reason about.",
+    "related": ["tyre-degradation", "stop-count-strategy"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+    ]
+  },
+  {
+    "slug": "marbles",
+    "term": "Marbles",
+    "group": "Tyres & strategy",
+    "summary": "Bits of worn rubber that build up off the racing line, cutting grip for any car that strays there.",
+    "aliases": ["marbles", "off-line grip"],
+    "body": [
+      "As tyres wear, small pieces of rubber shear off and get flung outward by a corner's forces, landing just off the line the fastest cars actually take. Lap after lap, that rubber builds into a layer of loose grit known as 'marbles'.",
+      "The racing line itself stays clean and grippy because cars constantly scrub over it, but step off it, even by a car's width, and the marbles cut available grip. That happens when defending a position, running around the outside to overtake, or picking a line to a grid slot at a standing restart.",
+      "The effect builds through a session, and it can catch out a driver who has to leave the line, sometimes badly enough that a slide looks like a mistake when it is really just where the rubber piled up."
+    ],
+    "whyItMatters": "Marbles are part of why staying on the racing line matters as much as raw pace. It's useful context for the risk in an overtaking move, especially late in a stint when the off-line rubber has had the longest to build up.",
+    "related": ["tyre-degradation", "dirty-air"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+    ]
+  },
+  {
+    "slug": "double-stacking",
+    "term": "Double-Stacking",
+    "group": "Tyres & strategy",
+    "summary": "Pitting both of a team's cars on back-to-back laps within a single stop window.",
+    "aliases": ["double stack", "double-stacking", "stacking"],
+    "body": [
+      "When both of a team's cars need to stop in the same window, most often right after a Safety Car or Virtual Safety Car has bunched up the field and made a stop cheap, the team can bring them in a lap apart rather than waiting. That's a 'double stack'.",
+      "The second car peels into the box right after the first, but has to wait for that first car's tyre change to finish before its own crew can get to work. That wait costs the second car a little extra time next to a stop taken on its own, since the crew and equipment can only service one car at a time.",
+      "Even with that extra cost, banking both stops while the whole field is running slowly is usually worth far more than sending one car out to pit alone later, back into a track that's up to speed again."
+    ],
+    "whyItMatters": "Double-stacking is a common reason a driver loses more time in the pits than the raw pit-loss number suggests, especially under a Safety Car, when every team's stops bunch into the same short window. It's a useful check on why a stop didn't play out exactly on paper.",
+    "related": ["stop-count-strategy", "pit-lane-time-loss", "undercut-overcut"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
+    ]
   }
 ]
