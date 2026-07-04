@@ -33,7 +33,16 @@ from src.inference.upcoming import predict_upcoming_podium  # noqa: E402
 _TABLE = pd.read_parquet(Path(__file__).with_name("podium_features.parquet"))
 _SEASON = pd.read_parquet(Path(__file__).with_name("season_results.parquet"))
 _PACE = pd.read_parquet(Path(__file__).with_name("pace_features.parquet"))
-_RACE_IDS = set(_TABLE["race_id"])
+
+
+def _has_raced(rid: str) -> bool:
+    """A weekend counts as genuinely RACED only if its rows carry team (a completed race
+    joins team from the results). fastf1 can leak an un-raced target into the feature
+    table with fabricated finish/podium values but NO team; such a row must route to the
+    upcoming builder, not be served as a historical result (else null-team, wrong podium).
+    """
+    rows = _TABLE[_TABLE["race_id"] == rid]
+    return not rows.empty and rows["team"].notna().any()
 
 
 def podium_response(body: dict) -> tuple[int, dict]:
@@ -52,7 +61,7 @@ def podium_response(body: dict) -> tuple[int, dict]:
     except (TypeError, ValueError):
         return 400, {"error": "year must be an integer"}
     mode = body.get("mode", "auto")
-    if race_id(year, gp) in _RACE_IDS:
+    if _has_raced(race_id(year, gp)):
         return 200, predict_podium(year, gp, mode=mode, table=_TABLE)
     if gp in GP_TO_EVENT:
         # Known circuit with no table row -> an upcoming weekend: build the row at
