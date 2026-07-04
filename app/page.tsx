@@ -8,7 +8,7 @@ import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts, CompoundFacts } from "@/app/lib/narrative";
+import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";

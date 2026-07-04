@@ -4,7 +4,8 @@
 The validated telemetry edge (+0.07 vs track-norm) and the deg->stops explainer hook.
 Per-request inference over the bundled strategy table; team attached for the glyphs. The
 SC caveat is always present in the payload. Carries scikit-learn; under Vercel's 500MB
-limit. Logic lives in `strategy_response`; `handler` is HTTP glue.
+limit. `route()` dispatches by `kind` to `strategy_response` (stop count) or
+`compound_response` (historical dominant compound); `handler` is HTTP glue.
 
 Regenerate the bundled tables with:
   PYTHONPATH=. .venv/bin/python -c "from src.pipeline import build_all; build_all()"
