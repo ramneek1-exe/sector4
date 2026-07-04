@@ -199,5 +199,101 @@
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
     ]
+  },
+  {
+    "slug": "fp-session-purpose",
+    "term": "Free Practice (FP1-FP3)",
+    "group": "Pace & sessions",
+    "summary": "What each free practice session is for, and why FP2 long runs give the best public read on race pace.",
+    "aliases": ["free practice", "FP1", "FP2", "FP3", "practice session"],
+    "body": [
+      "A standard race weekend runs three free practice sessions. FP1, on Friday morning, is largely a systems check: new parts get bedded in, sensors are validated, and drivers take their first laps of the weekend on that circuit.",
+      "FP2 is where the weekend starts to show its hand. Teams typically run a low-fuel qualifying simulation and a longer run on heavier fuel that mimics a race stint, so the FP2 long run is the closest thing to a public preview of Sunday's pace.",
+      "FP3, on Saturday morning, is short and narrowly focused: last setup tweaks and a final check of tyres and balance before qualifying, with little time left for anything resembling a race simulation.",
+      "Because FP2 is the only session built around race-like fuel loads and stint lengths, it's the one worth watching if you want a sense of who might actually be fast on race day, not just over one lap."
+    ],
+    "whyItMatters": "Sector 4 leans on FP2 long runs when reading degradation and race pace, since it's the only public session that looks anything like a race stint.",
+    "related": ["qualifying-vs-race-pace", "sandbagging"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One", "url": "https://en.wikipedia.org/wiki/Formula_One" }
+    ]
+  },
+  {
+    "slug": "sandbagging",
+    "term": "Sandbagging",
+    "group": "Pace & sessions",
+    "summary": "Deliberately hiding a car's true pace in practice so rivals can't read how fast it really is.",
+    "aliases": ["sandbagging", "hiding pace"],
+    "body": [
+      "Practice times are public, and every rival team is watching them. So a team that thinks it has genuine pace often doesn't show it: they'll run a touch heavier on fuel, turn the engine down a notch, or simply not push a lap to its limit. That's 'sandbagging'.",
+      "The motive is simple game theory. Showing real pace on Friday tips off rivals on setup direction and strategy before it matters, in qualifying and the race. Better to look ordinary on Friday and fast on Sunday.",
+      "It means practice classification should be read with real caution. A team near the back of the FP2 times isn't necessarily slow; it might just not be showing its hand yet."
+    ],
+    "whyItMatters": "Sandbagging is a big part of why practice pace alone is a noisy signal, and why Sector 4 treats FP long runs as a supporting input, not a standalone prediction of who's fastest.",
+    "related": ["fp-session-purpose", "qualifying-vs-race-pace"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Sandbagging", "url": "https://en.wikipedia.org/wiki/Sandbagging" }
+    ]
+  },
+  {
+    "slug": "sector-characteristics",
+    "term": "Sector Characteristics",
+    "group": "Pace & sessions",
+    "summary": "How a lap splits into three timed sectors, each with its own mix of corner speeds, revealing where a car's pace really comes from.",
+    "aliases": ["sector", "sectors", "sector time", "corner speed"],
+    "body": [
+      "Every lap is timed in three sectors, split at fixed points around the circuit. Each sector usually has its own character: a run of low-speed corners, a fast flowing section, a long straight, or some mix of all three.",
+      "A car's strengths don't have to show up evenly. One built for high-speed stability might gain heavily in a fast sector and give some of it back in a tight, low-speed one, so its overall lap time can hide a lot of variation underneath.",
+      "Comparing sector times, not just the final lap, is how you see where a car's pace actually comes from, and it can flag a setup trade-off before it shows up in the results."
+    ],
+    "whyItMatters": "Sector splits are part of how Sector 4 reads practice pace, since a lap time on its own can mask whether an advantage is real corner speed or just one strong sector.",
+    "related": ["qualifying-vs-race-pace", "track-evolution"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
+    ]
+  },
+  {
+    "slug": "slipstream-tow",
+    "term": "Slipstream / Tow",
+    "group": "Air & aero",
+    "summary": "Sitting in the wake of the car ahead cuts drag on a straight, giving a following car a speed boost.",
+    "aliases": ["slipstream", "tow", "the tow"],
+    "body": [
+      "A car pushes through the air and leaves a pocket of low-pressure, slower-moving air behind it. A car following closely on a straight can sit in that pocket, meeting less resistance and gaining extra speed for the same amount of power. That's the 'slipstream' or 'tow'.",
+      "It's the helpful side of running close behind another car. The same wake that costs a following car downforce and grip through the corners, dirty air, works in its favour once the road straightens out.",
+      "A strong tow can be worth several tenths on a long straight, enough to close a gap or set up a move at the braking zone, which is why drivers jostle for a run out of the last corner before it."
+    ],
+    "whyItMatters": "The tow is part of the on-track picture around overtaking and qualifying laps, and it's the straight-line counterpart to dirty air's cornering cost.",
+    "related": ["dirty-air", "drs"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Slipstream", "url": "https://en.wikipedia.org/wiki/Slipstream" }
+    ]
+  },
+  {
+    "slug": "ground-effect",
+    "term": "Ground Effect",
+    "group": "Air & aero",
+    "summary": "The underfloor tunnels that generate most of a modern F1 car's downforce, reintroduced with the 2022 regulations.",
+    "aliases": ["ground effect", "underfloor", "porpoising", "venturi"],
+    "body": [
+      "Since the 2022 rules, F1 cars make most of their downforce from shaped tunnels under the floor rather than wings alone. Air accelerates through the tunnels, which lowers pressure underneath the car and pulls it toward the track, generating grip with less drag than an equivalent amount from wings.",
+      "One aim of bringing it back was to let cars follow each other more closely, since ground-effect downforce holds up a bit better in another car's wake than the old wing-heavy cars did.",
+      "It came with a side effect early on: at high speed the floor could stall and reattach in a rapid cycle, bouncing the car violently down the straights. That bouncing, 'porpoising', was largely tamed through floor and suspension changes over the following seasons."
+    ],
+    "whyItMatters": "Ground effect is why current cars can run closer together than the previous generation, which feeds directly into how dirty air and the tow play out in a race.",
+    "related": ["dirty-air", "drs"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Ground effect (cars)", "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)" }
+    ]
   }
 ]
