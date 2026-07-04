@@ -23,6 +23,20 @@ describe("resolveGlyph", () => {
     const g = resolveGlyph("VER", null);
     expect(g.helmetFill).toBe("#9CA3AF");
   });
+
+  it("maps 2026 pipeline team-name variants to the canonical color, not grey", () => {
+    // Strings the fastf1 season results emit for teams already in teams.json.
+    expect(resolveGlyph("VER", "Red Bull").helmetFill).toBe("#223971"); // Red Bull Racing
+    expect(resolveGlyph("GAS", "Alpine F1 Team").helmetFill).not.toBe("#9CA3AF");
+    expect(resolveGlyph("LAW", "RB F1 Team").helmetFill).not.toBe("#9CA3AF");
+    expect(resolveGlyph("BOT", "Alfa Romeo").helmetFill).not.toBe("#9CA3AF");
+    expect(resolveGlyph("TSU", "AlphaTauri").helmetFill).not.toBe("#9CA3AF");
+  });
+
+  it("resolves the new 2026 teams Audi and Cadillac to real colors, not grey", () => {
+    expect(resolveGlyph("HUL", "Audi").helmetFill).not.toBe("#9CA3AF");
+    expect(resolveGlyph("PER", "Cadillac F1 Team").helmetFill).not.toBe("#9CA3AF");
+  });
 });
 
 describe("data integrity", () => {
