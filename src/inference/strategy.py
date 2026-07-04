@@ -69,3 +69,37 @@ def predict_stop_counts(year: int, gp: str, table: pd.DataFrame | None = None,
                 "n_drivers": int(len(preds))}
     return {"year": year, "gp": gp, "qualitative": False, "n_train_races": n_train,
             "sc_caveat": SC_CAVEAT, "dominant": dominant, "drivers": drivers}
+
+
+def dominant_compound_norm(year: int, gp: str, table: pd.DataFrame | None = None) -> dict:
+    """Historical 'typical compound here' from the leakage-safe hist_dominant column.
+
+    Dominant compound has NO telemetry edge (Phase 1: 0.733 = 0.733), so this is a historical
+    NORM, not a prediction. Reads ONLY the persisted strategy table's `hist_dominant` (the mode
+    of the circuit's dominant dry compound over strictly-earlier years), never the target
+    year's own compound. For an upcoming race (no row for `year`) it falls back to the latest
+    prior running's hist_dominant, which lags the most recent running by one year.
+    """
+    table = table if table is not None else store.read_table(store.STRATEGY_TABLE)
+    rows = (
+        table[table["gp"] == gp][["year", "hist_dominant"]]
+        .drop_duplicates()
+        .dropna(subset=["hist_dominant"])
+    )
+    none_result = {"year": year, "gp": gp, "compound": None, "basis_year": None}
+    if rows.empty:
+        return none_result
+    exact = rows[rows["year"] == year]
+    if not exact.empty:
+        chosen = exact.iloc[0]
+    else:
+        prior = rows[rows["year"] < year]
+        if prior.empty:
+            return none_result
+        chosen = prior.sort_values("year").iloc[-1]
+    return {
+        "year": year,
+        "gp": gp,
+        "compound": str(chosen["hist_dominant"]),
+        "basis_year": int(chosen["year"]),
+    }

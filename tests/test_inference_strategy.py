@@ -1,7 +1,7 @@
 """Tests for predict_stop_counts (Model B inference, M1)."""
 import pandas as pd
 
-from src.inference.strategy import SC_CAVEAT, predict_stop_counts
+from src.inference.strategy import SC_CAVEAT, dominant_compound_norm, predict_stop_counts
 
 
 def _strategy_table():
@@ -76,3 +76,45 @@ def test_recency_weighted_fit_runs_and_preserves_shape():
     assert len(out["drivers"]) == 4
     assert set(out["drivers"][0]) == {"driver", "n_stops", "confidence"}
     assert out["dominant"]["n_drivers"] == 4
+
+
+def _compound_table(rows):
+    """rows: list of (year, gp, hist_dominant). Two driver rows per running to exercise dedup."""
+    recs = []
+    for y, gp, hd in rows:
+        for drv in ("AAA", "BBB"):
+            recs.append({"year": y, "gp": gp, "hist_dominant": hd, "Driver": drv, "n_stops": 1})
+    return pd.DataFrame(recs)
+
+
+def test_compound_norm_uses_exact_year_row():
+    t = _compound_table([(2024, "Italy", "MEDIUM")])
+    out = dominant_compound_norm(2024, "Italy", table=t)
+    assert out == {"year": 2024, "gp": "Italy", "compound": "MEDIUM", "basis_year": 2024}
+
+
+def test_compound_norm_upcoming_falls_back_to_latest_prior_running():
+    t = _compound_table([(2024, "Italy", "SOFT"), (2025, "Italy", "HARD")])
+    out = dominant_compound_norm(2026, "Italy", table=t)
+    assert out["compound"] == "HARD"
+    assert out["basis_year"] == 2025
+
+
+def test_compound_norm_skips_null_hist_dominant():
+    t = _compound_table([(2023, "Italy", None), (2024, "Italy", "MEDIUM")])
+    out = dominant_compound_norm(2026, "Italy", table=t)
+    assert out["compound"] == "MEDIUM"
+    assert out["basis_year"] == 2024
+
+
+def test_compound_norm_no_history_returns_none():
+    t = _compound_table([(2024, "Italy", "MEDIUM")])
+    out = dominant_compound_norm(2026, "Baku", table=t)
+    assert out == {"year": 2026, "gp": "Baku", "compound": None, "basis_year": None}
+
+
+def test_compound_norm_never_reads_future_year_for_value():
+    # target 2024 must use the 2024 row (SOFT), never peek at 2025 (HARD).
+    t = _compound_table([(2024, "Italy", "SOFT"), (2025, "Italy", "HARD")])
+    out = dominant_compound_norm(2024, "Italy", table=t)
+    assert out["compound"] == "SOFT"

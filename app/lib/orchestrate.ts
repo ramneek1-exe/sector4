@@ -1,5 +1,5 @@
 import type { ParsedQuery } from "./parser";
-import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts } from "./narrative";
+import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts, CompoundFacts } from "./narrative";
 import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
 import { getCircuitFacts } from "./entity-whats";
@@ -34,6 +34,8 @@ export type AnswerDeps = {
   narratePace: (facts: PaceFacts) => Promise<string>;
   predictStrategy: (year: number, gp: string) => Promise<StrategyFacts>;
   narrateStrategy: (facts: StrategyFacts) => Promise<string>;
+  predictCompound: (year: number, gp: string) => Promise<CompoundFacts>;
+  narrateCompound: (facts: CompoundFacts) => Promise<string>;
   // Resolves "the next race" / "this weekend" to a concrete upcoming GP. Injectable
   // for deterministic tests; defaults to the live weekend schedule.
   upcomingRace?: () => UpcomingRace;
@@ -60,6 +62,7 @@ export type Answer =
   | { supported: true; podium: PodiumFacts; narrative: string }
   | { supported: true; pace: PaceFacts; narrative: string }
   | { supported: true; strategy: StrategyFacts; narrative: string }
+  | { supported: true; compound: CompoundFacts; narrative: string }
   | { supported: true; concept: Concept }
   | { supported: false; message: string };
 
@@ -130,6 +133,14 @@ export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answ
     const strategy = withContext(await deps.predictStrategy(target.year, target.gp), target.gp);
     const narrative = await deps.narrateStrategy(strategy);
     return { supported: true, strategy, narrative };
+  }
+
+  if (parsed.intent === "predict_compound") {
+    const target = resolveTarget(parsed, upcoming);
+    if (!target) return { supported: false, message: unsupportedSlice(parsed.gp ?? "") };
+    const compound = withContext(await deps.predictCompound(target.year, target.gp), target.gp);
+    const narrative = await deps.narrateCompound(compound);
+    return { supported: true, compound, narrative };
   }
 
   return { supported: false, message: UNSUPPORTED };
