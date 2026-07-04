@@ -7,6 +7,51 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## 2026-07-04 session — RACE-EVE FIREFIGHT (British GP, sprint weekend): 6 PRs MERGED to `origin/main` + live
+> Owner hit multiple prod issues the day before the British GP main race. **ONE root cause behind most of
+> them: the fastf1 FUTURE-DATA LEAK.** The un-raced GB *main race* leaked into the bundled feature tables
+> (fastf1 exposes future/other sessions), producing fabricated rows. Symptoms + fixes (all merged):
+> - **Grey driver helmets** (NOT the tyre glyph — a red herring). TWO causes: (a) 2026 team-name strings
+>   from the data don't match `teams.json` keys → grey `NEUTRAL` fallback → **PR #14** added a `TEAM_ALIASES`
+>   map (`app/lib/glyph.ts`: Red Bull→Red Bull Racing, Alpine F1 Team→Alpine, RB F1 Team→Racing Bulls,
+>   AlphaTauri/Alfa Romeo lineage) + **added Audi + Cadillac F1 Team to `teams.json`** (new 2026 teams;
+>   colors are sensible defaults, tunable). (b) **THE actual fix — PR #17:** `api/podium.py` routed GB to the
+>   HISTORICAL `predict_podium` path because GB leaked into `podium_features` (with fabricated finish but
+>   NULL team) → returned 20 null-team rows. New **`_has_raced(rid)` guard** (team populated = genuinely
+>   raced) routes leaked GB to the upcoming builder → 22 clean rows WITH teams. **PR #15** hardened
+>   `predict_upcoming_podium` to drop leaked target rows from history before concat (was 42 rows/dup drivers;
+>   the "42-driver bug"). NOTE: #14 alone didn't fix it (leaked rows had null team, not a mappable name; and
+>   #15's path wasn't even reached until #17 fixed the routing — DEBUGGING LESSON: check the LIVE endpoint,
+>   don't fix from data analysis alone).
+> - **`/weekend` showed no predictions / stayed grey.** `/weekend` reads a FROZEN Blob snapshot written by the
+>   **Vercel cron (daily `0 6 * * *`) — a SEPARATE job from R17.** R17 refreshing data does NOT write the
+>   snapshot. The daily cron hadn't hit a GB checkpoint window. **PR #16** added an auth-gated **`?force=1`**
+>   to `/api/cron/snapshot` (overwrite the frozen snapshot; idempotent calibration append). OWNER ran
+>   `curl ".../api/cron/snapshot?force=1" -H "Authorization: Bearer <CRON_SECRET>"` → snapshotted → `/weekend`
+>   rebuilt CLEAN (verified: HAM/ANT/RUS/... colored). **Re-run `?force=1` after any data fix to refresh
+>   `/weekend`.**
+> - **"british gp" query → "United Kingdom" unsupported.** Parser emits "United Kingdom"; not in the circuit
+>   aliases. **PR #18** added `united kingdom`/`england` → Great Britain (`app/lib/circuits.ts`).
+> - **Strategy showed a fabricated "actual" for GB** (same leak, into `actual_stops` — fully-populated row, no
+>   null-field tell). **PR #19** gates the `actual` branch on a DATE signal: bundled `app/data/weekend-schedule.json`
+>   into `api/strategy.py` + `_race_concluded(year,gp)` (only serve "actual" once the schedule target's `final`
+>   time passes). GB now falls through to Model-B "predicted" — but that's on a SEPARATELY leaked
+>   `strategy_features` row (GB is a sprint weekend = no real FP2), so it's still not fully honest → root gate (below).
+> **All 6 PRs (#14-#19) merged + live; branches deleted. 197 pytest + full vitest green.**
+> **ARCHITECTURE LEARNINGS (load-bearing):** (1) `/weekend` = frozen Blob snapshot (cron), NOT live and NOT R17;
+> refresh via `?force=1`. (2) fastf1 leaks future/other sessions → any table built over a calendar that
+> includes the un-raced target (the data-currency auto-calendar DOES) can get fabricated rows; the podium
+> `_has_raced` + strategy `_race_concluded` are per-table BOUNDARY guards, not the root fix.
+> **PARKED — deliberate POST-RACE data-integrity pass (one clean spec→plan→build slice):**
+> (a) **ROOT occurred-gate** — stop un-raced targets leaking into ANY feature table (podium/strategy/actual_stops/
+> season_results) at BUILD time (date-based; strategy_features is special — FP2 practice IS valid pre-race, but a
+> sprint weekend has no FP2). Retires the per-table boundary guards + stops R17 re-leaking each run. Also the GB
+> strategy "predicted"-on-leaked-FP is only fully fixed here. (b) **Sprint-in-standings** — fold sprint points into
+> `season_results` (currently GP-only: 8 events × 22, no sprint rows; predictions do NOT factor sprint results —
+> minor accuracy gap, within-weekend ordering is the fiddly part). (c) **`m7-explainers-expansion` branch**
+> (24 concepts, all 7 tasks green, whole-branch review blocked by session limit) — built but NEVER PR'd; interrupted
+> by this firefight. Ready to finish/PR.
+>
 > ## 2026-07-03 session — M7 slice 2: dominant-compound query wiring: MERGED to `origin/main` (PR #12, merge `a774243`) — deploying
 > **Second M7 sub-project.** Wires the already-parsed `predict_compound` intent end to end: "what tyre
 > compound is usually dominant at circuit X?" now flows NL → parser → `/api/strategy` (compound branch)
