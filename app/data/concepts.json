@@ -295,5 +295,83 @@
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Ground effect (cars)", "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)" }
     ]
+  },
+  {
+    "slug": "safety-car-vsc",
+    "term": "Safety Car & Virtual Safety Car",
+    "group": "Race control",
+    "summary": "The two ways race control slows the whole field down after an incident, one behind a physical car and one on a virtual pace limit.",
+    "aliases": ["safety car", "virtual safety car", "VSC"],
+    "body": [
+      "A Safety Car comes out after a serious incident or heavy debris on track. It leads the whole field around at reduced speed, bunches the cars up nose to tail behind it, and holds them there until it's safe for racing to resume.",
+      "A Virtual Safety Car does the same job without a physical car on track. Instead, every driver is shown a pace they must not beat through each marshalling sector, which forces a set slower lap, then the VSC ends and the race resumes at full speed.",
+      "Both slow the whole field together, so the usual pace cost of pitting shrinks: everyone is running slowly anyway, which makes a stop far cheaper than it would be at racing speed. That's why so many strategy calls change the moment one comes out."
+    ],
+    "whyItMatters": "A Safety Car or VSC is one of the biggest strategy resets in a race, and it's a big part of the uncertainty Sector 4 flags around any stop-count call.",
+    "related": ["stop-count-strategy", "double-stacking", "flags"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Safety car", "url": "https://en.wikipedia.org/wiki/Safety_car" }
+    ]
+  },
+  {
+    "slug": "flags",
+    "term": "Flags & Signals",
+    "group": "Race control",
+    "summary": "The flag and light-panel signals marshals and race control use to tell drivers what's happening on track.",
+    "aliases": ["yellow flag", "double yellow", "blue flag", "red flag", "chequered flag", "checkered flag"],
+    "body": [
+      "A single yellow flag means caution and no overtaking in that zone, because there's a hazard just ahead. A double yellow raises that warning further, for a bigger hazard or marshals working on the track, and usually means slowing down noticeably rather than just easing off.",
+      "A blue flag is shown to a driver who is about to be lapped, telling them a faster car is closing and they should let it through at the next reasonable chance rather than holding it up.",
+      "A red flag stops the session entirely, for a serious incident, dangerous weather, or a blockage that can't be cleared safely under yellows. Cars head back to the pits or grid and the session is paused until it's safe to restart.",
+      "The chequered flag simply ends the session, waved at the leader as they complete the final lap and then at every car behind as it crosses the line."
+    ],
+    "whyItMatters": "Flags shape how a race actually plays out lap to lap, since a well-timed yellow or a red flag can bunch the field up much like a Safety Car does.",
+    "related": ["safety-car-vsc"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Racing flags", "url": "https://en.wikipedia.org/wiki/Racing_flags" }
+    ]
+  },
+  {
+    "slug": "grid-penalties",
+    "term": "Grid Penalties",
+    "group": "Race control",
+    "summary": "Why a driver sometimes starts lower than they qualified, and how a penalty is applied to the grid.",
+    "aliases": ["grid penalty", "grid drop", "pit lane start", "penalty"],
+    "body": [
+      "A driver doesn't always start where they qualified. Race control can order a grid penalty, dropping a driver back a set number of places, most often for using more new power-unit components across a season than their allocation allows.",
+      "A gearbox has to last a set number of races before it can be changed without penalty; swap it early outside of exceptional circumstances and it carries a similar grid drop.",
+      "Penalties also follow driving incidents, like causing a collision or an unsafe release from the pit box. Race control applies these as a grid drop for a coming session, or, when the penalty is bigger than the grid can absorb, as a pit-lane start instead.",
+      "A pit-lane start is the harshest version: the driver starts from the pit lane, after the rest of the field, under the pit-lane speed limit, losing far more time than a grid-place drop would."
+    ],
+    "whyItMatters": "Grid penalties are why a driver's actual starting spot can differ sharply from raw pace or qualifying form, which matters for any podium read that leans on the grid.",
+    "related": ["qualifying-vs-race-pace"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+    ]
+  },
+  {
+    "slug": "dnf-reliability",
+    "term": "DNF & Reliability",
+    "group": "Race control",
+    "summary": "\"Did Not Finish\" covers any car that doesn't complete the race, and reliability is a real performance factor in its own right.",
+    "aliases": ["DNF", "did not finish", "retirement", "reliability"],
+    "body": [
+      "DNF stands for Did Not Finish. It covers any car that doesn't complete the race distance, whether from a mechanical failure, a crash, or the team retiring it for safety or damage reasons.",
+      "Reliability, how rarely a car or power unit breaks under race conditions, is a real competitive factor on its own, separate from outright pace. A fast car that doesn't finish scores nothing, while a slower, dependable one can keep racking up points race after race.",
+      "Because failures and incidents are inherently hard to foresee, they're a core reason no prediction, ours included, can promise a result. A DNF can rewrite a race's finishing order regardless of how accurate the pace or strategy read was going in."
+    ],
+    "whyItMatters": "DNFs are part of why Sector 4 frames predictions as calibrated probabilities rather than certainties, since even a well-supported pace or strategy call can be overtaken by a retirement no model saw coming.",
+    "related": ["safety-car-vsc"],
+    "badge": "drafted",
+    "sources": [
+      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
+      { "label": "Wikipedia: Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
+    ]
   }
 ]
