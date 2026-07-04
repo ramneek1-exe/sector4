@@ -7,6 +7,39 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## 2026-07-03 session — M7 slice 2: dominant-compound query wiring: MERGED to `origin/main` (PR #12, merge `a774243`) — deploying
+> **Second M7 sub-project.** Wires the already-parsed `predict_compound` intent end to end: "what tyre
+> compound is usually dominant at circuit X?" now flows NL → parser → `/api/strategy` (compound branch)
+> → grounded narrative → a `CompoundCard` with a compound-colored ASCII tyre glyph. **HISTORICAL norm,
+> NOT a telemetry prediction** (Phase 1: dominant compound has no edge, 0.733=0.733); every narrative
+> carries the **Pirelli-allocation caveat**. Spec/plan `docs/superpowers/{specs,plans}/
+> 2026-07-02-m7-dominant-compound*`; ledger `.superpowers/sdd/progress.md`. Subagent-driven: 6 tasks +
+> per-task reviews + whole-branch review + 1 fix-wave.
+> **What shipped:** (1) **`src/inference/strategy.py:dominant_compound_norm`** — leakage-safe lookup of the
+> `hist_dominant` column (mode of the circuit's dominant dry compound over strictly-EARLIER years). No ML,
+> no pipeline change, no new table. Upcoming race (no row for its year) falls back to the latest prior
+> running (lags by one running, accepted); no history → honest `None`. **v1 uses hist_dominant only — no
+> "X of N" share** (owner: the raw per-race `dominant_compound` is intentionally NOT persisted as a leakage
+> guard, so a share would need a pipeline change; deferred). (2) **`api/strategy.py`** gains a
+> `kind:"compound"` branch via a new `route()` dispatcher — reuses the bundled `strategy_features.parquet`,
+> NO new lambda/table. Default (no kind) → unchanged stop-count. (3) **`generateCompoundNarrative` +
+> `CompoundFacts`** (`app/lib/narrative.ts`) — grounded, historical framing, mandatory allocation caveat,
+> honest degrade on `None`. (4) **`app/lib/compound.ts`** color/letter map (SOFT red / MEDIUM amber / HARD
+> light-grey — color-coding only, NO Pirelli marks per §8) + optional **`color` prop on `AsciiEmblem`**
+> (defaults to brand blue via `emblemSvgMarkup`'s own default, so existing callers UNCHANGED) + **`CompoundCard.tsx`**
+> (compound-tinted ASCII tyre glyph via `AsciiEmblem kind="tyre"` + contrast-guarded S/M/H letter). (5) Wiring:
+> orchestrate `predict_compound` branch (mirrors `predict_strategy`), ask-route deps, page render, parser desc.
+> **HONESTY FIX (whole-branch review):** for a COMPLETED-race exact-match query, `basis_year==year` and the
+> compound is a projection from BEFORE that year; the prompt didn't disambiguate → hardened `COMPOUND_SYSTEM`
+> ("never state it as that specific year's own observed result").
+> **HOW TO TEST (on the live deploy):** ask e.g. "what tyre is usually dominant at Monza?" or "typical
+> compound at Silverstone?" → expect a CompoundCard with a colored tyre glyph (S/M/H) + a narrative that says
+> "historically ... has been the X compound" + the Pirelli-allocation caveat. A no-history circuit (e.g. a
+> brand-new 2026 circuit) → honest "not enough history". NOTE: NOT testable under `next dev` (Python `/api/*`
+> only served on a real deploy — M2 finding). 194 pytest + 146 vitest pass, build clean, zero pipeline/parquet/
+> vercel changes. **REMAINING M7 slices (each its own spec→plan→build): explainers 8→15, visual polish,
+> optional championship projection.**
+>
 > ## 2026-07-02 session — M7 slice 1: season calibration curve (`/accuracy`): MERGED to `origin/main` (PR #11, merge `29cbe12`) — deploying
 > **First of M7's independent sub-projects.** Makes the honesty thesis VISIBLE: a new `/accuracy`
 > "track record" page that scores every issued podium against the real finish and shows the season
