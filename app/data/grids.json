@@ -22,5 +22,29 @@
     "SAI": 17,
     "STR": 22,
     "VER": 5
+  },
+  "2026-Great Britain": {
+    "ALB": 16,
+    "ALO": 22,
+    "ANT": 1,
+    "BEA": 14,
+    "BOR": 11,
+    "BOT": 18,
+    "COL": 19,
+    "GAS": 12,
+    "HAD": 5,
+    "HAM": 3,
+    "HUL": 13,
+    "LAW": 10,
+    "LEC": 2,
+    "LIN": 9,
+    "NOR": 6,
+    "OCO": 17,
+    "PER": 20,
+    "PIA": 8,
+    "RUS": 4,
+    "SAI": 15,
+    "STR": 21,
+    "VER": 7
   }
 }
