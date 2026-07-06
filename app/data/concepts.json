@@ -340,7 +340,7 @@
     "term": "Grid Penalties",
     "group": "Race control",
     "summary": "Why a driver sometimes starts lower than they qualified, and how a penalty is applied to the grid.",
-    "aliases": ["grid penalty", "grid drop", "pit lane start", "penalty"],
+    "aliases": ["grid penalty", "grid drop", "pit lane start"],
     "body": [
       "A driver doesn't always start where they qualified. Race control can order a grid penalty, dropping a driver back a set number of places, most often for using more new power-unit components across a season than their allocation allows.",
       "A gearbox has to last a set number of races before it can be changed without penalty; swap it early outside of exceptional circumstances and it carries a similar grid drop.",
