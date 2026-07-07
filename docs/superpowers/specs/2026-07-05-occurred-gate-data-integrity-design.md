@@ -20,10 +20,20 @@ Everything flows through **two load chokepoints**:
 - `src/data/results.py:load_season_results` (results → season-results → standings/form).
 
 **Fix: a date-gate at both chokepoints** — never build a row from a session whose scheduled
-date is in the future. This closes the whole class in two places, and naturally handles the
-FP2 nuance: a Friday practice that has *run* passes the gate (Model-B still lights up
-pre-race on real practice); an un-raced Sunday race does not; a sprint weekend with no FP2
-simply yields no strategy row.
+date is in the future. This closes the whole class in two places.
+
+**Every feature table is race-gated.** `build_strategy_table` (and podium/pace/actual-stops/
+season-results) all require the *race* session for their label/data — there is no
+FP2-only or upcoming target builder for strategy (only podium has `build_podium_target`).
+So gating the *race* session removes the un-raced target from every table uniformly. The
+correct pre-race behavior then follows the original design contract:
+- **Podium** still works pre-race via `predict_upcoming_podium` (builds a runtime target from
+  standings/form/prior-pace — needs no table row).
+- **Strategy** falls to the **historical norm** for the upcoming weekend — exactly what the
+  pre-existing test `test_upcoming_next_race_returns_historical_mode` asserts. (The "predicted"
+  mode we saw pre-race was *entirely* the leak; Model-B stop-count prediction only has a row
+  for completed races. A true pre-race Model-B prediction would need a strategy-upcoming
+  builder like podium's — a SEPARATE future slice, out of scope here.)
 
 ## 2. Occurred-gate
 
