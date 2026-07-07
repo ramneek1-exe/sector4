@@ -85,11 +85,11 @@ describe("concepts.json integrity", () => {
     expect(concepts.length).toBe(24);
   });
 
-  it("the original 8 are verified and the 16 new are drafted", () => {
+  it("all 24 concepts are verified", () => {
     const verified = concepts.filter((c) => c.badge === "verified").length;
     const drafted = concepts.filter((c) => c.badge === "drafted").length;
-    expect(verified).toBe(8);
-    expect(drafted).toBe(16);
+    expect(verified).toBe(24);
+    expect(drafted).toBe(0);
   });
 
   it("covers all five groups", () => {

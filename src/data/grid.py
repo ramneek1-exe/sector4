@@ -14,7 +14,7 @@ import fastf1
 import pandas as pd
 
 from src.calendar import GP_TO_EVENT
-from src.data.load import enable_cache
+from src.data.load import enable_cache, session_in_future
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +26,18 @@ def load_qualifying_grid(year: int, gp: str) -> dict[str, int]:
     name via GP_TO_EVENT. Returns an empty dict if quali has not run / is unpublished
     (fastf1 does not raise for a future session — its results come back empty), so the
     caller degrades to honest Friday mode rather than a fake grid.
+
+    Same occurred-gate as `load_session`: fastf1 leaks a future session's classification,
+    so a scheduled date later than now is rejected BEFORE loading — otherwise a premature
+    grid could be written into grids.json and prematurely sharpen the podium to Saturday.
     """
     enable_cache()
     event = GP_TO_EVENT.get(gp, gp)
     try:
         s = fastf1.get_session(year, event, "Q")
+        if session_in_future(getattr(s, "date", None)):
+            logger.info("Skipping qualifying grid for %s %s: session not yet held (future date)", year, gp)
+            return {}
         s.load(laps=False, telemetry=False, weather=False, messages=False)
         res = s.results
     except Exception as e:  # noqa: BLE001 - any failure degrades to "no grid yet"

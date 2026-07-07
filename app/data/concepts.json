@@ -156,7 +156,7 @@
     ],
     "whyItMatters": "The compound mix shapes how many stops a race needs and which tyre tends to dominate, which is exactly what our strategy and compound answers reason about.",
     "related": ["tyre-degradation", "stop-count-strategy"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
@@ -175,7 +175,7 @@
     ],
     "whyItMatters": "Marbles are part of why staying on the racing line matters as much as raw pace. It's useful context for the risk in an overtaking move, especially late in a stint when the off-line rubber has had the longest to build up.",
     "related": ["tyre-degradation", "dirty-air"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
@@ -194,7 +194,7 @@
     ],
     "whyItMatters": "Double-stacking is a common reason a driver loses more time in the pits than the raw pit-loss number suggests, especially under a Safety Car, when every team's stops bunch into the same short window. It's a useful check on why a stop didn't play out exactly on paper.",
     "related": ["stop-count-strategy", "pit-lane-time-loss", "undercut-overcut"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
@@ -214,7 +214,7 @@
     ],
     "whyItMatters": "Sector 4 leans on FP2 long runs when reading degradation and race pace, since it's the only public session that looks anything like a race stint.",
     "related": ["qualifying-vs-race-pace", "sandbagging"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One", "url": "https://en.wikipedia.org/wiki/Formula_One" }
@@ -233,7 +233,7 @@
     ],
     "whyItMatters": "Sandbagging is a big part of why practice pace alone is a noisy signal, and why Sector 4 treats FP long runs as a supporting input, not a standalone prediction of who's fastest.",
     "related": ["fp-session-purpose", "qualifying-vs-race-pace"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Sandbagging", "url": "https://en.wikipedia.org/wiki/Sandbagging" }
@@ -252,7 +252,7 @@
     ],
     "whyItMatters": "Sector splits are part of how Sector 4 reads practice pace, since a lap time on its own can mask whether an advantage is real corner speed or just one strong sector.",
     "related": ["qualifying-vs-race-pace", "track-evolution"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
@@ -271,7 +271,7 @@
     ],
     "whyItMatters": "The tow is part of the on-track picture around overtaking and qualifying laps, and it's the straight-line counterpart to dirty air's cornering cost.",
     "related": ["dirty-air", "drs"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Slipstream", "url": "https://en.wikipedia.org/wiki/Slipstream" }
@@ -290,7 +290,7 @@
     ],
     "whyItMatters": "Ground effect is why current cars can run closer together than the previous generation, which feeds directly into how dirty air and the tow play out in a race.",
     "related": ["dirty-air", "drs"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Ground effect (cars)", "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)" }
@@ -309,7 +309,7 @@
     ],
     "whyItMatters": "A Safety Car or VSC is one of the biggest strategy resets in a race, and it's a big part of the uncertainty Sector 4 flags around any stop-count call.",
     "related": ["stop-count-strategy", "double-stacking", "flags"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Safety car", "url": "https://en.wikipedia.org/wiki/Safety_car" }
@@ -329,7 +329,7 @@
     ],
     "whyItMatters": "Flags shape how a race actually plays out lap to lap, since a well-timed yellow or a red flag can bunch the field up much like a Safety Car does.",
     "related": ["safety-car-vsc"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Racing flags", "url": "https://en.wikipedia.org/wiki/Racing_flags" }
@@ -349,7 +349,7 @@
     ],
     "whyItMatters": "Grid penalties are why a driver's actual starting spot can differ sharply from raw pace or qualifying form, which matters for any podium read that leans on the grid.",
     "related": ["qualifying-vs-race-pace"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
@@ -368,7 +368,7 @@
     ],
     "whyItMatters": "DNFs are part of why Sector 4 frames predictions as calibrated probabilities rather than certainties, since even a well-supported pace or strategy call can be overtaken by a retirement no model saw coming.",
     "related": ["safety-car-vsc"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
@@ -387,7 +387,7 @@
     ],
     "whyItMatters": "Correcting for fuel effect is a first step in our pace pipeline, since skipping it would make heavier, early-stint laps look like a driver problem instead of a fuel one.",
     "related": ["qualifying-vs-race-pace", "tyre-degradation"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
@@ -406,7 +406,7 @@
     ],
     "whyItMatters": "Laps with visible lift and coast are exactly the kind of laps our pace pipeline has to recognize and treat differently, since they understate a driver's outright pace on purpose.",
     "related": ["fuel-effect", "energy-harvesting"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
@@ -425,7 +425,7 @@
     ],
     "whyItMatters": "How well a car harvests shapes what it can deploy through power modes, which is a genuine 2026 storyline behind who can attack or defend late in a stint.",
     "related": ["power-modes", "lift-and-coast"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
@@ -444,7 +444,7 @@
     ],
     "whyItMatters": "Where and how a driver can deploy the override boost shapes how easily a position actually changes hands, which is part of how a predicted strategy plays out on Sunday.",
     "related": ["energy-harvesting", "drs"],
-    "badge": "drafted",
+    "badge": "verified",
     "sources": [
       { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
       { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
