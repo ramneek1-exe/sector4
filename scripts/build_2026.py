@@ -71,10 +71,12 @@ def assert_no_unraced_target(tables: dict, target_gp: str, target_raced: bool,
     rather than deploying leaked data."""
     if target_raced:
         return
+    from src.calendar import GP_TO_EVENT
+    target_names = {target_gp, GP_TO_EVENT.get(target_gp, target_gp)}
     for name, df in tables.items():
         if df is None or df.empty or "gp" not in df.columns or "year" not in df.columns:
             continue
-        if ((df["year"] == live_season) & (df["gp"] == target_gp)).any():
+        if ((df["year"] == live_season) & (df["gp"].isin(target_names))).any():
             raise RuntimeError(
                 f"{name}: un-raced target '{target_gp}' present in a live-season table "
                 f"(fastf1 leak past the occurred-gate); refusing to deploy leaked data."
