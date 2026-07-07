@@ -13,9 +13,26 @@ import os
 import fastf1
 import pandas as pd
 
-from src.data.load import enable_cache
+from src.data.load import enable_cache, session_in_future
 
 logger = logging.getLogger(__name__)
+
+
+def _sprint_points(year: int, rnd: int) -> dict:
+    """Driver -> sprint points for a round, or {} if the weekend has no sprint or it has not
+    run yet. Sprint points count toward the championship; a driver's round points = race +
+    sprint. Non-sprint weekends and future/absent sprints contribute nothing."""
+    try:
+        sp = fastf1.get_session(year, rnd, "Sprint")
+        if session_in_future(getattr(sp, "date", None)):
+            return {}
+        sp.load(laps=False, telemetry=False, weather=False, messages=False)
+        res = sp.results
+    except Exception:  # noqa: BLE001 - no sprint this weekend / API hiccup -> no points
+        return {}
+    if res is None or res.empty:
+        return {}
+    return {str(d): float(p) for d, p in zip(res["Abbreviation"], res["Points"])}
 
 
 def load_season_results(year: int) -> pd.DataFrame:
@@ -29,6 +46,8 @@ def load_season_results(year: int) -> pd.DataFrame:
             continue
         try:
             s = fastf1.get_session(year, rnd, "R")
+            if session_in_future(getattr(s, "date", None)):
+                continue  # race not yet held; do not ingest leaked results
             s.load(laps=False, telemetry=False, weather=False, messages=False)
             res = s.results
         except Exception as e:  # noqa: BLE001
@@ -45,6 +64,9 @@ def load_season_results(year: int) -> pd.DataFrame:
         df["round"] = rnd
         df["gp"] = ev["EventName"]
         df["date"] = pd.to_datetime(ev["EventDate"])
+        sprint = _sprint_points(year, rnd)
+        if sprint:
+            df["points"] = df["points"] + df["Driver"].map(sprint).fillna(0.0)
         frames.append(df)
     if not frames:
         return pd.DataFrame()
