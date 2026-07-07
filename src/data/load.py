@@ -8,12 +8,33 @@ from __future__ import annotations
 
 import logging
 import os
+from datetime import datetime, timezone
 
 import fastf1
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 _CACHE_ENABLED = False
+
+
+def _to_naive_utc(ts) -> pd.Timestamp:
+    t = pd.Timestamp(ts)
+    return t.tz_convert("UTC").tz_localize(None) if t.tzinfo is not None else t
+
+
+def session_in_future(dt, now=None) -> bool:
+    """True when a session's scheduled datetime is later than `now` (UTC).
+
+    fastf1 exposes future/other sessions and returns leaked laps for them, so a date check
+    is the only safe occurred-gate. Unknown dates (None/NaT) are NOT gated (fall through to
+    the existing no-laps check).
+    """
+    if dt is None or pd.isna(dt):
+        return False
+    if now is None:
+        now = datetime.now(timezone.utc)
+    return _to_naive_utc(dt) > _to_naive_utc(now)
 
 
 def enable_cache(path: str = "cache/") -> None:
@@ -37,6 +58,9 @@ def load_session(year: int, gp: str, session: str, **load_kwargs):
     kwargs.update(load_kwargs)
     try:
         s = fastf1.get_session(year, gp, session)
+        if session_in_future(getattr(s, "date", None)):
+            logger.info("Skipping %s %s %s: session not yet held (future date)", year, gp, session)
+            return None
         s.load(**kwargs)
         # fastf1 does NOT raise for a future/unpublished race — load() completes with
         # zero drivers and accessing .laps then raises. Force the check here so such a
