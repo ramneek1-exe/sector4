@@ -7,6 +7,27 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## ⭐ NEXT-UP BACKLOG (owner-prioritized 2026-07-06 — pick up IN THIS ORDER)
+> 1. **`src/data/grid.py:load_qualifying_grid` date-gate.** The one remaining ungated fastf1 read (all other
+>    loads were gated by the occurred-gate slice). A leaked future quali classification could write a
+>    premature grid into `grids.json` and prematurely sharpen the podium to Saturday. Small: add a
+>    `session_in_future(getattr(s,"date",None))` guard (helper already exists in `src/data/load.py`), same
+>    pattern as `load_session`. Same leak class as the 07-04 firefight.
+> 2. **Historical-season (2023–25) sprint-points backfill.** `build_2026.py` is incremental, so the
+>    sprint-in-standings change only reached the LIVE (2026) season_results. Do a one-time full `build_all`
+>    so 2023–25 championship `points` also include sprint results (train/serve consistency for the podium
+>    model's champ_points feature; effect is small since the feature is rank-based, but do it for cleanliness).
+> 3. **Post-quali grid WEIGHTING for race-podium predictions — incl. track-specific tailoring.** The grid IS
+>    applied (Saturday mode works — verified LEC P2 → strong/in-contention), but a strong quali may not move
+>    podium odds ENOUGH (LEC P2→P1 at Silverstone felt undersold). (a) Investigate/increase how strongly
+>    `grid_position` weights the podium model post-quali. (b) **Track-specific tailoring:** on
+>    low-overtaking circuits — ESPECIALLY toward the front of the grid — starting position is far more
+>    predictive of the finish (fewer position changes up front), so grid should weight HIGHER there and less
+>    on high-overtaking tracks. A per-track "grid stickiness"/overtaking-difficulty prior feeding the grid
+>    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
+>    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
+> 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
+>
 > ## 2026-07-06 session — OCCURRED-GATE + sprint-in-standings (ROOT fix for the fastf1 leak class): MERGED (PR #21, `827a3e7`)
 > The durable fix behind the 07-04 firefight — **retires the per-table boundary guards** (`_has_raced`,
 > `_race_concluded`) by stopping the leak at its source. Post-race, GB self-corrected (real data); this is
