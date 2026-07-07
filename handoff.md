@@ -7,6 +7,39 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## 2026-07-06 session — OCCURRED-GATE + sprint-in-standings (ROOT fix for the fastf1 leak class): MERGED (PR #21, `827a3e7`)
+> The durable fix behind the 07-04 firefight — **retires the per-table boundary guards** (`_has_raced`,
+> `_race_concluded`) by stopping the leak at its source. Post-race, GB self-corrected (real data); this is
+> forward-looking so the NEXT weekend (Belgium) never re-leaks. Spec/plan `docs/superpowers/{specs,plans}/
+> 2026-07-0{5,6}-occurred-gate-data-integrity*`; ledger `.superpowers/sdd/progress.md`. Subagent-driven: 5
+> tasks (Task 5 = controller-run fastf1 rebuild) + opus whole-branch review + 1 fix.
+> **What shipped:** (1) **date-gate at the two load chokepoints** — `src/data/load.py:session_in_future` +
+> gate in `load_session`; gate in `src/data/results.py:load_season_results`. Skips any session whose
+> scheduled date (`s.date`, fastf1 naive-UTC, read BEFORE `.load()`) is in the future. The old "no laps"
+> guard couldn't catch it (fastf1 returns leaked laps). **Every feature table is race-gated**, so this
+> removes the un-raced target from ALL tables uniformly. (2) **Sprint-in-standings** — `load_season_results`
+> folds Sprint session points into championship `points` (additive; `finish_pos`/form stay main-race-only;
+> verified British GP LEC 29=25+4sprint). (3) **Build-time fail-safe** — `scripts/build_2026.py:
+> assert_no_unraced_target` RAISES if an un-raced target leaks into any live-season table (covers pit_loss;
+> matches BOTH the short calendar key AND fastf1's LONG EventName — season_results keys gp by "Belgian Grand
+> Prix", the fix's key finding). Runs after build, before the api/ copy → R17 fails safe. (4) **Retired
+> `_has_raced` + `_race_concluded` + the weekend-schedule vercel bundle** — shipped WITH the clean rebuild
+> (no leaked-table-without-guard window). (5) **Regenerated bundled `api/*.parquet`** through the gated
+> pipeline; reconciled 2 pre-existing stale-fixture tests (test_actual_stops "Belgium not in RACE_CALENDAR"
+> → beyond-calendar skip; grid.test.ts "GB no grid" → Monaco).
+> **DESIGN NOTE (corrected mid-build):** there is NO upcoming-strategy target builder (only podium has one),
+> and build_strategy_table needs race laps. So the occurred-gate makes the upcoming weekend's STRATEGY fall
+> to the **historical norm** (the original contract) — the pre-race Model-B "predicted" mode we'd seen was
+> ENTIRELY the leak. A true pre-race stop-count prediction needs its own FP2 target builder (separate future slice).
+> **VERIFIED:** pytest 205, vitest 157/2skip, tsc+build clean; gated build_2026 ran clean + assertion PASSED;
+> all 7 api tables 0 Belgium rows; end-to-end (guards removed): GB podium saturday/0-null, Belgium podium
+> friday/0-null (upcoming builder), Belgium strategy HISTORICAL.
+> **FOLLOW-UPS (logged, out of scope):** (a) `src/data/grid.py:load_qualifying_grid` still ungated — a leaked
+> future quali could write a premature grid (same leak class; one-line `session_in_future` guard for the
+> backlog). (b) Historical-season (2023-25) sprint backfill deferred — build_2026 is incremental so only the
+> LIVE season got sprint points (train/serve champ uses RANK → negligible); a one-time build_all would backfill.
+> (c) Grid-weight calibration (LEC P2 felt low) — separate tuning slice, still deferred.
+>
 > ## 2026-07-04 session — RACE-EVE FIREFIGHT (British GP, sprint weekend): 6 PRs MERGED to `origin/main` + live
 > Owner hit multiple prod issues the day before the British GP main race. **ONE root cause behind most of
 > them: the fastf1 FUTURE-DATA LEAK.** The un-raced GB *main race* leaked into the bundled feature tables
