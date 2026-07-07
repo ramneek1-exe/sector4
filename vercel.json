@@ -10,7 +10,7 @@
       "includeFiles": "{src/**,api/pace_features.parquet,api/team_map.parquet}"
     },
     "api/strategy.py": {
-      "includeFiles": "{src/**,api/strategy_features.parquet,api/team_map.parquet,api/actual_stops.parquet,app/data/weekend-schedule.json}"
+      "includeFiles": "{src/**,api/strategy_features.parquet,api/team_map.parquet,api/actual_stops.parquet}"
     },
     "api/results.py": {
       "includeFiles": "{src/**,api/season_results.parquet}"
