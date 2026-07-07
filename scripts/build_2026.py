@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import shutil
+from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -191,14 +192,12 @@ def main() -> None:
     print("6/7 team map (pure transform)...")
     store.write_table(build_team_map(results), store.TEAM_MAP)
 
-    import pandas as _pd
-    from datetime import datetime as _dt, timezone as _tz
     sched = json.load(open(SCHEDULE_JSON)) if os.path.exists(SCHEDULE_JSON) else None
     if sched:
-        target_raced = _pd.Timestamp(sched["final"].replace("Z", "+00:00")) <= _dt.now(_tz.utc)
-        built = {p: _pd.read_parquet(os.path.join(DATA_DIR, f"{p}.parquet"))
+        target_raced = pd.Timestamp(sched["final"].replace("Z", "+00:00")) <= datetime.now(timezone.utc)
+        built = {p: pd.read_parquet(os.path.join(DATA_DIR, f"{p}.parquet"))
                  for p in ("podium_features", "strategy_features", "actual_stops",
-                           "pace_features", "season_results")
+                           "pace_features", "season_results", "pit_loss", "team_map")
                  if os.path.exists(os.path.join(DATA_DIR, f"{p}.parquet"))}
         assert_no_unraced_target(built, sched["gp"], target_raced)
         print("check — no un-raced target rows in the live-season tables.")
