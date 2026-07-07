@@ -8,11 +8,11 @@
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
 > ## ⭐ NEXT-UP BACKLOG (owner-prioritized 2026-07-06 — pick up IN THIS ORDER)
-> 1. **`src/data/grid.py:load_qualifying_grid` date-gate.** The one remaining ungated fastf1 read (all other
->    loads were gated by the occurred-gate slice). A leaked future quali classification could write a
->    premature grid into `grids.json` and prematurely sharpen the podium to Saturday. Small: add a
->    `session_in_future(getattr(s,"date",None))` guard (helper already exists in `src/data/load.py`), same
->    pattern as `load_session`. Same leak class as the 07-04 firefight.
+> 1. ✅ **DONE (2026-07-06, PR #22, merge `02f3d5c`) — `src/data/grid.py:load_qualifying_grid` date-gate.**
+>    The last ungated fastf1 read is closed: `session_in_future(getattr(s,"date",None))` guard reads `s.date`
+>    BEFORE `.load()` and returns `{}` (the existing "no grid yet" degrade) for a future session, same pattern
+>    as `load_session`. +2 tests (future → gated before load; past → loads normally). Same PR also flipped the
+>    16 new M7 explainer concepts `drafted`→`verified` (owner editorial call; all 24 now verified).
 > 2. **Historical-season (2023–25) sprint-points backfill.** `build_2026.py` is incremental, so the
 >    sprint-in-standings change only reached the LIVE (2026) season_results. Do a one-time full `build_all`
 >    so 2023–25 championship `points` also include sprint results (train/serve consistency for the podium
@@ -27,6 +27,33 @@
 >    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
 >    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
+> 5. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
+>    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
+>    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
+>    ~L80-124), before this weekend's snapshot exists — give the user a sense of what to expect by surfacing
+>    the LAST race's predictions. Owner's mechanism: a **"grow underline" link** (the existing `cta-grow` hover
+>    style used site-wide) that opens a **modal/popover** with the previous GP's predictions **table** (podium
+>    odds). **Data already exists — read-only, no pipeline/Python/cron change:** the prior weekend's frozen
+>    predictions live in Blob at `snapshotKey(year, prevGp, "final")` (exactly what `/accuracy` reads via
+>    `loadRaceRows`). Need to (a) resolve "previous GP" — `weekend-schedule.json` has `gp`/`nextGp` but no
+>    `prevGp`; derive from `RACE_CALENDAR`/calendar order or add a `prevGp` field; (b) reuse the podium-table
+>    markup already in `weekend/page.tsx` (L152-192 — worth extracting a shared `<PodiumTable>`); (c) reuse the
+>    existing portalled fade+scale **modal pattern** from the M4 per-driver stops modal. Frontend-only slice
+>    (its own spec→plan→build); gate motion behind `prefers-reduced-motion`; the modal must be clearly labelled
+>    as the PAST race's call (not the upcoming one). **Note:** the empty/"setting up" branch also fires
+>    post-race for `nextGp` (`concluded` at L78), so the "previous GP" it references is context-dependent —
+>    resolve it from whichever upcoming gp is being shown.
+>
+> **Owner Qs answered (2026-07-06), re `/accuracy` (`app/accuracy/page.tsx`):**
+> - **Does accuracy update automatically? YES.** The page is `force-dynamic` and reads the LIVE Blob season
+>   calibration index (`seasonIndexKey`) that the cron appends to when a race's `final` checkpoint is scored
+>   (final → actuals → calibration). So each concluded round shows up on the next page load — no manual step,
+>   as long as the daily snapshot cron actually hits the race's `final` window (the `?force=1` re-snapshot from
+>   the 07-04 firefight is the manual fallback if a checkpoint is missed).
+> - **Is it supposed to have a graph? YES — but only at ≥3 scored races.** `CalibrationChart` renders behind
+>   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
+>   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
+>   scored. So "no graph yet" is expected behaviour, not a bug.
 >
 > ## 2026-07-06 session — OCCURRED-GATE + sprint-in-standings (ROOT fix for the fastf1 leak class): MERGED (PR #21, `827a3e7`)
 > The durable fix behind the 07-04 firefight — **retires the per-table boundary guards** (`_has_raced`,
