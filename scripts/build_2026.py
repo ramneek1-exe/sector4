@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import shutil
+from datetime import datetime, timezone
 
 import pandas as pd
 
@@ -61,6 +62,25 @@ TABLES = [
     "pit_loss.parquet",
     "actual_stops.parquet",
 ]
+
+
+def assert_no_unraced_target(tables: dict, target_gp: str, target_raced: bool,
+                             live_season: int = LIVE_SEASON) -> None:
+    """Fail the build if any live-season table carries the current target's rows before its
+    race has concluded (a fastf1 leak past the load-level date-gate). Fail-safe: R17 stops
+    rather than deploying leaked data."""
+    if target_raced:
+        return
+    from src.calendar import GP_TO_EVENT
+    target_names = {target_gp, GP_TO_EVENT.get(target_gp, target_gp)}
+    for name, df in tables.items():
+        if df is None or df.empty or "gp" not in df.columns or "year" not in df.columns:
+            continue
+        if ((df["year"] == live_season) & (df["gp"].isin(target_names))).any():
+            raise RuntimeError(
+                f"{name}: un-raced target '{target_gp}' present in a live-season table "
+                f"(fastf1 leak past the occurred-gate); refusing to deploy leaked data."
+            )
 
 
 def _seed_data_from_api() -> None:
@@ -173,6 +193,16 @@ def main() -> None:
     store.write_table(build_podium_table(pace, results), store.PODIUM_TABLE)
     print("6/7 team map (pure transform)...")
     store.write_table(build_team_map(results), store.TEAM_MAP)
+
+    sched = json.load(open(SCHEDULE_JSON)) if os.path.exists(SCHEDULE_JSON) else None
+    if sched:
+        target_raced = pd.Timestamp(sched["final"].replace("Z", "+00:00")) <= datetime.now(timezone.utc)
+        built = {p: pd.read_parquet(os.path.join(DATA_DIR, f"{p}.parquet"))
+                 for p in ("podium_features", "strategy_features", "actual_stops",
+                           "pace_features", "season_results", "pit_loss", "team_map")
+                 if os.path.exists(os.path.join(DATA_DIR, f"{p}.parquet"))}
+        assert_no_unraced_target(built, sched["gp"], target_raced)
+        print("check — no un-raced target rows in the live-season tables.")
 
     for t in TABLES:
         shutil.copy(os.path.join(DATA_DIR, t), os.path.join(API_DIR, t))

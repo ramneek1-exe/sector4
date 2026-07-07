@@ -21,18 +21,6 @@ def test_podium_missing_fields_is_400():
     assert "error" in payload
 
 
-def test_leaked_unraced_target_routes_to_upcoming_with_teams():
-    # An un-raced target can leak into the bundled table with fabricated finish/podium but
-    # a NULL team (fastf1 exposes future sessions). It must route to the upcoming builder
-    # (real teams from season results), NOT be served as a historical null-team result.
-    # Regression for the grey-helmet / wrong-podium bug (Great Britain 2026).
-    status, payload = podium_response({"year": 2026, "gp": "Great Britain"})
-    assert status == 200
-    drivers = payload["drivers"]
-    assert len(drivers) > 0
-    assert all(d.get("team") for d in drivers), "no podium driver may have a null/empty team"
-
-
 def test_podium_non_integer_year_is_400():
     status, payload = podium_response({"year": "soon", "gp": "Italy"})
     assert status == 400

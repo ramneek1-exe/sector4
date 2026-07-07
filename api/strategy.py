@@ -16,7 +16,6 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 
@@ -32,31 +31,6 @@ _TABLE = pd.read_parquet(Path(__file__).with_name("strategy_features.parquet"))
 _TEAMS = pd.read_parquet(Path(__file__).with_name("team_map.parquet"))
 _ACTUAL = pd.read_parquet(Path(__file__).with_name("actual_stops.parquet"))
 
-# The upcoming weekend's session schedule (leak-safe, derived from race dates). Used only to
-# gate the "actual" branch: fastf1 exposes future sessions, so an un-raced target can leak a
-# fabricated actual-stops row; never serve it as a completed result before the race finishes.
-try:
-    _SCHEDULE = json.loads(
-        (Path(__file__).resolve().parent.parent / "app" / "data" / "weekend-schedule.json").read_text()
-    )
-except Exception:
-    _SCHEDULE = None
-
-
-def _race_concluded(year: int, gp: str, now: datetime | None = None) -> bool:
-    """True unless this is the pending upcoming target whose race has not finished yet.
-
-    Only the current schedule's target can be un-raced; every other weekend is treated as
-    concluded (historical). Fails toward concluded when the schedule can't be read.
-    """
-    if not _SCHEDULE or _SCHEDULE.get("year") != year or _SCHEDULE.get("gp") != gp:
-        return True
-    final = _SCHEDULE.get("final")
-    if not final:
-        return True
-    now = now or datetime.now(timezone.utc)
-    return now >= datetime.fromisoformat(final.replace("Z", "+00:00"))
-
 
 def strategy_response(body: dict) -> tuple[int, dict]:
     """Route a stops question by race state: completed -> actual, upcoming+dry-FP -> Model-B
@@ -69,9 +43,7 @@ def strategy_response(body: dict) -> tuple[int, dict]:
     except (TypeError, ValueError):
         return 400, {"error": "year must be an integer"}
 
-    # Serve a real "actual" only once the race has finished; otherwise a leaked pre-race row
-    # would masquerade as a result (see _race_concluded).
-    act = actual_stops(year, gp, _ACTUAL) if _race_concluded(year, gp) else None
+    act = actual_stops(year, gp, _ACTUAL)
     if act is not None:
         share = round(act["n_at_modal"] / act["n_drivers"], 2) if act["n_drivers"] else None
         return 200, {

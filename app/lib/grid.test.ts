@@ -10,8 +10,10 @@ describe("getGrid", () => {
     expect(Object.keys(grid ?? {}).length).toBe(22);
   });
 
-  it("returns undefined for a weekend with no grid yet", () => {
-    expect(getGrid(2026, "Great Britain")).toBeUndefined();
+  it("returns undefined for a weekend with no stored grid", () => {
+    // Monaco is a completed 2026 round with no grid persisted (R17 only writes the current
+    // target's grid), so it is stably absent from grids.json.
+    expect(getGrid(2026, "Monaco")).toBeUndefined();
   });
 
   it("keys by year and gp", () => {

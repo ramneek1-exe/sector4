@@ -2,7 +2,7 @@ import pandas as pd
 
 from src import pipeline
 from src.calendar import RACE_CALENDAR
-from src.features.actual_stops import race_stop_distribution
+from src.features.actual_stops import race_stop_distribution, STOPS_CIRCUITS
 
 
 def _laps(stints_by_driver):
@@ -39,13 +39,16 @@ def test_counts_compound_changes_among_classified_finishers():
     assert d["stops_max"] == 2
 
 
-def test_live_season_skips_unrun_rounds(monkeypatch):
-    # For the live season, only rounds in RACE_CALENDAR are built; a scheduled-but-unrun round
-    # (e.g. Belgium, not in the completed 2026 list) must NOT even be loaded, even though
-    # fastf1 may leak its future session data. Past-season circuits always load.
+def test_live_season_skips_rounds_beyond_the_derived_calendar(monkeypatch):
+    # build_actual_stops only builds rounds in the derived live calendar (completed rounds +
+    # the single upcoming target); a round BEYOND the target is never even attempted. The
+    # upcoming TARGET itself is now gated by the date-gate in load_session (which returns
+    # None for a future session — see tests/test_load_gate.py), so it may be attempted here
+    # but yields no row. Past-season circuits always load.
     live = max(RACE_CALENDAR)
-    assert "Belgium" not in RACE_CALENDAR[live]  # guards the fixture premise
-    completed_round = RACE_CALENDAR[live][0]
+    in_cal = RACE_CALENDAR[live][0]  # a completed round
+    # a full-roster circuit that is beyond the derived calendar (not completed, not the target)
+    beyond = next(c for c in STOPS_CIRCUITS if c not in RACE_CALENDAR[live])
 
     loaded = []
 
@@ -54,9 +57,9 @@ def test_live_season_skips_unrun_rounds(monkeypatch):
         return None  # no laps -> row skipped; we only care WHICH races were attempted
 
     monkeypatch.setattr(pipeline, "load_session", fake_load_session)
-    pipeline.build_actual_stops([live], ["Belgium", completed_round])
-    assert (live, "Belgium") not in loaded      # gated: never attempted
-    assert (live, completed_round) in loaded          # a completed round is attempted
+    pipeline.build_actual_stops([live], [beyond, in_cal])
+    assert (live, beyond) not in loaded   # beyond the derived calendar: never attempted
+    assert (live, in_cal) in loaded       # a completed round is attempted
 
 
 def test_leaked_target_laps_with_no_classification_produce_no_row(monkeypatch):
