@@ -77,7 +77,7 @@
 > into the `/weekend` **empty branch only** (`app/weekend/page.tsx`): resolve prevGp → server `getJson(
 > snapshotKey(year, prevGp, "final"))` → render guarded by `prevGp && pastData` (graceful absence).
 > **VERIFIED local:** tsc + `npm run build` clean, `/weekend` still dynamic, vitest 164 pass/2 skip/0 fail.
-> **POST-MERGE FINDING (2026-07-07, debugged on prod — NOT a bug, owner chose leave-as-is):** the link does
+> **POST-MERGE FINDING (2026-07-07, debugged on prod — NOT a bug; owner then chose to BACKFILL, see RESOLUTION below):** the link does
 > NOT currently render on the Belgium setup screen, and that is CORRECT graceful-absence behavior. Root cause
 > (all verified on prod `ecb3e27`, READY): we ARE in the empty branch; feature IS deployed; `prevGp` DOES
 > resolve to "Great Britain" (deployed `race_calendar.json` = […, "Great Britain", "Belgium"]); the link is
@@ -86,11 +86,20 @@
 > final-checkpoint path). WHY GB's final is missing: the 07-04 firefight only force-wrote GB's PRE-race
 > checkpoints, then the schedule rolled to Belgium, so GB's `final` was never captured (Austria R8 is the only
 > race with a complete final snapshot — the beta started at Austria). **The prior review's "GB final exists
-> (scored round)" claim was an unverified assumption and was WRONG.** Owner decision (2026-07-07): **leave as-is**
-> — the link will light up naturally once a race WITH a final snapshot is the immediate predecessor (after
-> Belgium runs + is scored, Hungary's setup screen → "Check out Belgium GP"). Options considered but declined:
-> (a) fall back to the latest prior race that HAS a snapshot (Austria) — robust code change, deferred; (b)
-> backfill GB's final to Blob — declined (fabricates a post-hoc "frozen" call, at odds with the issued-artifact model).
+> (scored round)" claim was an unverified assumption and was WRONG.**
+> **RESOLUTION (2026-07-07, PR #24 `backfill-gb-final-snapshot`, open):** owner chose to BACKFILL GB via a new
+> admin endpoint. `app/lib/snapshot-write.ts` extracts the cron's build+score+write into `writeWeekendSnapshot`
+> (I/O-injectable, 4 vitest); `app/api/admin/snapshot` (CRON_SECRET-gated) writes an explicit gp/checkpoint
+> snapshot; the cron now reuses the helper (behavior unchanged). The "add GB grid first" concern was MOOT — GB
+> is a completed race (20 rows in `podium_features` with grid), so `/api/podium` routes it to the historical
+> `predict_podium` using its real grid → the backfilled podium is already grid-sharpened (and `grids.json`
+> already has a space-keyed `"2026-Great Britain"` entry anyway).
+> **OWNER STEP once PR #24 deploys:** `curl ".../api/admin/snapshot?gp=Great%20Britain&checkpoint=final" -H
+> "Authorization: Bearer $CRON_SECRET"` → writes `weekends/2026-Great-Britain/{final,latest}.json` + scores GB
+> into the calibration index → the "Check out Great Britain GP" link appears on `/weekend`; GB shows on
+> `/accuracy`. CAVEAT (by design): post-hoc reconstruction (`issuedAt`=now, rebuilt from current bundled data;
+> leakage-guarded so close, but not the live-frozen artifact). Deferred alternative if snapshot gaps recur:
+> fall back to the latest prior race that HAS a snapshot.
 > **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
 > present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
 > normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
