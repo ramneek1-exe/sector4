@@ -13,10 +13,16 @@
 >    BEFORE `.load()` and returns `{}` (the existing "no grid yet" degrade) for a future session, same pattern
 >    as `load_session`. +2 tests (future → gated before load; past → loads normally). Same PR also flipped the
 >    16 new M7 explainer concepts `drafted`→`verified` (owner editorial call; all 24 now verified).
-> 2. **Historical-season (2023–25) sprint-points backfill.** `build_2026.py` is incremental, so the
->    sprint-in-standings change only reached the LIVE (2026) season_results. Do a one-time full `build_all`
->    so 2023–25 championship `points` also include sprint results (train/serve consistency for the podium
->    model's champ_points feature; effect is small since the feature is rank-based, but do it for cleanliness).
+> 2. ✅ **DONE / MOOT (verified 2026-07-07) — Historical-season (2023–25) sprint-points backfill.** The
+>    concern was that `build_2026.py` is incremental (`load_results(..., refresh_year=LIVE_SEASON)`, L167)
+>    so the sprint-in-standings change only reached the LIVE (2026) season_results. **On inspection the
+>    2023–25 rows ALREADY include sprint points** (both `data/` and the deployed `api/season_results.parquet`):
+>    e.g. 2023 Azerbaijan/Belgium/Qatar/USA = 33 (25 race + 8 sprint), Austria = 34 (+1 FL); old race-only
+>    code could never exceed 26. A fresh full re-pull of 2023 with the current code is **byte-identical** to
+>    the committed table (max abs points diff 0.0, 0/439 rows differ). The tables were regenerated with the
+>    sprint-folding code in the Jul 6 20:11 rebuild, AFTER this note was first written. `podium_features`
+>    (built from the same `results` in the same rebuild) is consistent → train/serve champ_points already
+>    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
 > 3. **Post-quali grid WEIGHTING for race-podium predictions — incl. track-specific tailoring.** The grid IS
 >    applied (Saturday mode works — verified LEC P2 → strong/in-contention), but a strong quali may not move
 >    podium odds ENOUGH (LEC P2→P1 at Silverstone felt undersold). (a) Investigate/increase how strongly
