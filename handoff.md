@@ -33,7 +33,7 @@
 >    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
 >    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
-> 5. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
+> 5. ✅ **BUILT (2026-07-07, branch `weekend-past-predictions-modal`) — awaiting owner live-preview eyeball + merge.** See the session entry below. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
 >    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
 >    ~L80-124), before this weekend's snapshot exists — give the user a sense of what to expect by surfacing
@@ -60,6 +60,32 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): BUILT on `weekend-past-predictions-modal`, NOT yet merged
+> Frontend-only, read-only over existing Blob. In `/weekend`'s pre-predictions "setting up" screen, a
+> `cta-grow` link **"Check out {name} GP"** opens a portalled fade+scale modal showing the PREVIOUS GP's
+> frozen **final** podium call vs the actual result (rank, ASCII helmet, band, p≈, **Finished P#/✓ or DNF**,
+> + "N of our top 3 predicted finished on the podium" footer). Spec/plan `docs/superpowers/{specs,plans}/
+> 2026-07-07-weekend-past-predictions-modal*`; ledger `.superpowers/sdd/progress.md`. Subagent-driven: 3
+> tasks + per-task reviews + opus whole-branch review (READY TO MERGE, no Critical/Important).
+> **What shipped:** (1) **`app/lib/past-predictions.ts`** (pure, 7 vitest) — `resolvePrevGp(scheduleGp,
+> calendar, concluded)` (concluded → `schedule.gp`; else the `@/src/race_calendar.json` predecessor of
+> `schedule.gp`; round-1/absent → null) + `pastPredictionRows(podium, actuals)` (rows + `hasActuals` +
+> `{hits, of:3}` summary via reused `raceDetail`; `finishPos = actuals.indexOf+1` or null=DNF; degrades to
+> odds-only when actuals absent). (2) **`app/components/PastPredictions.tsx`** — client `cta-grow` link +
+> modal cloned 1:1 from `DriverStopsModal` (portal, Esc/backdrop close, `motion-reduce` gated). (3) Wired
+> into the `/weekend` **empty branch only** (`app/weekend/page.tsx`): resolve prevGp → server `getJson(
+> snapshotKey(year, prevGp, "final"))` → render guarded by `prevGp && pastData` (graceful absence).
+> **VERIFIED local:** tsc + `npm run build` clean, `/weekend` still dynamic, vitest 164 pass/2 skip/0 fail.
+> **OPEN — Step 7 (owner/controller):** LIVE-PREVIEW eyeball of the populated modal on a Vercel preview
+> (local Blob is empty, so the modal can only be observed against real Blob — same M5 finding). Great
+> Britain's `final` snapshot exists (scored round), so Belgium's setup screen should surface the link.
+> **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
+> present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
+> normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
+> `race_calendar.json` or the past-predictions link silently won't render (degrades gracefully, no crash).
+> **Deferred Minors (not fixed):** `of:3` is hard-coded in the footer copy (never fires — real snapshots carry
+> ~20 driver probabilities); no focus-trap on the dialog (inherited verbatim from `DriverStopsModal`, out of scope).
 >
 > ## 2026-07-06 session — OCCURRED-GATE + sprint-in-standings (ROOT fix for the fastf1 leak class): MERGED (PR #21, `827a3e7`)
 > The durable fix behind the 07-04 firefight — **retires the per-table boundary guards** (`_has_raced`,
