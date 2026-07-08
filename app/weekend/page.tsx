@@ -3,8 +3,11 @@
 // checkpoint. Content rises in via a one-shot reveal and is nested between two blue ASCII
 // fog strips. Fun facts are a curated stopgap; M6 replaces them with the entity-what pipeline.
 import schedule from "@/app/data/weekend-schedule.json";
+import raceCalendar from "@/src/race_calendar.json";
 import { getJson } from "@/app/lib/blob";
-import { latestKey, type WeekendSnapshot } from "@/app/lib/snapshot";
+import { snapshotKey, latestKey, type WeekendSnapshot } from "@/app/lib/snapshot";
+import { resolvePrevGp, pastPredictionRows } from "@/app/lib/past-predictions";
+import { PastPredictions } from "@/app/components/PastPredictions";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { TrustBadge } from "@/app/components/TrustBadge";
@@ -81,6 +84,18 @@ export default async function WeekendPage() {
     const upcomingGp = concluded ? schedule.nextGp ?? schedule.gp : schedule.gp;
     const upcomingFacts = getCircuitFacts(upcomingGp);
     const upcomingWhat = getEntityWhat("circuit", upcomingGp);
+    const calendar =
+      (raceCalendar as Record<string, string[]>)[String(schedule.year)] ?? [];
+    const prevGp = resolvePrevGp(schedule.gp, calendar, concluded);
+    const prevSnap = prevGp
+      ? await getJson<WeekendSnapshot>(snapshotKey(schedule.year, prevGp, "final"))
+      : null;
+    const pastData = prevSnap
+      ? pastPredictionRows(
+          prevSnap.podium as Parameters<typeof pastPredictionRows>[0],
+          prevSnap.actuals as string[] | null,
+        )
+      : null;
     return (
       <>
         <SideFog />
@@ -92,6 +107,17 @@ export default async function WeekendPage() {
             We&apos;re still setting up our garage at {getCircuitName(upcomingGp)}…
           </h1>
           <p className="mt-4 font-grotesk text-base text-muted">Check back Saturday.</p>
+
+          {prevGp && pastData && (
+            <p className="mt-3">
+              <PastPredictions
+                circuitName={getCircuitName(prevGp)}
+                year={schedule.year}
+                gp={prevGp}
+                data={pastData}
+              />
+            </p>
+          )}
 
           {upcomingFacts.length > 0 && (
             <section className="mt-12">
