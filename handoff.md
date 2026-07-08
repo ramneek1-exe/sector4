@@ -33,7 +33,7 @@
 >    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
 >    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
-> 5. ✅ **BUILT (2026-07-07, PR #23 `weekend-past-predictions-modal`) — awaiting owner live-preview eyeball + merge.** See the session entry below. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
+> 5. ✅ **DONE (2026-07-07, PR #23 MERGED to `main` → live on prod).** See the session entry below. Recommend confirming the *populated* modal on prod (`/weekend`, Belgium setup screen → "Check out Great Britain GP" link). **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
 >    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
 >    ~L80-124), before this weekend's snapshot exists — give the user a sense of what to expect by surfacing
@@ -61,7 +61,7 @@
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
 >
-> ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): PR #23 open, NOT yet merged
+> ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): MERGED (PR #23, merge `5453dc0`) → live on prod
 > Frontend-only, read-only over existing Blob. In `/weekend`'s pre-predictions "setting up" screen, a
 > `cta-grow` link **"Check out {name} GP"** opens a portalled fade+scale modal showing the PREVIOUS GP's
 > frozen **final** podium call vs the actual result (rank, ASCII helmet, band, p≈, **Finished P#/✓ or DNF**,
@@ -77,9 +77,10 @@
 > into the `/weekend` **empty branch only** (`app/weekend/page.tsx`): resolve prevGp → server `getJson(
 > snapshotKey(year, prevGp, "final"))` → render guarded by `prevGp && pastData` (graceful absence).
 > **VERIFIED local:** tsc + `npm run build` clean, `/weekend` still dynamic, vitest 164 pass/2 skip/0 fail.
-> **OPEN — Step 7 (owner/controller):** LIVE-PREVIEW eyeball of the populated modal on a Vercel preview
-> (local Blob is empty, so the modal can only be observed against real Blob — same M5 finding). Great
-> Britain's `final` snapshot exists (scored round), so Belgium's setup screen should surface the link.
+> **POST-MERGE CHECK (recommended, not blocking):** the populated modal can only be observed against real
+> Blob (local Blob is empty — same M5 finding), so eyeball it on PROD: `/weekend` Belgium setup screen →
+> "Check out Great Britain GP" link → populated predicted-vs-actual modal. Great Britain's `final` snapshot
+> exists (scored round), so it should render.
 > **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
 > present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
 > normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
