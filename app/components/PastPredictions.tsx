@@ -10,13 +10,13 @@ import { BAND_TEXT } from "@/app/lib/bands";
 import type { PastPredictionsData } from "@/app/lib/past-predictions";
 
 interface Props {
-  circuitName: string;
+  gpLabel: string;
   year: number;
   gp: string;
   data: PastPredictionsData;
 }
 
-export function PastPredictions({ circuitName, year, gp, data }: Props) {
+export function PastPredictions({ gpLabel, year, gp, data }: Props) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -25,11 +25,11 @@ export function PastPredictions({ circuitName, year, gp, data }: Props) {
         onClick={() => setOpen(true)}
         className="cta-grow relative font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
       >
-        Check out {circuitName} GP
+        Check out {gpLabel} GP
       </button>
       {open && (
         <PastModal
-          circuitName={circuitName}
+          gpLabel={gpLabel}
           year={year}
           gp={gp}
           data={data}
@@ -41,7 +41,7 @@ export function PastPredictions({ circuitName, year, gp, data }: Props) {
 }
 
 function PastModal({
-  circuitName,
+  gpLabel,
   year,
   gp,
   data,
@@ -89,7 +89,7 @@ function PastModal({
       >
         <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
           <div className="font-grotesk text-[11px] font-semibold uppercase tracking-wide text-muted">
-            Previous race · {circuitName} {year} · our final call
+            Previous race · {gpLabel} GP {year} · our final call
           </div>
           <button
             type="button"

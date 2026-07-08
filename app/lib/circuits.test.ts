@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
+import { normalizeCircuit, normalizeLookupCircuit, gpLabel, DEFAULT_YEAR } from "./circuits";
 
 describe("normalizeCircuit", () => {
   it("maps the canonical name to itself", () => {
@@ -69,5 +69,21 @@ describe("normalizeLookupCircuit", () => {
 
   it("maps Barcelona to Barcelona for pit_loss (2026 distinct circuit)", () => {
     expect(normalizeLookupCircuit("Barcelona", "pit_loss")).toBe("Barcelona");
+  });
+});
+
+describe("gpLabel", () => {
+  it("returns the adjectival GP label for mapped keys", () => {
+    expect(gpLabel("Great Britain")).toBe("British");
+    expect(gpLabel("Belgium")).toBe("Belgian");
+    expect(gpLabel("Netherlands")).toBe("Dutch");
+    expect(gpLabel("Saudi Arabia")).toBe("Saudi Arabian");
+  });
+
+  it("falls back to the gp key for place-named GPs", () => {
+    expect(gpLabel("Monaco")).toBe("Monaco");
+    expect(gpLabel("Miami")).toBe("Miami");
+    expect(gpLabel("Qatar")).toBe("Qatar");
+    expect(gpLabel("Narnia")).toBe("Narnia");
   });
 });

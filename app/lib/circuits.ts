@@ -37,6 +37,31 @@ export const CANONICAL_CIRCUITS = [
   "Qatar",
 ] as const;
 
+// gp key → the Grand Prix's short label for UI copy, so "Check out <label> GP" reads
+// naturally ("British GP", "Belgian GP"). Many circuits already read fine as "<key> GP"
+// (Monaco, Miami, Qatar, Azerbaijan) and fall back to the key; only the ones whose GP name
+// is adjectival/distinct are mapped.
+const GP_LABEL: Record<string, string> = {
+  "Saudi Arabia": "Saudi Arabian",
+  Spain: "Spanish",
+  Hungary: "Hungarian",
+  Italy: "Italian",
+  Australia: "Australian",
+  China: "Chinese",
+  Japan: "Japanese",
+  Canada: "Canadian",
+  Austria: "Austrian",
+  "Great Britain": "British",
+  Belgium: "Belgian",
+  Netherlands: "Dutch",
+};
+
+// The Grand Prix's short label ("British", "Belgian", ...) for a canonical gp key.
+// Falls back to the key itself for place-named GPs (Monaco, Miami, ...).
+export function gpLabel(gp: string): string {
+  return GP_LABEL[gp] ?? gp;
+}
+
 // Common aliases (lowercased) → canonical key. Includes the country/circuit/city
 // names a casual fan or the parser is likely to produce.
 const ALIASES: Record<string, string> = {
