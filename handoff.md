@@ -33,7 +33,7 @@
 >    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
 >    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
-> 5. ✅ **BUILT (2026-07-07, branch `weekend-past-predictions-modal`) — awaiting owner live-preview eyeball + merge.** See the session entry below. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
+> 5. ✅ **BUILT (2026-07-07, PR #23 `weekend-past-predictions-modal`) — awaiting owner live-preview eyeball + merge.** See the session entry below. **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
 >    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
 >    ~L80-124), before this weekend's snapshot exists — give the user a sense of what to expect by surfacing
@@ -61,7 +61,7 @@
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
 >
-> ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): BUILT on `weekend-past-predictions-modal`, NOT yet merged
+> ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): PR #23 open, NOT yet merged
 > Frontend-only, read-only over existing Blob. In `/weekend`'s pre-predictions "setting up" screen, a
 > `cta-grow` link **"Check out {name} GP"** opens a portalled fade+scale modal showing the PREVIOUS GP's
 > frozen **final** podium call vs the actual result (rank, ASCII helmet, band, p≈, **Finished P#/✓ or DNF**,
