@@ -8,6 +8,7 @@ import { getJson } from "@/app/lib/blob";
 import { snapshotKey, latestKey, type WeekendSnapshot } from "@/app/lib/snapshot";
 import { resolvePrevGp, pastPredictionRows } from "@/app/lib/past-predictions";
 import { PastPredictions } from "@/app/components/PastPredictions";
+import { gpLabel } from "@/app/lib/circuits";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { TrustBadge } from "@/app/components/TrustBadge";
@@ -111,7 +112,7 @@ export default async function WeekendPage() {
           {prevGp && pastData && (
             <p className="mt-3">
               <PastPredictions
-                circuitName={getCircuitName(prevGp)}
+                gpLabel={gpLabel(prevGp)}
                 year={schedule.year}
                 gp={prevGp}
                 data={pastData}
