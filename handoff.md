@@ -100,6 +100,28 @@
 > `/accuracy`. CAVEAT (by design): post-hoc reconstruction (`issuedAt`=now, rebuilt from current bundled data;
 > leakage-guarded so close, but not the live-frozen artifact). Deferred alternative if snapshot gaps recur:
 > fall back to the latest prior race that HAS a snapshot.
+> **DONE (2026-07-07): PR #24 MERGED + GB backfilled live** (owner ran the curl from the PR #24 preview → shared
+> Blob; verified GB now on `/weekend` link + `/accuracy`). **PR #25 MERGED** — label fix: the link/modal now read
+> the GRAND PRIX label via `gpLabel(gp)` in `app/lib/circuits.ts` ("Great Britain" → "British" → "Check out
+> British GP" / "Previous race · British GP 2026"; place-named GPs fall back to the key), not the venue name
+> `getCircuitName` returned ("Silverstone Circuit"). Verified live on prod.
+> **KNOWN GAP — deferred (2026-07-07, agreed "deal with next time"):** the AUTOMATIC per-race capture is
+> fragile. The daily snapshot cron (`0 6 * * *`) only handles the CURRENT `schedule.gp` and fires ONCE a day,
+> so a race's `final` (which writes the frozen snapshot AND scores calibration) is captured only if the cron
+> fires inside that race's post-race window BEFORE `weekend-schedule.json` rolls to the next GP. Miss that
+> window (sprint timing / firefight / early schedule roll — exactly what happened to GB) and that race is
+> silently skipped on BOTH `/weekend`'s prev-GP modal and `/accuracy` (graceful, no error). Backstop today =
+> the manual `/api/admin/snapshot` backfill. HARDENING IDEAS for later: (a) drive final-snapshot capture from
+> R17 (GitHub Actions, which already runs post-race) instead of only the daily Vercel cron; (b) a reconciler
+> that backfills any completed round missing a `final` snapshot; (c) the modal's "fall back to latest prior
+> race WITH a snapshot" so a single miss never leaves the screen bare.
+> **DEPLOY GOTCHA (2026-07-07):** the PR #25 merge to `main` (`028091b`) produced NO production build — Vercel
+> built the branch PREVIEW fine but never created/promoted a prod deploy (one-off missed webhook; no
+> `ignoreCommand` in vercel.json, every other merge deployed normally). `/weekend` is force-dynamic so prod
+> just kept serving the previous deploy. FIX: an empty commit re-triggers it (`git commit --allow-empty -m ...
+> && git push`, landed as `a596b09` → prod built + went live), OR "Promote to Production" on the successful
+> preview in the Vercel dashboard. If a `main` merge ever doesn't deploy, check
+> `gh api repos/<owner>/sector4/deployments` for a Production record on the merge sha before assuming latency.
 > **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
 > present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
 > normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
