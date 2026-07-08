@@ -77,10 +77,20 @@
 > into the `/weekend` **empty branch only** (`app/weekend/page.tsx`): resolve prevGp → server `getJson(
 > snapshotKey(year, prevGp, "final"))` → render guarded by `prevGp && pastData` (graceful absence).
 > **VERIFIED local:** tsc + `npm run build` clean, `/weekend` still dynamic, vitest 164 pass/2 skip/0 fail.
-> **POST-MERGE CHECK (recommended, not blocking):** the populated modal can only be observed against real
-> Blob (local Blob is empty — same M5 finding), so eyeball it on PROD: `/weekend` Belgium setup screen →
-> "Check out Great Britain GP" link → populated predicted-vs-actual modal. Great Britain's `final` snapshot
-> exists (scored round), so it should render.
+> **POST-MERGE FINDING (2026-07-07, debugged on prod — NOT a bug, owner chose leave-as-is):** the link does
+> NOT currently render on the Belgium setup screen, and that is CORRECT graceful-absence behavior. Root cause
+> (all verified on prod `ecb3e27`, READY): we ARE in the empty branch; feature IS deployed; `prevGp` DOES
+> resolve to "Great Britain" (deployed `race_calendar.json` = […, "Great Britain", "Belgium"]); the link is
+> suppressed because **`pastData` is null — Great Britain has NO `final` snapshot in Blob**. Corroborated by
+> `/accuracy` listing ONLY Austria as scored (GB never entered the calibration index, written by the same
+> final-checkpoint path). WHY GB's final is missing: the 07-04 firefight only force-wrote GB's PRE-race
+> checkpoints, then the schedule rolled to Belgium, so GB's `final` was never captured (Austria R8 is the only
+> race with a complete final snapshot — the beta started at Austria). **The prior review's "GB final exists
+> (scored round)" claim was an unverified assumption and was WRONG.** Owner decision (2026-07-07): **leave as-is**
+> — the link will light up naturally once a race WITH a final snapshot is the immediate predecessor (after
+> Belgium runs + is scored, Hungary's setup screen → "Check out Belgium GP"). Options considered but declined:
+> (a) fall back to the latest prior race that HAS a snapshot (Austria) — robust code change, deferred; (b)
+> backfill GB's final to Blob — declined (fabricates a post-hoc "frozen" call, at odds with the issued-artifact model).
 > **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
 > present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
 > normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
