@@ -21,7 +21,7 @@ function selfBase(): string {
   return host.startsWith("http") ? host : `https://${host}`;
 }
 
-async function realGetActualFinish(year: number, gp: string): Promise<string[]> {
+export async function getActualFinish(year: number, gp: string): Promise<string[]> {
   try {
     const res = await fetch(
       `${selfBase()}/api/results?year=${year}&gp=${encodeURIComponent(gp)}`,
@@ -63,7 +63,7 @@ export async function writeWeekendSnapshot(
   const getJson = deps.getJson ?? realGetJson;
   const putJson = deps.putJson ?? realPutJson;
   const build = deps.build ?? ((y, g, c) => buildSnapshot(y, g, c, deps.snapshotDeps));
-  const getActualFinish = deps.getActualFinish ?? realGetActualFinish;
+  const fetchActualFinish = deps.getActualFinish ?? getActualFinish;
 
   const key = snapshotKey(year, gp, checkpoint);
   if (!force && (await getJson<WeekendSnapshot>(key))) {
@@ -73,7 +73,7 @@ export async function writeWeekendSnapshot(
   const snap = await build(year, gp, checkpoint);
 
   if (checkpoint === "final") {
-    const actualFinish = await getActualFinish(year, gp);
+    const actualFinish = await fetchActualFinish(year, gp);
     snap.actuals = actualFinish;
     if (actualFinish.length > 0) {
       const idxKey = seasonIndexKey(year);
