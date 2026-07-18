@@ -12,6 +12,7 @@ import { dueCheckpoint, type SessionSchedule } from "@/app/lib/weekend-schedule"
 import { writeWeekendSnapshot } from "@/app/lib/snapshot-write";
 import raceCalendar from "@/src/race_calendar.json";
 import { safeReconcileFinals } from "@/app/lib/reconcile-finals";
+import { safeRebuildCalibrationIndex } from "@/app/lib/calibration-index";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,12 @@ export async function GET(req: Request) {
     const result = due
       ? await writeWeekendSnapshot(s.year, s.gp, due, { force })
       : { status: "no checkpoint due" as const };
-    return NextResponse.json({ ...result, reconcile });
+
+    // Rebuild the calibration index LAST, so it reflects both the reconciler's backfills and a
+    // live `final` just written by the due-write above. Single atomic write; failure-isolated.
+    const rebuild = await safeRebuildCalibrationIndex(s.year, rounds);
+
+    return NextResponse.json({ ...result, reconcile, rebuild });
   } catch (e) {
     console.error("cron snapshot failed", e);
     return NextResponse.json({ error: "snapshot failed" }, { status: 500 });
