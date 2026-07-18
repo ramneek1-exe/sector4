@@ -25,16 +25,15 @@
 >    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
 > 3. ✅ **RESOLVED (2026-07-17, PR #26) — investigated as a model change, landed as an explainer/context feature after a validation NO-GO.** See the session entry below. The model-weight idea was tested and REJECTED honestly: grid already dominates the podium model (standardized logistic coef −2.5, top feature by 3×), and a per-track grid×stickiness INTERACTION does NOT beat baseline on leakage-safe rolling-origin CV (23 held-out races: top3 0.696 flat / Brier flat-or-worse; front-row already well-calibrated pred 0.67 vs actual 0.68 — the earlier "undersold" feeling was a DRY-subset small-sample artifact). Per house rules (don't tune the bar / don't overfit one Silverstone anecdote) the MODEL IS UNTOUCHED. The real per-track stickiness spread (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan) instead ships as grounded narrative CONTEXT. **Deferred alternatives if ever revisited:** none recommended — the interaction is a genuine no-edge; evidence in the spec §0.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
-> 6. **HONESTY FOLLOW-UP (opened 2026-07-17, from PR #27 reconciler) — pre-beta backfill on `/accuracy`.** The
->    final-snapshot reconciler (PR #27) backfills EVERY completed 2026 round with results but no `final` snapshot,
->    including pre-beta rounds (Australia…Barcelona) we NEVER forecast live to any user. Those get scored on
->    `/accuracy` as POST-HOC reconstructions (`issuedAt=now`, leakage-guarded — fair as a *calibration* measure,
->    but not a live *track record*). `/accuracy` copy claims "issued" predictions. DECIDE one of: (a) bound the
->    reconciler to the beta-start round (Austria R8) so only genuinely-issued rounds score — add a floor to
->    `reconcileFinals`' round list / gate in the cron; OR (b) add a one-line note on `/accuracy` that early-season
->    rows may be reconstructed (keeps the fuller calibration history, stays transparent — controller's lean).
->    Small editorial slice; owner's call which. NOT blocking PR #27 (the backfill is leakage-safe + precedented by
->    the GB/admin backfill).
+> 6. ✅ **RESOLVED (2026-07-18, option b, in PR #27) — pre-beta backfill on `/accuracy` labeled, not counted.**
+>    The reconciler backfills EVERY completed round including pre-beta rounds (Australia…Barcelona) we never
+>    forecast live. Chosen fix (owner, option b): stamp post-hoc backfills `reconstructed` and on `/accuracy`
+>    EXCLUDE them from the headline (top3/Brier) + trend chart while still LISTING them labeled **"From testing ·
+>    not predicted live"**. See the session entry below. Post-hoc writes (reconciler + admin) stamp
+>    `reconstructed:true`; the LIVE cron due-write never does, so a live-captured final (Austria) stays counted.
+>    **OWNER STEP after PR #27 deploys:** re-stamp the 8 already-written rows (7 pre-beta + GB) via the admin
+>    backfill loop (spec §6; Austria EXCLUDED) — until then they still show as live/counted. Future misses
+>    auto-flag via the reconciler.
 > 5. ✅ **DONE (2026-07-07, PR #23 MERGED to `main` → live on prod).** See the session entry below. Recommend confirming the *populated* modal on prod (`/weekend`, Belgium setup screen → "Check out Great Britain GP" link). **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
 >    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
@@ -62,6 +61,27 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-18 session — /accuracy reconstructed-round labeling (honesty follow-up, backlog #6): PR #27 (stacked)
+> Stacked on the reconciler in the SAME PR #27 (ships together so there's no live window where /accuracy blends
+> unlabeled reconstructions). Spec/plan `docs/superpowers/{specs,plans}/2026-07-17-accuracy-reconstructed-labeling*`;
+> ledger `.superpowers/sdd/progress.md`. Subagent-driven: 4 tasks + per-task reviews + opus whole-slice review
+> (READY TO MERGE, zero Critical/Important).
+> **Why:** the reconciler backfills pre-beta rounds (Australia…Barcelona) we never forecast live; scoring them on
+> `/accuracy` as if live overstates the track record. Owner chose option (b): label + exclude from headline.
+> **What shipped:** (1) **post-hoc writes stamp `reconstructed`** — `writeWeekendSnapshot` gains a
+> `reconstructed?` option (WriteDeps) that conditionally stamps the calibration index row; the RECONCILER
+> (`{force:false,reconstructed:true}`) and ADMIN backfill (`{force,reconstructed:true}`) pass it; the LIVE cron
+> due-write NEVER does (Austria's live-captured final stays counted). Default path row shape byte-unchanged.
+> (2) **`summarize` (calibration.ts)** aggregates headline top3/Brier + cumulative chart over LIVE rows only
+> (`!reconstructed`); adds `nReconstructed`. (3) **`/accuracy` page** lists the FULL index (gates on
+> `index.length`, so testing rows show even at 0 live), renders top3/Brier only when `nRaces>0`, "Races scored"
+> shows the live count + gloss "plus N from testing, not counted", and reconstructed rows get a chip **"From
+> testing · not predicted live"** (middot, no em-dash, never "reconstructed/regenerated" in UI).
+> **VERIFIED:** full branch vitest 183 pass/2 skip, tsc+build clean; pytest untouched.
+> **OWNER STEP after deploy (spec §6):** the 8 already-written reconstructed rows (7 pre-beta + GB) predate the
+> flag → re-stamp via the admin-backfill curl loop over those 8 (Austria EXCLUDED). Until then they show as
+> live/counted. Command in the spec. Future misses auto-flag.
 >
 > ## 2026-07-17 session — snapshot final-capture reconciler (known-gap hardening): PR #27
 > Closes the deferred "AUTOMATIC per-race capture is fragile" gap (handoff 2026-07-07). Spec/plan
