@@ -100,7 +100,7 @@ export function CalibrationChart({
           />
         )}
         {liveMarks.map((m, i) => (
-          <circle key={i} cx={m.x} cy={m.y} r={3} className="fill-accent chart-fade" />
+          <circle key={i} cx={m.x} cy={m.y} r={4} className="fill-accent chart-fade" />
         ))}
 
         {/* endpoint value label on the live line */}
