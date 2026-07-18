@@ -68,6 +68,7 @@ export type PodiumFacts = {
   reason?: string;
   drivers: PodiumDriver[];
   context?: string[];
+  grid_context?: string; // grounded per-track overtaking-difficulty sentence (Saturday only)
 };
 
 const PODIUM_SYSTEM = [
@@ -75,6 +76,7 @@ const PODIUM_SYSTEM = [
   "Use ONLY the facts in the JSON. Each driver has a band, a p_podium probability, and `factors`, the real signals behind the call: champ_rank (championship position, 1 = leader), recent_form_avg_finish (mean finishing position over the last 3 races, lower = better), track_pace_delta_s (the driver's historical race-pace gap AT THIS TRACK in seconds, negative = faster than average), and grid (starting position, present once qualifying has happened).",
   "Lead with the 2-3 strongest contenders by three-letter code and EXPLAIN WHY using their factors (e.g. 'leads on championship position and was quick here last year'), rather than just reciting probabilities.",
   "If the JSON includes `context` (curated circuit facts), you MAY add at most ONE short sentence drawn from it for color, only from that array, never your own outside knowledge.",
+  "If the JSON includes `grid_context`, you MAY include it as at most one short sentence, preserving its meaning; never add overtaking or track-difficulty claims of your own.",
   "These are probabilities, not certainties (bands: strong / in contention / outside shot). NEVER say anyone 'will' podium; speak in terms of likelihood.",
   "Do not invent drivers, teams, numbers, causes, or comparisons not present in the JSON.",
   "If the JSON has no drivers (a qualitative/low-data state), say plainly that there isn't enough data for this weekend yet.",
