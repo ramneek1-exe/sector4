@@ -95,9 +95,7 @@ export default async function AccuracyPage() {
             )}
           </dl>
 
-          {index.length >= 2 && (
-            <CalibrationChart live={summary.cumulative} testing={summary.cumulativeTesting} />
-          )}
+          {index.length >= 2 && <CalibrationChart all={summary.cumulativeAll} />}
 
           <ol className="mt-8 space-y-3">
             {rows.map((r) => (
