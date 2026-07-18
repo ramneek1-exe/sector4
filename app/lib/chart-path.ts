@@ -49,3 +49,22 @@ export function buildLinePath(
 ): string {
   return pointCoords(norm, w, h, pad).map((p) => `${p.x},${p.y}`).join(" ");
 }
+
+export function plotPoints(
+  values: number[],
+  positions: number[],
+  total: number,
+  w = 640,
+  h = 220,
+  pad: ChartPad = { top: 16, right: 16, bottom: 30, left: 16 },
+): Pt[] {
+  const innerW = w - pad.left - pad.right;
+  const innerH = h - pad.top - pad.bottom;
+  return values.map((v, i) => {
+    const frac = total <= 1 ? 0.5 : positions[i] / (total - 1);
+    const x = pad.left + innerW * frac;
+    const clamped = Math.max(0, Math.min(1, v));
+    const y = pad.top + innerH * (1 - clamped);
+    return { x: round2(x), y: round2(y) };
+  });
+}
