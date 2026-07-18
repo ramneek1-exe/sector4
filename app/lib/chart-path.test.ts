@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLinePath, pointCoords, yLevel, plotPoints } from "./chart-path";
+import { buildLinePath, pointCoords, yLevel, plotPoints, labelStride } from "./chart-path";
 
 const noPad = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -70,5 +70,17 @@ describe("plotPoints (shared timeline)", () => {
     const innerW = W - PAD.left - PAD.right;
     const pts = plotPoints([0.7], [0], 1, W, H, PAD);
     expect(pts[0].x).toBeCloseTo(PAD.left + innerW / 2);
+  });
+});
+
+describe("labelStride", () => {
+  it("is 1 while total fits under max", () => {
+    expect(labelStride(9)).toBe(1);
+    expect(labelStride(12)).toBe(1);
+    expect(labelStride(1)).toBe(1);
+  });
+  it("grows so labels stay under max", () => {
+    expect(labelStride(24)).toBe(2);
+    expect(labelStride(25)).toBe(3);
   });
 });

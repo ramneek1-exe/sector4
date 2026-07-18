@@ -125,6 +125,26 @@ describe("cumulative pos (shared timeline)", () => {
   });
 });
 
+describe("cumulativeAll (single continuous line)", () => {
+  it("is the cumulative over the full index in order, tagged reconstructed", () => {
+    const index = [
+      row("Australia", 0.3, 0.4, true),
+      row("China", 0.0, 0.5, true),
+      row("Austria", 1.0, 0.05),
+      row("Britain", 0.667, 0.1),
+    ];
+    const s = summarize(index);
+    expect(s.cumulativeAll.map((p) => p.gp)).toEqual(["Australia", "China", "Austria", "Britain"]);
+    expect(s.cumulativeAll.map((p) => p.round)).toEqual([1, 2, 3, 4]);
+    expect(s.cumulativeAll.map((p) => p.pos)).toEqual([0, 1, 2, 3]);
+    expect(s.cumulativeAll.map((p) => !!p.reconstructed)).toEqual([true, true, false, false]);
+  });
+
+  it("is present (empty) with no rows", () => {
+    expect(summarize([]).cumulativeAll).toEqual([]);
+  });
+});
+
 describe("raceDetail", () => {
   const podium = {
     drivers: [

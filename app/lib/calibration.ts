@@ -17,6 +17,7 @@ export interface CumulativePoint {
   gp: string;
   top3Rate: number;
   meanBrier: number;
+  reconstructed?: boolean; // true for pre-launch (post-hoc) rounds -> faded chart segment
 }
 
 export interface CalibrationStatus {
@@ -32,6 +33,7 @@ export interface CalibrationSummary {
   meanBrier: number;
   cumulative: CumulativePoint[];
   cumulativeTesting: CumulativePoint[]; // cumulative over reconstructed rows (faded chart series)
+  cumulativeAll: CumulativePoint[]; // cumulative over ALL rounds (the single continuous chart line)
   status: CalibrationStatus;
 }
 
@@ -75,6 +77,7 @@ function cumulativeSeries(
       gp: r.gp,
       top3Rate: round2(sumTop3 / (i + 1)),
       meanBrier: round3(sumBrier / (i + 1)),
+      reconstructed: r.reconstructed,
     };
   });
 }
@@ -85,6 +88,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
   const nReconstructed = reconstructed.length;
   const nRaces = live.length;
   const posOf = (gp: string) => index.findIndex((r) => r.gp === gp);
+  const cumulativeAll = cumulativeSeries(index, posOf);
   // status counts by LIVE races (the qualitative-band gate is about our live record).
   const status = calibrationStatus(live);
   if (nRaces === 0) {
@@ -95,6 +99,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
       meanBrier: 0,
       cumulative: [],
       cumulativeTesting: cumulativeSeries(reconstructed, posOf),
+      cumulativeAll,
       status,
     };
   }
@@ -112,6 +117,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
     meanBrier: round3(sumBrier / nRaces),
     cumulative,
     cumulativeTesting: cumulativeSeries(reconstructed, posOf),
+    cumulativeAll,
     status,
   };
 }
