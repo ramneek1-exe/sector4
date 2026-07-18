@@ -13,6 +13,7 @@ export interface CalibrationRow {
 
 export interface CumulativePoint {
   round: number;
+  pos: number; // 0-based index in the full ordered calibration index (shared-timeline x)
   gp: string;
   top3Rate: number;
   meanBrier: number;
@@ -59,7 +60,10 @@ export function calibrationStatus(index: CalibrationRow[]): CalibrationStatus {
   };
 }
 
-function cumulativeSeries(rows: CalibrationRow[]): CumulativePoint[] {
+function cumulativeSeries(
+  rows: CalibrationRow[],
+  posOf: (gp: string) => number,
+): CumulativePoint[] {
   let sumTop3 = 0;
   let sumBrier = 0;
   return rows.map((r, i) => {
@@ -67,6 +71,7 @@ function cumulativeSeries(rows: CalibrationRow[]): CumulativePoint[] {
     sumBrier += r.brierContrib;
     return {
       round: i + 1,
+      pos: posOf(r.gp),
       gp: r.gp,
       top3Rate: round2(sumTop3 / (i + 1)),
       meanBrier: round3(sumBrier / (i + 1)),
@@ -79,6 +84,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
   const reconstructed = index.filter((r) => r.reconstructed);
   const nReconstructed = reconstructed.length;
   const nRaces = live.length;
+  const posOf = (gp: string) => index.findIndex((r) => r.gp === gp);
   // status counts by LIVE races (the qualitative-band gate is about our live record).
   const status = calibrationStatus(live);
   if (nRaces === 0) {
@@ -88,11 +94,11 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
       top3Rate: 0,
       meanBrier: 0,
       cumulative: [],
-      cumulativeTesting: cumulativeSeries(reconstructed),
+      cumulativeTesting: cumulativeSeries(reconstructed, posOf),
       status,
     };
   }
-  const cumulative = cumulativeSeries(live);
+  const cumulative = cumulativeSeries(live, posOf);
   let sumTop3 = 0;
   let sumBrier = 0;
   for (const r of live) {
@@ -105,7 +111,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
     top3Rate: round2(sumTop3 / nRaces),
     meanBrier: round3(sumBrier / nRaces),
     cumulative,
-    cumulativeTesting: cumulativeSeries(reconstructed),
+    cumulativeTesting: cumulativeSeries(reconstructed, posOf),
     status,
   };
 }
