@@ -245,13 +245,21 @@
 > R17 (GitHub Actions, which already runs post-race) instead of only the daily Vercel cron; (b) a reconciler
 > that backfills any completed round missing a `final` snapshot; (c) the modal's "fall back to latest prior
 > race WITH a snapshot" so a single miss never leaves the screen bare.
-> **DEPLOY GOTCHA (2026-07-07):** the PR #25 merge to `main` (`028091b`) produced NO production build — Vercel
-> built the branch PREVIEW fine but never created/promoted a prod deploy (one-off missed webhook; no
-> `ignoreCommand` in vercel.json, every other merge deployed normally). `/weekend` is force-dynamic so prod
-> just kept serving the previous deploy. FIX: an empty commit re-triggers it (`git commit --allow-empty -m ...
-> && git push`, landed as `a596b09` → prod built + went live), OR "Promote to Production" on the successful
-> preview in the Vercel dashboard. If a `main` merge ever doesn't deploy, check
-> `gh api repos/<owner>/sector4/deployments` for a Production record on the merge sha before assuming latency.
+> **DEPLOY LATENCY — READ BEFORE RE-TRIGGERING (corrected 2026-07-18):** Vercel prod deploys land
+> **~2–4 minutes** after a `main` merge, NOT instantly. This is normal build latency, not a fault.
+> **Do NOT conclude a "missed deploy" and re-trigger before ~5 minutes have passed.** Investigation on
+> 2026-07-18 (backlog: deploy flakiness) found EVERY session merge deployed on its own within 2–4 min
+> (562629e 4min, 31e25cb 2min, 3b1429e 4min, R17 8902b15 2.5min); the perceived "flakiness" was polling
+> at ~1–2 min, wrongly concluding a miss, and firing premature empty-commit re-triggers (which just added
+> churn — e.g. 562629e deployed the same minute the "re-trigger" was pushed). **Correct procedure:** after a
+> merge, wait ≥5 min, then check for a Production deployment on the EXACT merge sha:
+> `gh api "repos/<owner>/sector4/deployments?environment=Production&per_page=3" --jq '.[]|"\(.sha[0:7]) \(.created_at)"'`.
+> Only if the merge sha is still ABSENT after ~5 min is it a genuine miss.
+> **GENUINE MISS (rare — one documented, PR #25 `028091b`, 2026-07-07):** Vercel built the PREVIEW but never
+> created a prod deploy. FIX (last resort only): an empty commit re-triggers it (`git commit --allow-empty -m ...
+> && git push`, e.g. `a596b09`), OR "Promote to Production" on the successful preview in the Vercel dashboard.
+> No `ignoreCommand` in vercel.json; nearly every merge deploys normally. NOTE: `[skip ci]` on an R17 commit
+> skips GitHub Actions, NOT Vercel — those still deploy (8902b15 did).
 > **OPS NOTE (whole-branch review Minor):** the not-concluded predecessor lookup needs `schedule.gp` to be
 > present in `race_calendar.json`. R17 writes `weekend-schedule.json` + `race_calendar.json` together so they
 > normally stay in sync; if you EVER hand-edit `weekend-schedule.json` to a new upcoming GP, also append it to
