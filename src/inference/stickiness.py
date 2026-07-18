@@ -14,7 +14,7 @@ import pandas as pd
 
 # Thresholds anchored to the observed 2023-2026 spread (rho ~0.43 Las Vegas ..
 # ~0.90 Monaco/Japan). Extremes speak; the broad middle stays silent (average).
-STICKY_MIN = 0.85
+STICKY_MIN = 0.80
 HIGH_OVERTAKING_MAX = 0.60
 MIN_RUNNINGS = 2  # honesty gate: below this we cannot say anything trustworthy
 

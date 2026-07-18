@@ -39,9 +39,9 @@ def test_high_overtaking_circuit_low_rho():
 
 
 def test_average_circuit_mid_rho():
-    # a mild shuffle: swap adjacent pairs -> positive but not extreme
-    swap = {1: 2, 2: 1, 3: 4, 4: 3, 5: 6, 6: 5}
-    df = _runnings("Spain", [2023, 2024, 2025], grid_to_finish=lambda g: swap[g])
+    # a moderate shuffle -> spearman rho ~0.66 (verified): positive but not extreme
+    shift = {1: 2, 2: 3, 3: 1, 4: 5, 5: 6, 6: 4}
+    df = _runnings("Spain", [2023, 2024, 2025], grid_to_finish=lambda g: shift[g])
     out = circuit_grid_stickiness(df, "Spain", 2026)
     assert out["tier"] == "average"
     assert 0.60 <= out["score"] < 0.80
