@@ -33,7 +33,7 @@ export async function reconcileFinals(
   const getJson = deps.getJson ?? realGetJson;
   const getActualFinish = deps.getActualFinish ?? realGetActualFinish;
   const write =
-    deps.write ?? ((y: number, g: string) => writeWeekendSnapshot(y, g, "final", { force: false }));
+    deps.write ?? ((y: number, g: string) => writeWeekendSnapshot(y, g, "final", { force: false, reconstructed: true }));
 
   const backfilled: string[] = [];
   const alreadyPresent: string[] = [];

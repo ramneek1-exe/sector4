@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   const force = !["0", "false"].includes(url.searchParams.get("force") ?? "1");
 
   try {
-    const result = await writeWeekendSnapshot(year, gp, checkpoint, { force });
+    const result = await writeWeekendSnapshot(year, gp, checkpoint, { force, reconstructed: true });
     return NextResponse.json({ ...result, year, gp });
   } catch (e) {
     console.error("admin snapshot failed", e);
