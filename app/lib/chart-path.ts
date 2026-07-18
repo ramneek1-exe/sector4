@@ -68,3 +68,7 @@ export function plotPoints(
     return { x: round2(x), y: round2(y) };
   });
 }
+
+export function labelStride(total: number, max = 12): number {
+  return Math.max(1, Math.ceil(total / max));
+}
