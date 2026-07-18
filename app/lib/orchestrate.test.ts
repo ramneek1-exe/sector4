@@ -306,4 +306,21 @@ describe("answerQuery", () => {
     expect(out.supported).toBe(false);
     expect(called).toBe(false);
   });
+
+  it("passes grid_context through to the podium facts", async () => {
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "predict_podium", gp: "Italy", year: 2024 }),
+        predictPodium: async () => ({
+          ...PODIUM,
+          grid_context: "This is one of the hardest circuits to overtake on, so a front-row start counts for more than usual here.",
+        }),
+      }),
+      "who podiums at Monza?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "podium" in out) {
+      expect(out.podium.grid_context).toContain("front-row start counts for more");
+    }
+  });
 });

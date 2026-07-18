@@ -5,11 +5,12 @@ from src.calendar import DRY_CIRCUITS
 from src.inference.podium import predict_podium, FRIDAY_COLS, SATURDAY_COLS
 
 
-def _podium_table(n_train_weekends=8, with_grid=True):
+def _podium_table(n_train_weekends=8, with_grid=True, sticky_prior=False):
     """Synthetic table on REAL calendar race_ids so store.prior_weekends (which
     slices in calendar order) recognizes the prior 2023 weekends. champ rank
     strongly predicts podium. `n_train_weekends` prior 2023 circuits (<= 8) precede
-    the 2024-Bahrain target."""
+    the 2024-Bahrain target. `sticky_prior` adds prior-year Bahrain runnings where
+    finish==grid (a sticky circuit) so grid_context can attach."""
     rows = []
     drivers = ["VER", "NOR", "LEC", "HAM", "PIA", "RUS"]
     weekends = [(2023, c) for c in DRY_CIRCUITS[:n_train_weekends]] + [(2024, "Bahrain")]
@@ -20,10 +21,21 @@ def _podium_table(n_train_weekends=8, with_grid=True):
                 "Driver": drv, "podium": int(rank <= 3),
                 "champ_rank_before": rank, "champ_points_before": 200 - 30 * rank,
                 "form_finish_avg3": float(rank), "prior_track_pace": 0.05 * rank,
-                "grid_position": rank if with_grid else float("nan"),
+                "grid_position": float(rank) if with_grid else float("nan"),
                 "finish_pos": rank,
                 "team": "TestTeam",
             })
+    if sticky_prior:
+        for y in (2021, 2022):
+            for rank, drv in enumerate(drivers, start=1):
+                rows.append({
+                    "race_id": f"{y}-Bahrain", "year": y, "gp": "Bahrain",
+                    "Driver": drv, "podium": int(rank <= 3),
+                    "champ_rank_before": rank, "champ_points_before": 200 - 30 * rank,
+                    "form_finish_avg3": float(rank), "prior_track_pace": 0.05 * rank,
+                    "grid_position": float(rank), "finish_pos": float(rank),
+                    "team": "TestTeam",
+                })
     return pd.DataFrame(rows)
 
 
@@ -97,3 +109,34 @@ def test_predict_podium_surfaces_team_per_driver():
     assert set(out["drivers"][0]) == {"driver", "team", "band", "p_podium", "rank", "factors"}
     assert {"champ_rank", "recent_form_avg_finish", "track_pace_delta_s"} <= set(
         out["drivers"][0]["factors"])
+
+
+def test_saturday_attaches_grid_context_for_sticky_circuit():
+    out = predict_podium(2024, "Bahrain", table=_podium_table(sticky_prior=True))
+    assert out["mode"] == "saturday"
+    assert "grid_context" in out
+    assert "front-row" in out["grid_context"]
+
+
+def test_friday_never_attaches_grid_context():
+    out = predict_podium(2024, "Bahrain", mode="friday",
+                         table=_podium_table(sticky_prior=True))
+    assert out["mode"] == "friday"
+    assert "grid_context" not in out
+
+
+def test_no_grid_context_when_no_prior_history():
+    # Only one prior Bahrain running (below MIN_RUNNINGS=2) -> stickiness None -> no line.
+    out = predict_podium(2024, "Bahrain", table=_podium_table())
+    assert "grid_context" not in out
+
+
+def test_grid_context_does_not_change_probabilities():
+    base = predict_podium(2024, "Bahrain", table=_podium_table())
+    withctx = predict_podium(2024, "Bahrain", table=_podium_table(sticky_prior=True))
+    # Same model inputs (SATURDAY_COLS) -> identical per-driver probabilities/bands;
+    # the sticky_prior rows (2021/2022 Bahrain) are excluded from Bahrain's training
+    # slice because those years aren't in calendar_order(), so they cannot change the fit.
+    b = {d["driver"]: (d["p_podium"], d["band"]) for d in base["drivers"]}
+    w = {d["driver"]: (d["p_podium"], d["band"]) for d in withctx["drivers"]}
+    assert b == w

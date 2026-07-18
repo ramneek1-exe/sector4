@@ -13,6 +13,7 @@ import pandas as pd
 
 from src import store
 from src.calendar import race_id
+from src.inference.stickiness import circuit_grid_stickiness, grid_context_line
 from src.models.podium_model import band_for, default_classifier_factory
 
 # Feature columns declared here (NOT imported from feature-build modules) to keep
@@ -93,5 +94,11 @@ def predict_podium(year: int, gp: str, mode: str = "auto",
     drivers.sort(key=lambda r: r["p_podium"], reverse=True)
     for i, d in enumerate(drivers, start=1):
         d["rank"] = i
-    return {"year": year, "gp": gp, "mode": resolved, "qualitative": True,
-            "calibrated": False, "n_train_races": n_train, "drivers": drivers}
+    result = {"year": year, "gp": gp, "mode": resolved, "qualitative": True,
+              "calibrated": False, "n_train_races": n_train, "drivers": drivers}
+    if saturday:
+        line = grid_context_line(
+            circuit_grid_stickiness(table, gp, year), drivers)
+        if line:
+            result["grid_context"] = line
+    return result

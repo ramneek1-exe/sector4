@@ -23,15 +23,7 @@
 >    sprint-folding code in the Jul 6 20:11 rebuild, AFTER this note was first written. `podium_features`
 >    (built from the same `results` in the same rebuild) is consistent → train/serve champ_points already
 >    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
-> 3. **Post-quali grid WEIGHTING for race-podium predictions — incl. track-specific tailoring.** The grid IS
->    applied (Saturday mode works — verified LEC P2 → strong/in-contention), but a strong quali may not move
->    podium odds ENOUGH (LEC P2→P1 at Silverstone felt undersold). (a) Investigate/increase how strongly
->    `grid_position` weights the podium model post-quali. (b) **Track-specific tailoring:** on
->    low-overtaking circuits — ESPECIALLY toward the front of the grid — starting position is far more
->    predictive of the finish (fewer position changes up front), so grid should weight HIGHER there and less
->    on high-overtaking tracks. A per-track "grid stickiness"/overtaking-difficulty prior feeding the grid
->    weight. Model-calibration slice (its own spec→plan→build); needs honest validation (rolling-origin CV,
->    don't overfit the ~small sample). NOT a bug — the grid wiring works; this is tuning + a new feature.
+> 3. ✅ **RESOLVED (2026-07-17, PR #26) — investigated as a model change, landed as an explainer/context feature after a validation NO-GO.** See the session entry below. The model-weight idea was tested and REJECTED honestly: grid already dominates the podium model (standardized logistic coef −2.5, top feature by 3×), and a per-track grid×stickiness INTERACTION does NOT beat baseline on leakage-safe rolling-origin CV (23 held-out races: top3 0.696 flat / Brier flat-or-worse; front-row already well-calibrated pred 0.67 vs actual 0.68 — the earlier "undersold" feeling was a DRY-subset small-sample artifact). Per house rules (don't tune the bar / don't overfit one Silverstone anecdote) the MODEL IS UNTOUCHED. The real per-track stickiness spread (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan) instead ships as grounded narrative CONTEXT. **Deferred alternatives if ever revisited:** none recommended — the interaction is a genuine no-edge; evidence in the spec §0.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
 > 5. ✅ **DONE (2026-07-07, PR #23 MERGED to `main` → live on prod).** See the session entry below. Recommend confirming the *populated* modal on prod (`/weekend`, Belgium setup screen → "Check out Great Britain GP" link). **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
@@ -60,6 +52,33 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-17 session — grid-context (overtaking difficulty) in podium narrative (backlog #3): PR #26
+> **M7 slice.** Owner backlog #3 (weight grid harder post-quali + track-specific tailoring) was INVESTIGATED as a
+> model change and REJECTED on honest validation, then RE-SCOPED to a grounded narrative-context feature. Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-17-grid-context-overtaking-difficulty*` (spec §0 records the NO-GO
+> evidence in full); ledger `.superpowers/sdd/progress.md`. Subagent-driven: 4 tasks + per-task reviews + opus
+> whole-branch review (READY TO MERGE, zero Critical/Important).
+> **Why NOT a model change:** grid already DOMINATES the podium model (standardized logistic coef −2.5, top feature
+> by 3×), so "grid doesn't weight enough" is not globally true. Per-track grid→finish stickiness is real and large
+> (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan), BUT a grid×stickiness interaction does NOT beat baseline on
+> leakage-safe rolling-origin CV (23 held-out races: top3 0.696 unchanged, Brier flat/worse, front-row already
+> calibrated 0.67/0.68). House rule (surface go/no-go honestly, don't overfit) → MODEL UNTOUCHED.
+> **What shipped:** (1) **`src/inference/stickiness.py`** (new, pure, 12 pytest) — `circuit_grid_stickiness(podium_features,
+> gp, year)` = Spearman ρ(grid, finish) over STRICTLY-PRIOR runnings (`year < target`, leakage-safe), tiered
+> (sticky ρ≥0.80 / high_overtaking ρ<0.60 / average), `n<2` runnings → None. `grid_context_line(stickiness, drivers)`
+> composes ONE fixed grounded sentence, symmetric — fires only for sticky/high_overtaking tier AND a front-row
+> driver (grid≤3); average/thin/no-front-row/Friday → silent. (2) **`predict_podium`** attaches `grid_context`
+> (Saturday mode only); **model/probability path byte-identical** (regression-tested). (3) **Frontend** —
+> `PodiumFacts.grid_context` (snake_case; flows via existing `postJson<PodiumFacts>` cast + `withContext` spread,
+> ZERO mapping code) + one `PODIUM_SYSTEM` line letting Haiku weave the one sentence, forbidden from inventing
+> overtaking claims. No model change, no new build artifact, no new API route, no em-dashes, leakage-safe.
+> **VERIFIED:** pytest 223, vitest 171/2-skip, tsc+build clean.
+> **CAVEAT (repo pattern, M2 finding):** the end-to-end NARRATIVE text only renders on a real deploy (Haiku +
+> Python `/api/*` not served under `next dev`) — eyeball a post-quali podium at a sticky circuit (Silverstone/
+> Monaco front-row) on the deploy to confirm the sentence reads well.
+> **DEFERRED (spec §8, not built):** a linked `/learn` concept ("why grid matters more at some tracks");
+> front-retention concrete phrasing ("N of last M front-row starters held position") — noise/overclaim risk on thin data.
 >
 > ## 2026-07-07 session — `/weekend` past-predictions modal (backlog #5): MERGED (PR #23, merge `5453dc0`) → live on prod
 > Frontend-only, read-only over existing Blob. In `/weekend`'s pre-predictions "setting up" screen, a
