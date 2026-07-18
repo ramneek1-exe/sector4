@@ -91,6 +91,26 @@ describe("calibrationStatus", () => {
   });
 });
 
+describe("summarize cumulativeTesting", () => {
+  it("walks reconstructed rows only, parallel to the live cumulative", () => {
+    const index = [
+      row("Australia", 0.33, 0.4, true),
+      row("China", 0.0, 0.5, true),
+      row("Austria", 1.0, 0.05),        // live
+    ];
+    const s = summarize(index);
+    expect(s.cumulative.map((p) => p.gp)).toEqual(["Austria"]);          // live
+    expect(s.cumulativeTesting.map((p) => p.gp)).toEqual(["Australia", "China"]); // testing, in order
+    expect(s.cumulativeTesting[0].round).toBe(1);
+    expect(s.cumulativeTesting[1].round).toBe(2);
+  });
+
+  it("is empty when there are no reconstructed rows", () => {
+    const s = summarize([row("Austria", 1.0, 0.05), row("Britain", 0.667, 0.1)]);
+    expect(s.cumulativeTesting).toEqual([]);
+  });
+});
+
 describe("raceDetail", () => {
   const podium = {
     drivers: [

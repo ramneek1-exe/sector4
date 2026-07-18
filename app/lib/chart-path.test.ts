@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLinePath } from "./chart-path";
+import { buildLinePath, pointCoords, yLevel } from "./chart-path";
 
 const noPad = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -19,5 +19,32 @@ describe("buildLinePath", () => {
     const ys = pts.split(" ").map((p) => Number(p.split(",")[1]));
     expect(ys[0]).toBe(100); // -1 clamps to 0 -> bottom
     expect(ys[1]).toBe(0); // 2 clamps to 1 -> top
+  });
+});
+
+const PAD = { top: 16, right: 44, bottom: 30, left: 34 };
+const W = 640, H = 240;
+
+describe("pointCoords", () => {
+  it("returns one coord per value, y inverted (1 = top)", () => {
+    const pts = pointCoords([1, 0], W, H, PAD);
+    expect(pts).toHaveLength(2);
+    expect(pts[0].y).toBeCloseTo(PAD.top);                 // value 1 -> top
+    expect(pts[1].y).toBeCloseTo(H - PAD.bottom);          // value 0 -> baseline
+    expect(pts[0].x).toBeCloseTo(PAD.left);                // first point at left
+    expect(pts[1].x).toBeCloseTo(W - PAD.right);           // last point at right
+  });
+
+  it("buildLinePath is pointCoords joined as an SVG points string", () => {
+    const pts = pointCoords([0.5, 0.8], W, H, PAD);
+    expect(buildLinePath([0.5, 0.8], W, H, PAD)).toBe(pts.map((p) => `${p.x},${p.y}`).join(" "));
+  });
+});
+
+describe("yLevel", () => {
+  it("maps 0 to baseline, 1 to top, 0.5 to the middle of the plot box", () => {
+    expect(yLevel(0, H, PAD)).toBeCloseTo(H - PAD.bottom);
+    expect(yLevel(1, H, PAD)).toBeCloseTo(PAD.top);
+    expect(yLevel(0.5, H, PAD)).toBeCloseTo(PAD.top + (H - PAD.top - PAD.bottom) / 2);
   });
 });

@@ -42,9 +42,13 @@ export async function GET(req: Request) {
   }
   // Backfill defaults to overwrite (that's the point); pass force=0 to respect idempotency.
   const force = !["0", "false"].includes(url.searchParams.get("force") ?? "1");
+  // Admin backfills are post-hoc by default (reconstructed=true). Pass reconstructed=0 to write a
+  // snapshot as LIVE (unflagged) -- used to correct a beta-era race whose final was backfilled
+  // (e.g. Great Britain: forecast live, but its final snapshot was an admin backfill).
+  const reconstructed = !["0", "false"].includes(url.searchParams.get("reconstructed") ?? "1");
 
   try {
-    const result = await writeWeekendSnapshot(year, gp, checkpoint, { force, reconstructed: true });
+    const result = await writeWeekendSnapshot(year, gp, checkpoint, { force, reconstructed });
     return NextResponse.json({ ...result, year, gp });
   } catch (e) {
     console.error("admin snapshot failed", e);

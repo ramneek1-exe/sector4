@@ -242,3 +242,53 @@ body {
     filter: none;
   }
 }
+
+/* /accuracy calibration chart reveal (pure CSS, no JS) */
+@keyframes chartDraw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.chart-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: chartDraw 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.chart-draw--testing {
+  animation-duration: 0.7s;
+  animation-delay: 0.15s;
+}
+/* Opacity-only (not fogIn): .chart-fade covers ~20+ small SVG elements (gridlines, markers,
+   axis labels) on this page. fogIn's translateY + blur is tuned for a handful of large DOM
+   nodes; animating blur+transform across that many small text/circle elements exceeds a
+   sane GPU-layer budget and blurs 10px text/r=3 markers into mush mid-fade. Opacity alone is
+   cheap, keeps the reveal restrained, and still reads as a staggered fade via animation-delay. */
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.chart-fade {
+  opacity: 0;
+  animation: chartFadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.55s;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* .chart-draw / .chart-draw--testing: unhide the drawn line, but do NOT force opacity here --
+     the testing polyline's inline opacity={0.35} must survive (see CalibrationChart.tsx). */
+  .chart-draw,
+  .chart-draw--testing {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .chart-fade {
+    animation: none;
+    opacity: 1;
+  }
+}

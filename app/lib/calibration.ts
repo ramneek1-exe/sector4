@@ -30,6 +30,7 @@ export interface CalibrationSummary {
   top3Rate: number;
   meanBrier: number;
   cumulative: CumulativePoint[];
+  cumulativeTesting: CumulativePoint[]; // cumulative over reconstructed rows (faded chart series)
   status: CalibrationStatus;
 }
 
@@ -58,18 +59,10 @@ export function calibrationStatus(index: CalibrationRow[]): CalibrationStatus {
   };
 }
 
-export function summarize(index: CalibrationRow[]): CalibrationSummary {
-  const live = index.filter((r) => !r.reconstructed);
-  const nReconstructed = index.length - live.length;
-  const nRaces = live.length;
-  // status counts by LIVE races (the qualitative-band gate is about our live record).
-  const status = calibrationStatus(live);
-  if (nRaces === 0) {
-    return { nRaces: 0, nReconstructed, top3Rate: 0, meanBrier: 0, cumulative: [], status };
-  }
+function cumulativeSeries(rows: CalibrationRow[]): CumulativePoint[] {
   let sumTop3 = 0;
   let sumBrier = 0;
-  const cumulative: CumulativePoint[] = live.map((r, i) => {
+  return rows.map((r, i) => {
     sumTop3 += r.top3;
     sumBrier += r.brierContrib;
     return {
@@ -79,12 +72,40 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
       meanBrier: round3(sumBrier / (i + 1)),
     };
   });
+}
+
+export function summarize(index: CalibrationRow[]): CalibrationSummary {
+  const live = index.filter((r) => !r.reconstructed);
+  const reconstructed = index.filter((r) => r.reconstructed);
+  const nReconstructed = reconstructed.length;
+  const nRaces = live.length;
+  // status counts by LIVE races (the qualitative-band gate is about our live record).
+  const status = calibrationStatus(live);
+  if (nRaces === 0) {
+    return {
+      nRaces: 0,
+      nReconstructed,
+      top3Rate: 0,
+      meanBrier: 0,
+      cumulative: [],
+      cumulativeTesting: cumulativeSeries(reconstructed),
+      status,
+    };
+  }
+  const cumulative = cumulativeSeries(live);
+  let sumTop3 = 0;
+  let sumBrier = 0;
+  for (const r of live) {
+    sumTop3 += r.top3;
+    sumBrier += r.brierContrib;
+  }
   return {
     nRaces,
     nReconstructed,
     top3Rate: round2(sumTop3 / nRaces),
     meanBrier: round3(sumBrier / nRaces),
     cumulative,
+    cumulativeTesting: cumulativeSeries(reconstructed),
     status,
   };
 }
