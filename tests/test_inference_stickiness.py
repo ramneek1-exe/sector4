@@ -65,3 +65,45 @@ def test_leakage_target_year_excluded():
 def test_no_rows_for_circuit_returns_none():
     df = _runnings("Monaco", [2023, 2024], grid_to_finish=lambda g: g)
     assert circuit_grid_stickiness(df, "Suzuka", 2026) is None
+
+
+from src.inference.stickiness import grid_context_line
+
+
+def _drivers(*grids):
+    return [{"factors": {"grid": g}} for g in grids]
+
+
+def test_line_fires_for_sticky_with_front_row():
+    st = {"score": 0.9, "tier": "sticky", "n": 4}
+    line = grid_context_line(st, _drivers(1, 5, 8))
+    assert line is not None
+    assert "hardest" in line.lower() or "hard to overtake" in line.lower()
+    assert "—" not in line and "–" not in line  # no em/en dashes
+
+
+def test_line_fires_for_high_overtaking_with_front_row():
+    st = {"score": 0.45, "tier": "high_overtaking", "n": 4}
+    line = grid_context_line(st, _drivers(2, 4, 6))
+    assert line is not None
+    assert "passing" in line.lower() or "overtak" in line.lower()
+
+
+def test_line_silent_for_average_tier():
+    st = {"score": 0.7, "tier": "average", "n": 4}
+    assert grid_context_line(st, _drivers(1, 2, 3)) is None
+
+
+def test_line_silent_without_front_row_driver():
+    st = {"score": 0.9, "tier": "sticky", "n": 4}
+    assert grid_context_line(st, _drivers(5, 6, 7)) is None
+
+
+def test_line_silent_when_stickiness_none():
+    assert grid_context_line(None, _drivers(1, 2)) is None
+
+
+def test_line_silent_when_no_grid_in_factors():
+    # Friday-shaped drivers (no grid key) never trigger.
+    st = {"score": 0.9, "tier": "sticky", "n": 4}
+    assert grid_context_line(st, [{"factors": {}}]) is None
