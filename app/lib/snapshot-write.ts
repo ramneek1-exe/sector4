@@ -35,6 +35,7 @@ export async function getActualFinish(year: number, gp: string): Promise<string[
 
 export interface WriteDeps {
   force?: boolean;
+  reconstructed?: boolean;
   getJson?: <T>(key: string) => Promise<T | null>;
   putJson?: (key: string, value: unknown) => Promise<string>;
   build?: (year: number, gp: string, checkpoint: Checkpoint) => Promise<WeekendSnapshot>;
@@ -60,6 +61,7 @@ export async function writeWeekendSnapshot(
   deps: WriteDeps = {},
 ): Promise<WriteResult> {
   const force = deps.force ?? false;
+  const reconstructed = deps.reconstructed ?? false;
   const getJson = deps.getJson ?? realGetJson;
   const putJson = deps.putJson ?? realPutJson;
   const build = deps.build ?? ((y, g, c) => buildSnapshot(y, g, c, deps.snapshotDeps));
@@ -85,7 +87,7 @@ export async function writeWeekendSnapshot(
           snap.podium as { drivers: { driver: string; p_podium: number }[] },
           actualFinish,
         );
-        idx.push({ gp, issuedAt: snap.issuedAt, ...cal });
+        idx.push({ gp, issuedAt: snap.issuedAt, ...cal, ...(reconstructed ? { reconstructed: true } : {}) });
         await putJson(idxKey, idx);
       }
     }
