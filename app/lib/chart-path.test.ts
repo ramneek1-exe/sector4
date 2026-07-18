@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLinePath, pointCoords, yLevel } from "./chart-path";
+import { buildLinePath, pointCoords, yLevel, plotPoints } from "./chart-path";
 
 const noPad = { top: 0, right: 0, bottom: 0, left: 0 };
 
@@ -46,5 +46,29 @@ describe("yLevel", () => {
     expect(yLevel(0, H, PAD)).toBeCloseTo(H - PAD.bottom);
     expect(yLevel(1, H, PAD)).toBeCloseTo(PAD.top);
     expect(yLevel(0.5, H, PAD)).toBeCloseTo(PAD.top + (H - PAD.top - PAD.bottom) / 2);
+  });
+});
+
+describe("plotPoints (shared timeline)", () => {
+  const PAD = { top: 16, right: 44, bottom: 30, left: 34 };
+  const W = 640, H = 240;
+
+  it("maps pos 0 to the left edge, pos total-1 to the right edge, y from value", () => {
+    const pts = plotPoints([1, 0.5], [0, 4], 5, W, H, PAD); // total 5
+    expect(pts[0].x).toBeCloseTo(PAD.left);              // pos 0
+    expect(pts[0].y).toBeCloseTo(PAD.top);               // value 1 -> top
+    expect(pts[1].x).toBeCloseTo(W - PAD.right);         // pos 4 = total-1
+  });
+
+  it("places a middle position proportionally", () => {
+    const innerW = W - PAD.left - PAD.right;
+    const pts = plotPoints([0.5], [2], 5, W, H, PAD);    // pos 2 of 0..4 -> halfway
+    expect(pts[0].x).toBeCloseTo(PAD.left + innerW * (2 / 4));
+  });
+
+  it("centers a single-round timeline (total <= 1)", () => {
+    const innerW = W - PAD.left - PAD.right;
+    const pts = plotPoints([0.7], [0], 1, W, H, PAD);
+    expect(pts[0].x).toBeCloseTo(PAD.left + innerW / 2);
   });
 });

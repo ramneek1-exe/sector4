@@ -111,6 +111,20 @@ describe("summarize cumulativeTesting", () => {
   });
 });
 
+describe("cumulative pos (shared timeline)", () => {
+  it("stamps the absolute index in the full calendar order on each point", () => {
+    const index = [
+      row("Australia", 0.3, 0.4, true),  // pos 0
+      row("China", 0.0, 0.5, true),      // pos 1
+      row("Austria", 1.0, 0.05),         // pos 2 (live)
+      row("Britain", 0.667, 0.1),        // pos 3 (live)
+    ];
+    const s = summarize(index);
+    expect(s.cumulativeTesting.map((p) => p.pos)).toEqual([0, 1]);
+    expect(s.cumulative.map((p) => p.pos)).toEqual([2, 3]); // live rounds keep their calendar pos
+  });
+});
+
 describe("raceDetail", () => {
   const podium = {
     drivers: [

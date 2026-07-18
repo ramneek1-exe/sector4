@@ -5,7 +5,7 @@
 // solid line = pre-launch (testing) top-3, shown for context, NOT counted in the headline.
 // Reveal animation is pure CSS (see globals.css), gated by prefers-reduced-motion. No client JS.
 import type { CumulativePoint } from "@/app/lib/calibration";
-import { buildLinePath, pointCoords, yLevel, type ChartPad } from "@/app/lib/chart-path";
+import { plotPoints, yLevel, type ChartPad } from "@/app/lib/chart-path";
 
 const W = 640;
 const H = 240;
@@ -24,12 +24,20 @@ export function CalibrationChart({
 }) {
   if (live.length < 2 && testing.length < 2) return null;
 
-  const liveTop3 = buildLinePath(live.map((p) => p.top3Rate), W, H, PAD);
-  const liveBrier = buildLinePath(live.map((p) => 1 - p.meanBrier), W, H, PAD);
-  const testTop3 = buildLinePath(testing.map((p) => p.top3Rate), W, H, PAD);
-  const liveMarks = pointCoords(live.map((p) => p.top3Rate), W, H, PAD);
+  const total = live.length + testing.length;
+  const toStr = (pts: { x: number; y: number }[]) => pts.map((p) => `${p.x},${p.y}`).join(" ");
+  const liveMarks = plotPoints(live.map((p) => p.top3Rate), live.map((p) => p.pos), total, W, H, PAD);
+  const liveTop3 = toStr(liveMarks);
+  const liveBrier = toStr(plotPoints(live.map((p) => 1 - p.meanBrier), live.map((p) => p.pos), total, W, H, PAD));
+  const testTop3 = toStr(plotPoints(testing.map((p) => p.top3Rate), testing.map((p) => p.pos), total, W, H, PAD));
   const last = live.length >= 1 ? live[live.length - 1] : null;
   const lastMark = liveMarks.length ? liveMarks[liveMarks.length - 1] : null;
+  const xForPos = (pos: number) =>
+    PAD.left + (W - PAD.left - PAD.right) * (total <= 1 ? 0.5 : pos / (total - 1));
+  const roundLabels = [
+    ...testing.map((p) => ({ pos: p.pos, gp: p.gp, testing: true })),
+    ...live.map((p) => ({ pos: p.pos, gp: p.gp, testing: false })),
+  ];
 
   return (
     <figure className="mt-6">
@@ -117,17 +125,18 @@ export function CalibrationChart({
           </text>
         )}
 
-        {/* x-axis: live round labels */}
-        {live.map((p, i) => (
+        {/* x-axis: every round at its shared-timeline position (testing de-emphasized) */}
+        {roundLabels.map((l) => (
           <text
-            key={p.round}
-            x={liveMarks[i]?.x ?? 0}
+            key={l.gp}
+            x={xForPos(l.pos)}
             y={H - 10}
             textAnchor="middle"
             className="fill-muted font-grotesk chart-fade"
             fontSize={10}
+            opacity={l.testing ? 0.5 : 1}
           >
-            {shortGp(p.gp)}
+            {shortGp(l.gp)}
           </text>
         ))}
       </svg>
