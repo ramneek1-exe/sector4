@@ -8,6 +8,7 @@ export interface CalibrationRow {
   issuedAt: string;
   brierContrib: number;
   top3: number;
+  reconstructed?: boolean; // written by post-hoc backfills (reconciler/admin); excluded from headline
 }
 
 export interface CumulativePoint {
@@ -24,7 +25,8 @@ export interface CalibrationStatus {
 }
 
 export interface CalibrationSummary {
-  nRaces: number;
+  nRaces: number;          // LIVE (non-reconstructed) races
+  nReconstructed: number;  // reconstructed rows (listed but excluded from the headline)
   top3Rate: number;
   meanBrier: number;
   cumulative: CumulativePoint[];
@@ -57,14 +59,17 @@ export function calibrationStatus(index: CalibrationRow[]): CalibrationStatus {
 }
 
 export function summarize(index: CalibrationRow[]): CalibrationSummary {
-  const nRaces = index.length;
-  const status = calibrationStatus(index);
+  const live = index.filter((r) => !r.reconstructed);
+  const nReconstructed = index.length - live.length;
+  const nRaces = live.length;
+  // status counts by LIVE races (the qualitative-band gate is about our live record).
+  const status = calibrationStatus(live);
   if (nRaces === 0) {
-    return { nRaces: 0, top3Rate: 0, meanBrier: 0, cumulative: [], status };
+    return { nRaces: 0, nReconstructed, top3Rate: 0, meanBrier: 0, cumulative: [], status };
   }
   let sumTop3 = 0;
   let sumBrier = 0;
-  const cumulative: CumulativePoint[] = index.map((r, i) => {
+  const cumulative: CumulativePoint[] = live.map((r, i) => {
     sumTop3 += r.top3;
     sumBrier += r.brierContrib;
     return {
@@ -76,6 +81,7 @@ export function summarize(index: CalibrationRow[]): CalibrationSummary {
   });
   return {
     nRaces,
+    nReconstructed,
     top3Rate: round2(sumTop3 / nRaces),
     meanBrier: round3(sumBrier / nRaces),
     cumulative,

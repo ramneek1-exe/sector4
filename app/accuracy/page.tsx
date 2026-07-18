@@ -19,6 +19,7 @@ interface ScoredRace {
   gp: string;
   detail: RaceDetail | null;
   brier: number;
+  reconstructed: boolean;
 }
 
 async function loadRaceRows(index: CalibrationRow[]): Promise<ScoredRace[]> {
@@ -31,7 +32,7 @@ async function loadRaceRows(index: CalibrationRow[]): Promise<ScoredRace[]> {
             snap.actuals as string[] | null,
           )
         : null;
-      return { gp: r.gp, detail, brier: r.brierContrib };
+      return { gp: r.gp, detail, brier: r.brierContrib, reconstructed: !!r.reconstructed };
     }),
   );
 }
@@ -39,7 +40,7 @@ async function loadRaceRows(index: CalibrationRow[]): Promise<ScoredRace[]> {
 export default async function AccuracyPage() {
   const index = (await getJson<CalibrationRow[]>(seasonIndexKey(YEAR))) ?? [];
   const summary = summarize(index);
-  const rows = summary.nRaces > 0 ? await loadRaceRows(index) : [];
+  const rows = index.length > 0 ? await loadRaceRows(index) : [];
 
   return (
     <main className="mx-auto max-w-4xl px-5 pb-20 pt-10 sm:px-8">
@@ -58,7 +59,7 @@ export default async function AccuracyPage() {
         {summary.status.reason}
       </p>
 
-      {summary.nRaces === 0 ? (
+      {index.length === 0 ? (
         <p className="font-lastik text-muted">
           No completed rounds scored yet this season. Predictions are issued each weekend and
           scored here after the race.{" "}
@@ -73,17 +74,25 @@ export default async function AccuracyPage() {
             These are our past results, not forecast probabilities.
           </p>
           <dl className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Stat label="Races scored" value={String(summary.nRaces)} />
             <Stat
-              label="Top-3 hit rate"
-              value={`${Math.round(summary.top3Rate * 100)}%`}
-              gloss="share of podium places we called correctly"
+              label="Races scored"
+              value={String(summary.nRaces)}
+              gloss={summary.nReconstructed > 0 ? `plus ${summary.nReconstructed} from testing, not counted` : undefined}
             />
-            <Stat
-              label="Brier score"
-              value={summary.meanBrier.toFixed(3)}
-              gloss="lower is better-calibrated"
-            />
+            {summary.nRaces > 0 && (
+              <>
+                <Stat
+                  label="Top-3 hit rate"
+                  value={`${Math.round(summary.top3Rate * 100)}%`}
+                  gloss="share of podium places we called correctly"
+                />
+                <Stat
+                  label="Brier score"
+                  value={summary.meanBrier.toFixed(3)}
+                  gloss="lower is better-calibrated"
+                />
+              </>
+            )}
           </dl>
 
           {summary.nRaces >= 3 && <CalibrationChart series={summary.cumulative} />}
@@ -91,8 +100,15 @@ export default async function AccuracyPage() {
           <ol className="mt-8 space-y-3">
             {rows.map((r) => (
               <li key={r.gp} className="rounded-md border border-ink/10 p-4">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-grotesk font-semibold text-ink">{r.gp}</span>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-grotesk font-semibold text-ink">
+                    {r.gp}
+                    {r.reconstructed && (
+                      <span className="ml-2 rounded bg-ink/[0.06] px-1.5 py-0.5 align-middle font-grotesk text-[0.65rem] font-normal uppercase tracking-wide text-muted">
+                        From testing · not predicted live
+                      </span>
+                    )}
+                  </span>
                   <span className="font-grotesk text-xs text-muted">Brier {r.brier.toFixed(3)}</span>
                 </div>
                 {r.detail ? (

@@ -111,4 +111,29 @@ describe("writeWeekendSnapshot", () => {
     expect(snap.actuals).toBeUndefined();
     expect(io.store[seasonIndexKey(2026)]).toBeUndefined();
   });
+
+  it("stamps reconstructed:true on the calibration row when the option is set", async () => {
+    const store = fakeStore();
+    await writeWeekendSnapshot(2026, "China", "final", {
+      ...store,
+      build: fakeBuild,
+      getActualFinish: async () => ["NOR", "LEC", "PIA"],
+      reconstructed: true,
+    });
+    const idx = store.store[seasonIndexKey(2026)] as Array<{ gp: string; reconstructed?: boolean }>;
+    const chinaRow = idx.find((r) => r.gp === "China")!;
+    expect(chinaRow.reconstructed).toBe(true);
+  });
+
+  it("omits reconstructed on the calibration row for the live path (default)", async () => {
+    const store = fakeStore();
+    await writeWeekendSnapshot(2026, "Austria", "final", {
+      ...store,
+      build: fakeBuild,
+      getActualFinish: async () => ["VER", "NOR", "LEC"],
+    });
+    const idx = store.store[seasonIndexKey(2026)] as Array<{ gp: string; reconstructed?: boolean }>;
+    const austriaRow = idx.find((r) => r.gp === "Austria")!;
+    expect("reconstructed" in austriaRow).toBe(false);
+  });
 });
