@@ -25,9 +25,14 @@
 >    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
 > 3. ✅ **RESOLVED (2026-07-17, PR #26) — investigated as a model change, landed as an explainer/context feature after a validation NO-GO.** See the session entry below. The model-weight idea was tested and REJECTED honestly: grid already dominates the podium model (standardized logistic coef −2.5, top feature by 3×), and a per-track grid×stickiness INTERACTION does NOT beat baseline on leakage-safe rolling-origin CV (23 held-out races: top3 0.696 flat / Brier flat-or-worse; front-row already well-calibrated pred 0.67 vs actual 0.68 — the earlier "undersold" feeling was a DRY-subset small-sample artifact). Per house rules (don't tune the bar / don't overfit one Silverstone anecdote) the MODEL IS UNTOUCHED. The real per-track stickiness spread (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan) instead ships as grounded narrative CONTEXT. **Deferred alternatives if ever revisited:** none recommended — the interaction is a genuine no-edge; evidence in the spec §0.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
-> 7. **`/accuracy` chart enhancement — "graph is just a line, needs more info"** (owner, 2026-07-18). The
->    calibration trend chart reads as a bare line; add information density (per-round markers, the Brier
->    co-metric legend, axis labels, hover/tooltips). Frontend-only UX slice; spec §9 of the atomic-rebuild spec.
+> 7. ✅ **RESOLVED (2026-07-18, PR #31) — /accuracy chart enriched + GB relabel.** Chart gained y-axis
+>    scale/gridlines/point markers/endpoint value label + a faded "pre-launch (not counted)" testing series +
+>    clearer Brier legend + a pure-CSS line-draw reveal (reduced-motion gated); stays server-rendered (no hover
+>    JS, owner's call). GB relabel via new admin `?reconstructed=0` override. See session entry.
+>    **OPEN OWNER DECISION (post-eyeball):** the chart overlays the live + testing lines INDEPENDENTLY (each
+>    full-width), not on a shared calendar timeline. Fine as a faded backdrop, but decide after seeing it whether
+>    you want the shared-timeline instead (live becomes a short right-side segment; needs an absolute round index
+>    threaded through CumulativePoint). Not blocking.
 > 8. ✅ **RESOLVED (2026-07-18, PR #30) — cron reordered to due-write → reconcile → rebuild.** The due-write now
 >    runs FIRST and claims the current race's `final` LIVE (unflagged); reconcile then no-ops it (`alreadyPresent`)
 >    and stays the safety-net for genuinely-missed rounds; rebuild last. Extracted to a testable
@@ -72,6 +77,25 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-18 session — /accuracy chart enrichment + GB live relabel (backlog #7): PR #31
+> Spec/plan `docs/superpowers/{specs,plans}/2026-07-18-accuracy-chart-enrichment*`; ledger `.superpowers/sdd/
+> progress.md`. Subagent-driven: 4 tasks + reviews (2 inline for trivial, 2 subagent).
+> **What shipped:** (1) **GB relabel mechanism** — `app/api/admin/snapshot` accepts `?reconstructed=0` to write a
+> snapshot as LIVE (unflagged); mirrors the `force` parse. (2) **`summarize` `cumulativeTesting`** — cumulative
+> over reconstructed rows (parallel to live `cumulative`); live values byte-identical (regression-verified).
+> (3) **`chart-path.ts` `pointCoords`/`yLevel`** helpers (buildLinePath refactored onto pointCoords, output
+> identical). (4) **`CalibrationChart` rewrite** — server component (no hover/JS): y-axis scale + 0/50/100%
+> gridlines + point markers (r=4) + endpoint value label + faded "pre-launch (not counted)" testing line +
+> "Brier (higher = better-calibrated)" legend; page gate lowered to `index.length>=2`. Pure-CSS reveal
+> (`chartDraw` line-draw + local `chartFadeIn` opacity-only keyframe [NOT fogIn — its blur mushes small SVG
+> text] + staggered fade), `prefers-reduced-motion` gated with `opacity:1` scoped to `.chart-fade` so the testing
+> line keeps its 0.35. No dual-axis, no em-dashes. vitest 195/2skip, tsc+build clean.
+> **OWNER STEPS after deploy:** (a) relabel GB live: `curl -sG ".../api/admin/snapshot" --data-urlencode
+> "gp=Great Britain" --data-urlencode "checkpoint=final" --data-urlencode "reconstructed=0" -H "Authorization:
+> Bearer $CRON_SECRET"` then `curl ".../api/admin/rebuild-calibration" -H "Authorization: Bearer $CRON_SECRET"`
+> → GB becomes 2nd live row (Austria+GB live, 7 pre-beta testing). (b) EYEBALL the chart + decide the x-axis
+> question (backlog #7 open note: independent-overlay vs shared-timeline).
 >
 > ## 2026-07-18 session — cron reorder so due-write claims the live final (backlog #8): PR #30
 > Fixes the `/accuracy` live-race headline stall found in PR #29's whole-branch review (M2). Spec/plan
