@@ -28,15 +28,14 @@
 > 7. **`/accuracy` chart enhancement — "graph is just a line, needs more info"** (owner, 2026-07-18). The
 >    calibration trend chart reads as a bare line; add information density (per-round markers, the Brier
 >    co-metric legend, axis labels, hover/tooltips). Frontend-only UX slice; spec §9 of the atomic-rebuild spec.
-> 8. **Cron ordering — reconciler front-runs the due-write, so future LIVE finals get labeled "reconstructed"**
->    (whole-branch review M2, 2026-07-18; PR #29). `reconcileFinals` runs BEFORE the due-checkpoint write in the
->    cron, and since `s.final` is timed after results publish, the reconciler backfills the current gp (as
->    `reconstructed:true`) before the due-write can capture it live → the `/accuracy` live-race headline count may
->    stall near 1 (only Austria stays live). Pre-existing (old reconciler also stamped the row); NOT worsened by
->    PR #29. Fix (own slice): reorder the cron to **due-write → reconcile → rebuild** (so the due-write claims the
->    current gp's live final first, reconcile then no-ops it as `alreadyPresent`), OR have `reconcileFinals` skip
->    `schedule.gp`. CAVEAT: if reordering, keep the missed-final safety — reconcile must still backfill the current
->    gp on a LATER fire if the due-write's window was missed. Model-calibration honesty matters here.
+> 8. ✅ **RESOLVED (2026-07-18, PR #30) — cron reordered to due-write → reconcile → rebuild.** The due-write now
+>    runs FIRST and claims the current race's `final` LIVE (unflagged); reconcile then no-ops it (`alreadyPresent`)
+>    and stays the safety-net for genuinely-missed rounds; rebuild last. Extracted to a testable
+>    `app/lib/snapshot-cron.ts:runSnapshotCron` (due-write isolated in its own try/catch) so the ORDER is
+>    regression-guarded (test asserts calls == ["write","reconcile","rebuild"]). Missed-final safety preserved
+>    (reconcile still runs unconditionally every fire). FORWARD-LOOKING: relabels no existing rows; the first race
+>    captured live after deploy becomes a 2nd live row on `/accuracy`, and the live count grows from there. See
+>    session entry below.
 > 6. ✅ **RESOLVED (2026-07-18, option b, in PR #27) — pre-beta backfill on `/accuracy` labeled, not counted.**
 >    The reconciler backfills EVERY completed round including pre-beta rounds (Australia…Barcelona) we never
 >    forecast live. Chosen fix (owner, option b): stamp post-hoc backfills `reconstructed` and on `/accuracy`
@@ -73,6 +72,19 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-18 session — cron reorder so due-write claims the live final (backlog #8): PR #30
+> Fixes the `/accuracy` live-race headline stall found in PR #29's whole-branch review (M2). Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-18-cron-order-live-final-label*`; ledger `.superpowers/sdd/progress.md`.
+> Subagent-driven: 1 task + review (Approved, no Critical/Important).
+> **Problem:** cron order was reconcile → due-write → rebuild, so `reconcileFinals` front-ran the due-write and
+> wrote the current race's `final` as `reconstructed:true` even when the cron fired in its live window (due-write
+> then short-circuited `alreadyPresent`). Every future race would be labeled testing → live count stuck at 1.
+> **Fix:** reorder to **due-write → reconcile → rebuild**, extracted into `app/lib/snapshot-cron.ts:runSnapshotCron`
+> (pure, dep-injected, due-write isolated in its own try/catch) so the order is unit-tested (regression guard:
+> asserts `["write","reconcile","rebuild"]`). The due-write passes only `{ force }` (no `reconstructed`) → live
+> capture; reconcile stays unconditional (missed-final safety). Route is now thin glue. 3 files; no reconcile/
+> rebuild/snapshot-write/admin/vercel/Python change. vitest 190 pass, tsc+build clean.
 >
 > ## 2026-07-18 session — atomic calibration-index rebuild (prod data-integrity fix): PR #29
 > Fixes a prod data bug found while verifying the reconstructed-labeling: `/accuracy` dropped rows (Australia/
