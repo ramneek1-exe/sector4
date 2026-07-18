@@ -1,5 +1,4 @@
 """Tests for grid-stickiness context (per-track overtaking difficulty)."""
-import numpy as np
 import pandas as pd
 
 from src.inference.stickiness import circuit_grid_stickiness

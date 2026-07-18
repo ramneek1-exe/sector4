@@ -126,7 +126,7 @@ def test_friday_never_attaches_grid_context():
 
 
 def test_no_grid_context_when_no_prior_history():
-    # No prior Bahrain runnings -> stickiness None -> no line.
+    # Only one prior Bahrain running (below MIN_RUNNINGS=2) -> stickiness None -> no line.
     out = predict_podium(2024, "Bahrain", table=_podium_table())
     assert "grid_context" not in out
 
@@ -135,8 +135,8 @@ def test_grid_context_does_not_change_probabilities():
     base = predict_podium(2024, "Bahrain", table=_podium_table())
     withctx = predict_podium(2024, "Bahrain", table=_podium_table(sticky_prior=True))
     # Same model inputs (SATURDAY_COLS) -> identical per-driver probabilities/bands;
-    # the sticky_prior rows are a different circuit and cannot enter Bahrain's train
-    # slice OR change its features.
+    # the sticky_prior rows (2021/2022 Bahrain) are excluded from Bahrain's training
+    # slice because those years aren't in calendar_order(), so they cannot change the fit.
     b = {d["driver"]: (d["p_podium"], d["band"]) for d in base["drivers"]}
     w = {d["driver"]: (d["p_podium"], d["band"]) for d in withctx["drivers"]}
     assert b == w
