@@ -7,11 +7,12 @@ import {
   type CalibrationRow,
 } from "./calibration";
 
-const row = (gp: string, top3: number, brierContrib: number): CalibrationRow => ({
+const row = (gp: string, top3: number, brierContrib: number, reconstructed?: boolean): CalibrationRow => ({
   gp,
   issuedAt: "2026-01-01T00:00:00Z",
   top3,
   brierContrib,
+  ...(reconstructed ? { reconstructed: true } : {}),
 });
 
 describe("summarize", () => {
@@ -38,6 +39,40 @@ describe("summarize", () => {
     expect(s.cumulative[1].top3Rate).toBe(0.5); // (1+0)/2
     expect(s.cumulative[2].top3Rate).toBe(0.67); // (1+0+1)/3 = 0.667
     expect(s.cumulative[2].meanBrier).toBe(0.2); // (0.1+0.3+0.2)/3
+  });
+});
+
+describe("summarize reconstructed exclusion", () => {
+  it("excludes reconstructed rows from headline and cumulative", () => {
+    const index = [
+      row("China", 0.0, 0.30, true),        // reconstructed -> excluded
+      row("Austria", 1.0, 0.05),            // live
+    ];
+    const s = summarize(index);
+    expect(s.nRaces).toBe(1);               // live only
+    expect(s.nReconstructed).toBe(1);
+    expect(s.top3Rate).toBe(1.0);           // Austria only
+    expect(s.meanBrier).toBe(0.05);
+    expect(s.cumulative).toHaveLength(1);   // live only
+    expect(s.cumulative[0].gp).toBe("Austria");
+  });
+
+  it("reports zero live but counts reconstructed when only testing rounds exist", () => {
+    const index = [row("Australia", 0.33, 0.4, true), row("China", 0.0, 0.5, true)];
+    const s = summarize(index);
+    expect(s.nRaces).toBe(0);
+    expect(s.nReconstructed).toBe(2);
+    expect(s.top3Rate).toBe(0);
+    expect(s.meanBrier).toBe(0);
+    expect(s.cumulative).toEqual([]);
+  });
+
+  it("headline over an all-live index is unchanged (no reconstructed rows)", () => {
+    const index = [row("Austria", 1.0, 0.05), row("Britain", 0.667, 0.1)];
+    const s = summarize(index);
+    expect(s.nRaces).toBe(2);
+    expect(s.nReconstructed).toBe(0);
+    expect(s.cumulative).toHaveLength(2);
   });
 });
 
