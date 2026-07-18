@@ -25,6 +25,18 @@
 >    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
 > 3. ✅ **RESOLVED (2026-07-17, PR #26) — investigated as a model change, landed as an explainer/context feature after a validation NO-GO.** See the session entry below. The model-weight idea was tested and REJECTED honestly: grid already dominates the podium model (standardized logistic coef −2.5, top feature by 3×), and a per-track grid×stickiness INTERACTION does NOT beat baseline on leakage-safe rolling-origin CV (23 held-out races: top3 0.696 flat / Brier flat-or-worse; front-row already well-calibrated pred 0.67 vs actual 0.68 — the earlier "undersold" feeling was a DRY-subset small-sample artifact). Per house rules (don't tune the bar / don't overfit one Silverstone anecdote) the MODEL IS UNTOUCHED. The real per-track stickiness spread (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan) instead ships as grounded narrative CONTEXT. **Deferred alternatives if ever revisited:** none recommended — the interaction is a genuine no-edge; evidence in the spec §0.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
+> 7. **`/accuracy` chart enhancement — "graph is just a line, needs more info"** (owner, 2026-07-18). The
+>    calibration trend chart reads as a bare line; add information density (per-round markers, the Brier
+>    co-metric legend, axis labels, hover/tooltips). Frontend-only UX slice; spec §9 of the atomic-rebuild spec.
+> 8. **Cron ordering — reconciler front-runs the due-write, so future LIVE finals get labeled "reconstructed"**
+>    (whole-branch review M2, 2026-07-18; PR #29). `reconcileFinals` runs BEFORE the due-checkpoint write in the
+>    cron, and since `s.final` is timed after results publish, the reconciler backfills the current gp (as
+>    `reconstructed:true`) before the due-write can capture it live → the `/accuracy` live-race headline count may
+>    stall near 1 (only Austria stays live). Pre-existing (old reconciler also stamped the row); NOT worsened by
+>    PR #29. Fix (own slice): reorder the cron to **due-write → reconcile → rebuild** (so the due-write claims the
+>    current gp's live final first, reconcile then no-ops it as `alreadyPresent`), OR have `reconcileFinals` skip
+>    `schedule.gp`. CAVEAT: if reordering, keep the missed-final safety — reconcile must still backfill the current
+>    gp on a LATER fire if the due-write's window was missed. Model-calibration honesty matters here.
 > 6. ✅ **RESOLVED (2026-07-18, option b, in PR #27) — pre-beta backfill on `/accuracy` labeled, not counted.**
 >    The reconciler backfills EVERY completed round including pre-beta rounds (Australia…Barcelona) we never
 >    forecast live. Chosen fix (owner, option b): stamp post-hoc backfills `reconstructed` and on `/accuracy`
@@ -61,6 +73,38 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-18 session — atomic calibration-index rebuild (prod data-integrity fix): PR #29
+> Fixes a prod data bug found while verifying the reconstructed-labeling: `/accuracy` dropped rows (Australia/
+> Japan/Canada vanished) and mis-flagged rounds. Root-caused via systematic-debugging; spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-18-calibration-index-atomic-rebuild*`; ledger `.superpowers/sdd/progress.md`.
+> Subagent-driven: 3 tasks + per-task reviews + opus whole-branch review (READY TO MERGE, zero Critical/Important).
+> **Root cause (two defects, one root):** the season calibration index is a SINGLE Blob key that
+> `writeWeekendSnapshot` updated via non-atomic read-modify-write, called once-per-round in loops (the reconciler's
+> internal loop + the manual restamp shell loop I gave the owner). D1: under Blob eventual consistency, a later
+> round reads the index before an earlier round's write is visible → overwrites it → LOST ROWS. D2: the
+> `if (!idx.some(gp===gp))` guard made a forced re-stamp a silent no-op for already-present rows. (My restamp-loop
+> instruction directly triggered D1 — owned + fixed.)
+> **Fix — decouple + atomic projection:** (1) **`writeWeekendSnapshot` stops writing the index entirely** (RMW
+> deleted at source); it stamps `reconstructed` onto the SNAPSHOT object instead (`WeekendSnapshot.reconstructed`),
+> set by reconciler + admin (post-hoc) but NOT the live cron due-write. (2) **`app/lib/calibration-index.ts:
+> rebuildCalibrationIndex`** reads every `final` snapshot in `race_calendar` (calendar) order and writes the whole
+> index in ONE `putJson` — race-free by construction; a pure projection that self-heals (a transient
+> eventual-consistency miss recovers next rebuild; snapshots are the source of truth, never destructively mutated).
+> `safeRebuildCalibrationIndex` guards it. (3) **Cron rebuilds LAST** (reconcile → due-write → rebuild) each fire;
+> new **`/api/admin/rebuild-calibration`** (CRON_SECRET) for on-demand recovery. Fixes race-ordering too (your
+> "races should appear in order of occurrence" point). No summarize/prediction/Python/vercel/R17 change; 7 files.
+> **VERIFIED:** vitest 186 pass/2 skip, tsc+build clean; Python untouched.
+> **OWNER STEP after deploy — RUN PROMPTLY (whole-branch review M1):** labels do NOT self-heal, only rows do. The
+> 8 pre-existing test snapshots lack `snap.reconstructed` (old code only wrote the flag to the index ROW), so the
+> first cron auto-rebuild yields 9 UNFLAGGED rows → the headline over-counts live races until you re-stamp. Recovery
+> (spec §6): (a) run the admin-backfill loop over the 8 (7 pre-beta + GB, **Austria excluded**) — now SAFE in a loop
+> since it writes only snapshot keys (no index); (b) `curl ".../api/admin/rebuild-calibration" -H "Authorization:
+> Bearer $CRON_SECRET"` once → clean 9-row calendar-ordered index (Austria live + 8 labeled testing). See NEW
+> BACKLOG #8 (cron ordering / future-live-label stall) + #7 (chart needs more info).
+> **DEBUGGING LESSON:** never mutate a shared aggregate (single Blob key) via read-modify-write in a loop over an
+> eventually-consistent store — make it a projection rebuilt in one atomic write. The manual admin backfill is safe
+> per-round ONLY because each call writes an independent snapshot key; the INDEX must never be a per-round RMW.
 >
 > ## 2026-07-18 session — /accuracy reconstructed-round labeling (honesty follow-up, backlog #6): PR #27 (stacked)
 > Stacked on the reconciler in the SAME PR #27 (ships together so there's no live window where /accuracy blends
