@@ -25,6 +25,16 @@
 >    aligned. **No action needed; a rebuild would only churn non-deterministic parquet with zero data change.**
 > 3. ✅ **RESOLVED (2026-07-17, PR #26) — investigated as a model change, landed as an explainer/context feature after a validation NO-GO.** See the session entry below. The model-weight idea was tested and REJECTED honestly: grid already dominates the podium model (standardized logistic coef −2.5, top feature by 3×), and a per-track grid×stickiness INTERACTION does NOT beat baseline on leakage-safe rolling-origin CV (23 held-out races: top3 0.696 flat / Brier flat-or-worse; front-row already well-calibrated pred 0.67 vs actual 0.68 — the earlier "undersold" feeling was a DRY-subset small-sample artifact). Per house rules (don't tune the bar / don't overfit one Silverstone anecdote) the MODEL IS UNTOUCHED. The real per-track stickiness spread (Spearman ρ 0.43 Las Vegas → 0.90 Monaco/Japan) instead ships as grounded narrative CONTEXT. **Deferred alternatives if ever revisited:** none recommended — the interaction is a genuine no-edge; evidence in the spec §0.
 > 4. **M7 runway to public launch:** visual polish + optional championship projection (the last M7 slices).
+> 6. **HONESTY FOLLOW-UP (opened 2026-07-17, from PR #27 reconciler) — pre-beta backfill on `/accuracy`.** The
+>    final-snapshot reconciler (PR #27) backfills EVERY completed 2026 round with results but no `final` snapshot,
+>    including pre-beta rounds (Australia…Barcelona) we NEVER forecast live to any user. Those get scored on
+>    `/accuracy` as POST-HOC reconstructions (`issuedAt=now`, leakage-guarded — fair as a *calibration* measure,
+>    but not a live *track record*). `/accuracy` copy claims "issued" predictions. DECIDE one of: (a) bound the
+>    reconciler to the beta-start round (Austria R8) so only genuinely-issued rounds score — add a floor to
+>    `reconcileFinals`' round list / gate in the cron; OR (b) add a one-line note on `/accuracy` that early-season
+>    rows may be reconstructed (keeps the fuller calibration history, stays transparent — controller's lean).
+>    Small editorial slice; owner's call which. NOT blocking PR #27 (the backfill is leakage-safe + precedented by
+>    the GB/admin backfill).
 > 5. ✅ **DONE (2026-07-07, PR #23 MERGED to `main` → live on prod).** See the session entry below. Recommend confirming the *populated* modal on prod (`/weekend`, Belgium setup screen → "Check out Great Britain GP" link). **`/weekend` — show the PREVIOUS GP's predictions during the pre-predictions "setting up" state** (owner
 >    idea 2026-07-06; priority vs 2–4 owner's call). While `/weekend` is in the `!snap || concluded` branch —
 >    the "We're still setting up our garage at {circuit}… Check back Saturday" screen (`app/weekend/page.tsx`
@@ -52,6 +62,31 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-17 session — snapshot final-capture reconciler (known-gap hardening): PR #27
+> Closes the deferred "AUTOMATIC per-race capture is fragile" gap (handoff 2026-07-07). Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-17-snapshot-final-reconciler*`; ledger `.superpowers/sdd/progress.md`.
+> Subagent-driven: 3 tasks + per-task reviews + opus whole-branch review (READY TO MERGE, zero Critical/Important).
+> **Root cause (systematic, not a fluke):** the daily snapshot cron (`0 6 * * *`) only writes the CURRENT
+> `schedule.gp`'s due checkpoint. R17 self-rolls `schedule.gp` to the next race once the race date passes (Sun
+> 18:00), BEFORE the next cron fires (Mon 06:00) — so a race's `final` (freezes past-predictions + scores
+> calibration) is systematically missed unless the cron happens to fire in the post-race window before the roll.
+> Exact GB-2026 failure; every race was exposed; manual backfill was the only recovery.
+> **What shipped:** (1) **`app/lib/reconcile-finals.ts`** (new, 6 vitest) — `reconcileFinals(year, rounds, deps)`
+> per round: `final` snapshot exists → `alreadyPresent`; else `getActualFinish` empty → `notRaced` (gate that
+> excludes the un-raced upcoming target AND self-heals transient `/api/results` failures, retry next day); else
+> `writeWeekendSnapshot(..., "final", {force:false})` → `backfilled`. `safeReconcileFinals` wraps it so a reconcile
+> failure can NEVER 500 the cron or block the due write. (2) **`snapshot-write.ts`** — export `getActualFinish`
+> (behavior-preserving rename) for reuse. (3) **`app/api/cron/snapshot/route.ts`** — run `safeReconcileFinals` on
+> EVERY fire, BEFORE the due-checkpoint logic (the missed-final case is exactly when nothing is due for the current
+> gp); `reconcile` summary added to the response. Idempotent (existence check + force:false + calibration-index gp
+> guard). No new cron / vercel.json / R17 / admin / Python / data change; 4 files.
+> **VERIFIED:** vitest 177 pass/2 skip, tsc+build clean. Python untouched.
+> **BEHAVIOR ON DEPLOY:** first real cron fire (or manual `curl "<deploy>/api/cron/snapshot" -H "Authorization:
+> Bearer $CRON_SECRET"`) backfills EVERY completed 2026 round missing a `final` → `/accuracy` may jump from ~2
+> scored races (Austria, GB) to all completed rounds. Backfilled rows are POST-HOC (`issuedAt=now`, leakage-guarded;
+> same caveat as admin backfill). Intended self-heal + richer calibration history, but visible. **See NEW BACKLOG
+> #6 (honesty follow-up)** re: pre-beta rounds we never forecast live.
 >
 > ## 2026-07-17 session — grid-context (overtaking difficulty) in podium narrative (backlog #3): PR #26
 > **M7 slice.** Owner backlog #3 (weight grid harder post-quali + track-specific tailoring) was INVESTIGATED as a
