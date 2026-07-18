@@ -10,6 +10,8 @@ import { NextResponse } from "next/server";
 import schedule from "@/app/data/weekend-schedule.json";
 import { dueCheckpoint, type SessionSchedule } from "@/app/lib/weekend-schedule";
 import { writeWeekendSnapshot } from "@/app/lib/snapshot-write";
+import raceCalendar from "@/src/race_calendar.json";
+import { safeReconcileFinals } from "@/app/lib/reconcile-finals";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +26,17 @@ export async function GET(req: Request) {
   const force = ["1", "true"].includes(new URL(req.url).searchParams.get("force") ?? "");
   try {
     const s = schedule as SessionSchedule;
+    // Reconcile runs on EVERY fire, independent of the current gp's due checkpoint: the
+    // missed-final case is exactly when nothing is due for schedule.gp but a prior round
+    // still needs its final captured.
+    const rounds = (raceCalendar as Record<string, string[]>)[String(s.year)] ?? [];
+    const reconcile = await safeReconcileFinals(s.year, rounds);
+
     const due = dueCheckpoint(new Date(), s);
-    if (!due) return NextResponse.json({ status: "no checkpoint due" });
-    const result = await writeWeekendSnapshot(s.year, s.gp, due, { force });
-    return NextResponse.json(result);
+    const result = due
+      ? await writeWeekendSnapshot(s.year, s.gp, due, { force })
+      : { status: "no checkpoint due" as const };
+    return NextResponse.json({ ...result, reconcile });
   } catch (e) {
     console.error("cron snapshot failed", e);
     return NextResponse.json({ error: "snapshot failed" }, { status: 500 });
