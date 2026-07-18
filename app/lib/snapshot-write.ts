@@ -9,11 +9,9 @@ import { putJson as realPutJson, getJson as realGetJson } from "./blob";
 import {
   snapshotKey,
   latestKey,
-  seasonIndexKey,
   type Checkpoint,
   type WeekendSnapshot,
 } from "./snapshot";
-import { computeCalibrationRow } from "./actuals";
 
 function selfBase(): string {
   const host = process.env.VERCEL_URL ?? process.env.SELF_BASE_URL;
@@ -50,10 +48,9 @@ export interface WriteResult {
 }
 
 /** Build, (score if final), and persist a weekend snapshot. Idempotent unless `force`: an
- *  existing snapshot for (year, gp, checkpoint) short-circuits without rebuilding. On the
- *  `final` checkpoint, pulls the actual finishing order, stamps it onto the snapshot, and
- *  appends a once-per-gp calibration row to the season index. Writes both the checkpoint
- *  key and `latest`. */
+ *  existing snapshot for (year, gp, checkpoint) short-circuits without rebuilding. Writes
+ *  the snapshot (+ actuals on final, + reconstructed flag) and `latest`; the calibration
+ *  index is rebuilt separately by `rebuildCalibrationIndex`. */
 export async function writeWeekendSnapshot(
   year: number,
   gp: string,
@@ -75,22 +72,10 @@ export async function writeWeekendSnapshot(
   const snap = await build(year, gp, checkpoint);
 
   if (checkpoint === "final") {
-    const actualFinish = await fetchActualFinish(year, gp);
-    snap.actuals = actualFinish;
-    if (actualFinish.length > 0) {
-      const idxKey = seasonIndexKey(year);
-      const idx = (await getJson<unknown[]>(idxKey)) ?? [];
-      // Idempotent: never double-count a gp in the calibration index (matters when a
-      // forced re-run re-scores a final snapshot that was already scored).
-      if (!idx.some((r) => (r as { gp?: string }).gp === gp)) {
-        const cal = computeCalibrationRow(
-          snap.podium as { drivers: { driver: string; p_podium: number }[] },
-          actualFinish,
-        );
-        idx.push({ gp, issuedAt: snap.issuedAt, ...cal, ...(reconstructed ? { reconstructed: true } : {}) });
-        await putJson(idxKey, idx);
-      }
-    }
+    snap.actuals = await fetchActualFinish(year, gp);
+  }
+  if (reconstructed) {
+    snap.reconstructed = true;
   }
 
   await putJson(key, snap);

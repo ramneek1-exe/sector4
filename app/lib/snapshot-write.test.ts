@@ -62,41 +62,20 @@ describe("writeWeekendSnapshot", () => {
     expect(built).toBe(false);
   });
 
-  it("writes final + latest, stamps actuals, and appends one calibration row", async () => {
+  it("writes final + latest, stamps actuals, and does NOT write the index", async () => {
     const io = fakeStore();
-    const res = await writeWeekendSnapshot(2026, "Great Britain", "final", {
-      ...io,
-      build: fakeBuild,
-      getActualFinish: async () => ["NOR", "PIA", "LEC"],
-      force: true,
-    });
-    expect(res.status).toBe("snapshotted");
-    const finalSnap = io.store[
-      snapshotKey(2026, "Great Britain", "final")
-    ] as WeekendSnapshot;
-    expect(finalSnap.actuals).toEqual(["NOR", "PIA", "LEC"]);
-    expect(io.store[latestKey(2026, "Great Britain")]).toBeTruthy();
-    const idx = io.store[seasonIndexKey(2026)] as { gp: string }[];
-    expect(idx).toHaveLength(1);
-    expect(idx[0].gp).toBe("Great Britain");
-    expect(idx[0]).toHaveProperty("top3");
-    expect(idx[0]).toHaveProperty("brierContrib");
-  });
-
-  it("does not double-append a gp already in the calibration index", async () => {
-    const io = fakeStore({
-      [seasonIndexKey(2026)]: [{ gp: "Great Britain", top3: 1, brierContrib: 0.1 }],
-    });
     await writeWeekendSnapshot(2026, "Great Britain", "final", {
       ...io,
       build: fakeBuild,
-      getActualFinish: async () => ["NOR", "PIA", "LEC"],
-      force: true,
+      getActualFinish: async () => ["NOR", "LEC", "PIA"],
     });
-    expect((io.store[seasonIndexKey(2026)] as unknown[]).length).toBe(1);
+    const snap = io.store[snapshotKey(2026, "Great Britain", "final")] as WeekendSnapshot;
+    expect(snap.actuals).toEqual(["NOR", "LEC", "PIA"]);
+    expect(io.store[latestKey(2026, "Great Britain")]).toBeDefined();
+    expect(io.store[seasonIndexKey(2026)]).toBeUndefined(); // index is rebuilt elsewhere now
   });
 
-  it("post-quali writes the snapshot without scoring", async () => {
+it("post-quali writes the snapshot without scoring", async () => {
     const io = fakeStore();
     await writeWeekendSnapshot(2026, "Great Britain", "post-quali", {
       ...io,
@@ -112,7 +91,7 @@ describe("writeWeekendSnapshot", () => {
     expect(io.store[seasonIndexKey(2026)]).toBeUndefined();
   });
 
-  it("stamps reconstructed:true on the calibration row when the option is set", async () => {
+  it("stamps reconstructed:true on the snapshot when the option is set", async () => {
     const store = fakeStore();
     await writeWeekendSnapshot(2026, "China", "final", {
       ...store,
@@ -120,20 +99,18 @@ describe("writeWeekendSnapshot", () => {
       getActualFinish: async () => ["NOR", "LEC", "PIA"],
       reconstructed: true,
     });
-    const idx = store.store[seasonIndexKey(2026)] as Array<{ gp: string; reconstructed?: boolean }>;
-    const chinaRow = idx.find((r) => r.gp === "China")!;
-    expect(chinaRow.reconstructed).toBe(true);
+    const snap = store.store[snapshotKey(2026, "China", "final")] as WeekendSnapshot;
+    expect(snap.reconstructed).toBe(true);
   });
 
-  it("omits reconstructed on the calibration row for the live path (default)", async () => {
+  it("omits reconstructed on the snapshot for the live path (default)", async () => {
     const store = fakeStore();
     await writeWeekendSnapshot(2026, "Austria", "final", {
       ...store,
       build: fakeBuild,
       getActualFinish: async () => ["VER", "NOR", "LEC"],
     });
-    const idx = store.store[seasonIndexKey(2026)] as Array<{ gp: string; reconstructed?: boolean }>;
-    const austriaRow = idx.find((r) => r.gp === "Austria")!;
-    expect("reconstructed" in austriaRow).toBe(false);
+    const snap = store.store[snapshotKey(2026, "Austria", "final")] as WeekendSnapshot;
+    expect("reconstructed" in snap).toBe(false);
   });
 });

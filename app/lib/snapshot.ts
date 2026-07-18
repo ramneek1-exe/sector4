@@ -13,6 +13,7 @@ export interface WeekendSnapshot {
   pace: unknown;
   strategy: unknown;
   actuals?: unknown;
+  reconstructed?: boolean; // true when this final was written post-hoc (reconciler/admin), not live
   calibrationNote: string;
 }
 
