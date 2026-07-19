@@ -213,11 +213,15 @@ body {
 /* Text legibility wash over the fog — a feathered white radial that fades to transparent.
    No border, no defined shape (edgeless, like the ascii fog). Padding gives the feather room. */
 .legible {
+  /* Long, eased feather all the way to 100% — the old 82% cutoff read as a visible
+     ellipse ring over the dither-warp background (fine over the softer ASCII fog). */
   background: radial-gradient(
     ellipse at center,
-    rgba(250, 250, 250, 0.92) 0%,
-    rgba(250, 250, 250, 0.85) 50%,
-    rgba(250, 250, 250, 0) 82%
+    rgba(250, 250, 250, 0.9) 0%,
+    rgba(250, 250, 250, 0.82) 35%,
+    rgba(250, 250, 250, 0.55) 60%,
+    rgba(250, 250, 250, 0.25) 80%,
+    rgba(250, 250, 250, 0) 100%
   );
 }
 
