@@ -8,17 +8,12 @@
 // noise) with the crisp numeral overlaid exactly like AsciiGlyph does. Reduced motion ->
 // static frame, no pointer reactivity.
 import { useEffect, useRef, useState } from "react";
-import {
-  Dithering,
-  ImageDithering,
-  type DitheringProps,
-} from "@paper-design/shaders-react";
+import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
-import { resolveGlyph } from "@/app/lib/glyph";
-import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
+import { DriverGlyph } from "@/app/components/DriverGlyph";
 import { emblemSvgMarkup } from "@/app/lib/emblems";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
@@ -74,6 +69,30 @@ const GLYPHS: { code: string; team: string }[] = [
 
 const svgDataUri = (markup: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
+
+
+/** Mounts children only while near the viewport, releasing WebGL contexts offscreen.
+ *  (~30 always-mounted shader canvases exceeded the browser context cap — the oldest were
+ *  evicted, which is why the hero/card panels went blank while the playground rendered.) */
+function InView({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => setVisible(e.isIntersecting),
+      { rootMargin: "150px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={className}>
+      {visible ? children : null}
+    </div>
+  );
+}
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -148,53 +167,15 @@ function DitherHeroPanel({
       }}
       className="relative h-72 overflow-hidden rounded-2xl border border-ink/10 bg-white"
     >
-      <DitherLayers
-        layers={variant.layers}
-        speedFactor={speedFactor * (hover ? 1.6 : 1)}
-        offset={offset}
-      />
+      <InView className="absolute inset-0">
+        <DitherLayers
+          layers={variant.layers}
+          speedFactor={speedFactor * (hover ? 1.6 : 1)}
+          offset={offset}
+        />
+      </InView>
       <HeroContent />
       <PanelLabel>{variant.label}</PanelLabel>
-    </div>
-  );
-}
-
-/** A driver helmet COMPOSED of dither in a SINGLE team fill (no originalColors noise):
- *  ImageDithering maps the helmet SVG silhouette to white/team-colour, and the crisp
- *  numeral is overlaid exactly like AsciiGlyph does (NUMBER_POS, numberColor). Static. */
-function DitherHelmet({ code, team, size }: { code: string; team: string | null; size: number }) {
-  const g = resolveGlyph(code, team);
-  const heightPx = size * (HELMET_VIEWBOX.h / HELMET_VIEWBOX.w);
-  const uri = svgDataUri(helmetSvgMarkup(g, false)); // no baked number; overlaid crisp below
-  return (
-    <div className="relative" style={{ width: size, height: heightPx }}>
-      <ImageDithering
-        image={uri}
-        colorBack={WHITE}
-        colorFront={g.helmetFill}
-        colorSteps={2}
-        type="4x4"
-        size={2}
-        speed={0}
-        style={{ width: size, height: heightPx }}
-      />
-      {g.number !== null && (
-        <span
-          className="pointer-events-none absolute select-none"
-          style={{
-            left: NUMBER_POS.x * size,
-            top: NUMBER_POS.y * heightPx,
-            transform: "translate(-50%, -50%)",
-            color: g.numberColor,
-            fontFamily: "Arial, Helvetica, sans-serif",
-            fontWeight: 800,
-            fontSize: Math.round(NUMBER_POS.size * heightPx),
-            lineHeight: 1,
-          }}
-        >
-          {g.number}
-        </span>
-      )}
     </div>
   );
 }
@@ -242,13 +223,15 @@ function DitherHoverCard({ speedFactor }: { speedFactor: number }) {
         className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{ maskImage: CARD_MASK, WebkitMaskImage: CARD_MASK }}
       >
-        <DitherLayers
-          layers={[
-            { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
-            { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
-          ]}
-          speedFactor={speedFactor}
-        />
+        <InView className="absolute inset-0">
+          <DitherLayers
+            layers={[
+              { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
+              { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
+            ]}
+            speedFactor={speedFactor}
+          />
+        </InView>
       </div>
       <div className="relative z-10">
         <h3 className="font-grotesk font-semibold text-ink">Dither warp bloom</h3>
@@ -308,7 +291,7 @@ export function LabDither() {
 
       <Section
         title="B · Dither-composed identity"
-        note="The helmet rendered by ImageDithering as a single team-colour fill (dithered edges), numeral overlaid crisp exactly like AsciiGlyph. Side-by-side with the current ASCII composition."
+        note="Owner call: no dither texture on identity. Candidate is the solid vector helmet (team fills + crisp numeral) next to the current ASCII composition, so the pairing with a dithered hero can be judged."
       >
         <div className="space-y-8">
           <div className="grid gap-6 sm:grid-cols-2">
@@ -324,11 +307,11 @@ export function LabDither() {
               </div>
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
-              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · single-fill dither</div>
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · solid vector (no dither)</div>
               <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
                 {GLYPHS.map((g) => (
                   <div key={g.code} className="flex flex-col items-center gap-1.5">
-                    <DitherHelmet code={g.code} team={g.team} size={88} />
+                    <DriverGlyph code={g.code} team={g.team} size={88} />
                     <span className="font-grotesk text-sm font-bold tracking-wide text-ink">{g.code}</span>
                   </div>
                 ))}
@@ -341,17 +324,9 @@ export function LabDither() {
               <AsciiEmblem kind="tyre" size={96} cols={26} />
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
-              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · single-fill dither tyre</div>
-              <ImageDithering
-                image={svgDataUri(emblemSvgMarkup("tyre", BLUE))}
-                colorBack={WHITE}
-                colorFront={BLUE}
-                colorSteps={2}
-                type="4x4"
-                size={2}
-                speed={0}
-                style={{ width: 96, height: 96 }}
-              />
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · solid vector (no dither)</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={svgDataUri(emblemSvgMarkup("tyre", BLUE))} alt="tyre emblem, solid vector" width={96} height={96} />
             </div>
           </div>
         </div>
@@ -375,13 +350,15 @@ export function LabDither() {
           {[1, 2, 3, 4].map((sz) =>
             [0.4, 0.8].map((sc) => (
               <div key={`${sz}-${sc}`} className="relative aspect-square overflow-hidden rounded-xl border border-ink/10 bg-white">
-                <DitherLayers
-                  layers={[
-                    { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: sz, speed: 0.5, scale: sc },
-                    { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: sz, speed: 0.35, scale: sc * 0.7 },
-                  ]}
-                  speedFactor={speedFactor}
-                />
+                <InView className="absolute inset-0">
+                  <DitherLayers
+                    layers={[
+                      { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: sz, speed: 0.5, scale: sc },
+                      { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: sz, speed: 0.35, scale: sc * 0.7 },
+                    ]}
+                    speedFactor={speedFactor}
+                  />
+                </InView>
                 <PanelLabel>
                   size {sz} · scale {sc}
                 </PanelLabel>
