@@ -9,7 +9,7 @@ import schedule from "@/app/data/weekend-schedule.json";
 import { DitherVideo } from "@/app/components/DitherVideo";
 import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
-import { NAV_H, NAV_LINKS } from "@/app/components/SiteNav";
+import { NAV_H, NAV_LINKS } from "@/app/lib/nav";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
