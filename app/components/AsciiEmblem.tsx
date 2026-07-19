@@ -1,69 +1,72 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { asciiRowsFor, sampleAscii, type AsciiCell, type AsciiGrid } from "@/app/lib/ascii";
-import { scatterDelay } from "@/app/lib/scatter";
-import { emblemViewBox, emblemSvgMarkup, type EmblemKind } from "@/app/lib/emblems";
+import { bayerCells, type BayerCell } from "@/app/lib/bayer";
+import { emblemViewBox, emblemSvgMarkup, type EmblemKind, type SvgEmblem } from "@/app/lib/emblems";
 import { CAR_SILHOUETTE } from "@/app/lib/car-silhouette";
 
-const SS = 5; // off-screen supersample per ASCII cell
-const REVEAL_MS = 560; // window over which cells scatter in
-const FADE_MS = 340; // per-cell develop
+const REVEAL_MS = 450; // dither-resolve reveal duration
 const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette rendered monochrome
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);
 }
 
-// Build an ASCII grid for the car straight from the silhouette coverage bitmap, block-
-// averaged down to `targetCols` (so the same source serves the tiny marker + the large
-// watermark). Monochrome brand blue — no livery/marks (PRD §8).
-function carGrid(targetCols: number): AsciiGrid {
+// Aspect ratio (h/w) for the placeholder box reserved while the grid samples.
+function emblemAspect(kind: EmblemKind): number {
+  if (kind === "car") return CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols;
+  const { w, h } = emblemViewBox(kind as SvgEmblem);
+  return h / w;
+}
+
+// Draw the car silhouette coverage bitmap to an offscreen canvas at its native
+// resolution (coverage → alpha, brand-blue fill), then scale that onto a second
+// offscreen canvas at the target grid size so the Bayer pass reads a clean alpha
+// field regardless of target size. Monochrome brand blue — no livery/marks (PRD §8).
+function carImageData(gCols: number, gRows: number, color: string): ImageData | null {
   const { cols, rows, data } = CAR_SILHOUETTE;
-  const tCols = Math.max(1, Math.min(targetCols, cols));
-  const scale = cols / tCols;
-  // ceil (not round) so the last partial row is covered — otherwise the wheel bottoms get
-  // clipped at small marker sizes where rows/scale isn't close to a whole number.
-  const tRows = Math.max(1, Math.ceil(rows / scale));
-  const cov = (i: number) => parseInt(data[i] || "0", 16) / 15;
-  const cells: AsciiCell[] = [];
-  for (let r = 0; r < tRows; r++) {
-    for (let c = 0; c < tCols; c++) {
-      const x0 = Math.floor(c * scale);
-      const x1 = Math.min(cols, Math.ceil((c + 1) * scale));
-      const y0 = Math.floor(r * scale);
-      const y1 = Math.min(rows, Math.ceil((r + 1) * scale));
-      let sum = 0;
-      let n = 0;
-      for (let y = y0; y < y1; y++) {
-        for (let x = x0; x < x1; x++) {
-          sum += cov(y * cols + x);
-          n++;
-        }
-      }
-      const coverage = n ? sum / n : 0;
-      cells.push(
-        coverage > 0.12
-          ? { ch: "#", color: CAR_COLOR, coverage }
-          : { ch: "", color: null, coverage: 0 },
-      );
+  const src = document.createElement("canvas");
+  src.width = cols;
+  src.height = rows;
+  const sctx = src.getContext("2d");
+  if (!sctx) return null;
+  sctx.fillStyle = color;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = y * cols + x;
+      const coverage = parseInt(data[i] || "0", 16) / 15;
+      if (coverage <= 0) continue;
+      sctx.globalAlpha = coverage;
+      sctx.fillRect(x, y, 1, 1);
     }
   }
-  return { cols: tCols, rows: tRows, cells };
+  sctx.globalAlpha = 1;
+
+  const dst = document.createElement("canvas");
+  dst.width = gCols;
+  dst.height = gRows;
+  const dctx = dst.getContext("2d");
+  if (!dctx) return null;
+  dctx.drawImage(src, 0, 0, gCols, gRows);
+  return dctx.getImageData(0, 0, gCols, gRows);
 }
 
 /**
- * An abstract brand emblem (tyre / car / airflow) rendered as a coloured ASCII/dither
- * field (PRD §8) — the same rasterise → sample → coverage-square technique as the driver
- * helmets, but for the learning-layer group emblems. `animate` scatter-resolves it in on
- * mount (used for the small index markers); static otherwise (used for the large faded
- * watermark behind a concept page). Opacity/size are controlled by the caller's className.
- * Decorative + aria-hidden; the surrounding text carries the meaning.
+ * An abstract brand emblem (tyre / car / airflow / flag / battery) rendered as a
+ * BAYER-DITHERED field (PRD §8) — the same rasterise → grid-sample → ordered-threshold
+ * technique as the driver helmets (app/lib/bayer.ts). SVG emblems are rasterised
+ * off-screen at a 1 CSS px per cell grid; the car is drawn from its traced coverage
+ * bitmap (app/lib/car-silhouette.ts), scaled onto a second offscreen canvas at the
+ * target grid so coverage becomes alpha before the Bayer pass. `animate` resolves the
+ * field in Bayer order on mount (dither-resolve reveal, used for the small index
+ * markers); instant otherwise (used for the large faded watermark behind a concept
+ * page). Opacity/size are controlled by the caller's className. Decorative +
+ * aria-hidden; the surrounding text carries the meaning.
  */
 export function AsciiEmblem({
   kind,
   size = 120,
-  cols = 28,
+  cols,
   animate = true,
   className = "",
   color,
@@ -75,32 +78,49 @@ export function AsciiEmblem({
   className?: string;
   color?: string;
 }) {
-  const [grid, setGrid] = useState<AsciiGrid | null>(null);
+  void cols; // accepted for call-site compat; sampling grid is now derived from `size`
+  const [cells, setCells] = useState<BayerCell[] | null>(null);
+  const [grid, setGridDims] = useState<{ cols: number; rows: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const emblemColor = color ?? CAR_COLOR;
 
-  // 1. Build the ASCII grid: the car comes from the silhouette bitmap; the tyre + airflow
-  //    are rasterised from their SVG off-screen and sampled.
+  // 1. Rasterise the emblem off-screen at a 1 CSS px per cell grid and Bayer-sample it.
   useEffect(() => {
-    if (kind === "car") {
-      setGrid(carGrid(cols));
-      return;
-    }
     let cancelled = false;
-    const { w, h } = emblemViewBox(kind);
-    const rows = asciiRowsFor(w, h, cols, 1); // square cells
-    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(emblemSvgMarkup(kind, color))}`;
+    const gCols = Math.round(size);
+
+    if (kind === "car") {
+      const gRows = Math.max(1, Math.round(gCols * (CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols)));
+      try {
+        const imageData = carImageData(gCols, gRows, emblemColor);
+        if (!cancelled && imageData) {
+          setCells(bayerCells(imageData.data, gCols, gRows));
+          setGridDims({ cols: gCols, rows: gRows });
+        }
+      } catch {
+        /* tainted/unsupported canvas → leave the (empty) placeholder */
+      }
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const { w, h } = emblemViewBox(kind as SvgEmblem);
+    const gRows = Math.max(1, Math.round(gCols * (h / w)));
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(emblemSvgMarkup(kind as SvgEmblem, emblemColor))}`;
     const img = new Image();
     img.onload = () => {
       if (cancelled) return;
       try {
         const c = document.createElement("canvas");
-        c.width = cols * SS;
-        c.height = rows * SS;
+        c.width = gCols;
+        c.height = gRows;
         const ctx = c.getContext("2d");
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, c.width, c.height);
         const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        setGrid(sampleAscii(data, c.width, c.height, cols, { rows, threshold: 0.12 }));
+        setCells(bayerCells(data, gCols, gRows));
+        setGridDims({ cols: gCols, rows: gRows });
       } catch {
         /* tainted/unsupported canvas → leave the (empty) placeholder */
       }
@@ -109,14 +129,15 @@ export function AsciiEmblem({
     return () => {
       cancelled = true;
     };
-  }, [kind, cols, color]);
+  }, [kind, size, emblemColor]);
 
-  // 2. Draw the dither field, optionally with a scattered develop reveal.
+  // 2. Paint the Bayer field to the visible canvas, optionally with a dither-resolve reveal.
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!grid || !canvas) return;
+    if (!cells || !grid || !canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const cellPx = size / grid.cols;
@@ -127,44 +148,34 @@ export function AsciiEmblem({
     canvas.style.height = `${heightPx}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const fillRatio = (cov: number) => Math.min(1, 0.45 + cov * 0.85);
-    const paint = (progress: (i: number) => number) => {
+    const paint = (progress: number) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      grid.cells.forEach((cell, i) => {
-        if (cell.coverage <= 0 || !cell.color) return;
-        const p = progress(i);
-        if (p <= 0) return;
-        const ox = (i % grid.cols) * cellPx;
-        const oy = Math.floor(i / grid.cols) * cellPx;
-        const s = cellPx * fillRatio(cell.coverage) * easeOut(p);
-        const off = (cellPx - s) / 2;
-        ctx.globalAlpha = Math.min(1, p * 1.2);
+      for (const cell of cells) {
+        if (cell.t > progress) continue;
         ctx.fillStyle = cell.color;
-        ctx.fillRect(ox + off, oy + off, s, s);
-      });
-      ctx.globalAlpha = 1;
+        ctx.fillRect(cell.x * cellPx, cell.y * cellPx, cellPx, cellPx);
+      }
     };
 
     if (reduce || !animate) {
-      paint(() => 1);
+      paint(1);
       return;
     }
     let raf = 0;
     const start = performance.now();
-    const delayFor = (i: number) => scatterDelay(i, REVEAL_MS);
     const tick = (now: number) => {
-      const t = now - start;
-      paint((i) => Math.max(0, Math.min(1, (t - delayFor(i)) / FADE_MS)));
-      if (t < REVEAL_MS + FADE_MS + 120) raf = requestAnimationFrame(tick);
+      const t = Math.min(1, (now - start) / REVEAL_MS);
+      paint(easeOut(t));
+      if (t < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [grid, size, animate]);
+  }, [cells, grid, size, animate]);
 
-  if (!grid) {
+  if (!cells || !grid) {
     // Reserve the eventual height so the canvas doesn't pop in (square SVG emblems render
     // ~`size` tall; the car keeps the silhouette's aspect).
-    const aspect = kind === "car" ? CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols : 1;
+    const aspect = emblemAspect(kind);
     return <div aria-hidden style={{ width: size, height: size * aspect }} className={className} />;
   }
   return <canvas ref={canvasRef} aria-hidden className={className} />;

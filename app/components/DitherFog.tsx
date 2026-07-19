@@ -1,0 +1,140 @@
+"use client";
+
+// Locked hero recipe (docs/superpowers/plans/2026-07-18-dither-shader-swap.md, spec §0),
+// ported from the /lab/dither evaluation (app/lab/dither/LabDither.tsx — DitherLayers +
+// DitherHeroPanel). Two white-backed Dithering layers stacked with multiply so the palette
+// warp accumulates over the page (the AsciiFog fog-on-white treatment), plus a soft accent
+// blob that trails the cursor. Params are exact — do not retune without re-running the lab.
+import { useEffect, useRef, useState } from "react";
+import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
+
+const WHITE = "#fafafa"; // page surface; multiply-blended layers pass it through
+const BLUE = "#406cd6";
+const SKY = "#459ae4";
+const ACCENT = "#2f2e89";
+
+const HERO_LAYERS: Partial<DitheringProps>[] = [
+  { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
+  { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
+];
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return reduced;
+}
+
+/** White-backed Dithering layers, multiply-stacked so the palette accumulates over white. */
+function DitherLayers({ speedFactor }: { speedFactor: number }) {
+  return (
+    <>
+      {HERO_LAYERS.map((l, i) => (
+        <Dithering
+          key={i}
+          {...l}
+          speed={(l.speed ?? 0.5) * speedFactor}
+          className="absolute inset-0 h-full w-full"
+          style={{ mixBlendMode: "multiply" }}
+        />
+      ))}
+    </>
+  );
+}
+
+/**
+ * Site-wide hero fog: the two-layer warp dither, plus an accent blob that trails the
+ * cursor (rAF-lerped CSS vars driving a soft radial mask). Fills its box like AsciiFog
+ * (`{ className }` mirrors that API). Multiply is applied to the masked WRAPPER, never to
+ * a canvas inside the mask — a mask creates its own stacking context, which isolates inner
+ * blend modes and renders as a visible white circle instead of blending through.
+ * Reduced motion: speed 0 on both base layers, blob disabled entirely.
+ */
+export function DitherFog({ className = "" }: { className?: string }) {
+  const reduced = useReducedMotion();
+  const speedFactor = reduced ? 0 : 1;
+  const interactive = !reduced;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const blobRef = useRef<HTMLDivElement>(null);
+  const target = useRef({ x: -9999, y: -9999, active: false });
+  const pos = useRef({ x: -9999, y: -9999 });
+
+  useEffect(() => {
+    if (!interactive) return;
+    let raf = 0;
+    const tick = () => {
+      const t = target.current;
+      const p = pos.current;
+      // Snap to the first entry point instead of lerping in from off-panel.
+      if (p.x < -1000 && t.active) {
+        p.x = t.x;
+        p.y = t.y;
+      }
+      p.x += (t.x - p.x) * 0.12;
+      p.y += (t.y - p.y) * 0.12;
+      const el = blobRef.current;
+      if (el) {
+        el.style.opacity = t.active ? "1" : "0";
+        el.style.setProperty("--mx", `${p.x}px`);
+        el.style.setProperty("--my", `${p.y}px`);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [interactive]);
+
+  const onMove = (e: React.MouseEvent) => {
+    if (!interactive || !rootRef.current) return;
+    const r = rootRef.current.getBoundingClientRect();
+    target.current = { x: e.clientX - r.left, y: e.clientY - r.top, active: true };
+  };
+
+  return (
+    <div
+      ref={rootRef}
+      onMouseMove={onMove}
+      onMouseLeave={() => {
+        target.current = { ...target.current, active: false };
+      }}
+      aria-hidden
+      className={`relative overflow-hidden ${className}`}
+    >
+      <DitherLayers speedFactor={speedFactor} />
+      {interactive && (
+        <div
+          ref={blobRef}
+          className="absolute inset-0 opacity-0 transition-opacity duration-300"
+          style={{
+            // multiply on the MASKED WRAPPER: the mask creates a stacking context that
+            // isolates blending, so an inner multiply blended against transparent and the
+            // white back showed as a visible circle. Blending the wrapper as a unit
+            // multiplies the white out against the panel instead.
+            mixBlendMode: "multiply",
+            maskImage:
+              "radial-gradient(circle 130px at var(--mx, -9999px) var(--my, -9999px), black 0%, black 30%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(circle 130px at var(--mx, -9999px) var(--my, -9999px), black 0%, black 30%, transparent 75%)",
+          }}
+        >
+          <Dithering
+            colorBack={WHITE}
+            colorFront={ACCENT}
+            shape="warp"
+            type="4x4"
+            size={2}
+            speed={0.9 * speedFactor}
+            scale={0.5}
+            className="absolute inset-0 h-full w-full"
+          />
+        </div>
+      )}
+    </div>
+  );
+}

@@ -9,9 +9,9 @@ import type { Concept } from "@/app/lib/concepts";
 /**
  * A concept card on /learn. Hover does two things: an INSTANT affordance (border →
  * accent, a small lift + soft brand shadow, ~190ms) so feedback never waits, and the
- * brand ASCII fog blooming from the bottom-right corner (CardFog) as a delight layer.
- * The fog sits behind the text (content is `relative`); under reduced-motion the lift
- * is suppressed and CardFog renders nothing, leaving just the instant border change.
+ * brand dither warp blooming from the bottom-right corner (CardFog) as a delight layer.
+ * The bloom sits behind the text (content is `relative`); under reduced-motion the lift
+ * is suppressed and CardFog shows a static frame (no motion).
  */
 export function ConceptCard({ concept }: { concept: Concept }) {
   const [hover, setHover] = useState(false);
