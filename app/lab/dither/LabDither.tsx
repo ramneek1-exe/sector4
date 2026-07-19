@@ -14,7 +14,7 @@ import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
 import { resolveGlyph } from "@/app/lib/glyph";
-import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
+import { HELMET_VIEWBOX, NUMBER_POS, VISOR, VISOR_FILL, helmetSvgMarkup } from "@/app/lib/helmet";
 import { emblemSvgMarkup } from "@/app/lib/emblems";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
@@ -71,6 +71,12 @@ const GLYPHS: { code: string; team: string }[] = [
 const svgDataUri = (markup: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
 
+/** Visor-only alpha mask (same viewBox), for the second dither layer on the helmet. */
+function visorMaskMarkup(): string {
+  const { w, h } = HELMET_VIEWBOX;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><path d="${VISOR}" fill="#fff"/></svg>`;
+}
+
 /** Darken a #rrggbb hex by `f` (0..1). Used for the second dither tone of the SAME hue so
  *  the fill has NO white gaps: colorFront = team colour, colorBack = its darker shade. */
 function shade(hex: string, f: number): string {
@@ -88,13 +94,11 @@ function MaskedDither({
   color,
   width,
   height,
-  speedFactor,
 }: {
   maskMarkup: string;
   color: string;
   width: number;
   height: number;
-  speedFactor: number;
 }) {
   const mask = `url("${svgDataUri(maskMarkup)}")`;
   return (
@@ -119,7 +123,7 @@ function MaskedDither({
         shape="simplex"
         type="4x4"
         size={2}
-        speed={0.25 * speedFactor}
+        speed={0}
         scale={0.7}
         className="absolute inset-0 h-full w-full"
       />
@@ -128,17 +132,7 @@ function MaskedDither({
 }
 
 /** Helmet with the gapless dither fill + the crisp numeral overlay AsciiGlyph uses. */
-function DitherHelmet({
-  code,
-  team,
-  size,
-  speedFactor,
-}: {
-  code: string;
-  team: string | null;
-  size: number;
-  speedFactor: number;
-}) {
+function DitherHelmet({ code, team, size }: { code: string; team: string | null; size: number }) {
   const g = resolveGlyph(code, team);
   const heightPx = size * (HELMET_VIEWBOX.h / HELMET_VIEWBOX.w);
   return (
@@ -149,8 +143,16 @@ function DitherHelmet({
           color={g.helmetFill}
           width={size}
           height={heightPx}
-          speedFactor={speedFactor}
         />
+        {/* Visor: its own gapless two-tone dither layer in the site's visor colour. */}
+        <div className="absolute inset-0">
+          <MaskedDither
+            maskMarkup={visorMaskMarkup()}
+            color={VISOR_FILL}
+            width={size}
+            height={heightPx}
+          />
+        </div>
       </InView>
       {g.number !== null && (
         <span
@@ -289,6 +291,11 @@ function DitherHeroPanel({
             ref={blobRef}
             className="absolute inset-0 opacity-0 transition-opacity duration-300"
             style={{
+              // multiply on the MASKED WRAPPER: the mask creates a stacking context that
+              // isolates blending, so an inner multiply blended against transparent and the
+              // white back showed as a visible circle. Blending the wrapper as a unit
+              // multiplies the white out against the panel instead.
+              mixBlendMode: "multiply",
               maskImage:
                 "radial-gradient(circle 130px at var(--mx, -9999px) var(--my, -9999px), black 0%, black 30%, transparent 75%)",
               WebkitMaskImage:
@@ -304,7 +311,6 @@ function DitherHeroPanel({
               speed={0.9 * speedFactor}
               scale={0.5}
               className="absolute inset-0 h-full w-full"
-              style={{ mixBlendMode: "multiply" }}
             />
           </div>
         )}
@@ -356,7 +362,7 @@ function DitherHoverCard({ speedFactor }: { speedFactor: number }) {
     <div className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-white p-6">
       <div
         className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-        style={{ maskImage: CARD_MASK, WebkitMaskImage: CARD_MASK }}
+        style={{ mixBlendMode: "multiply", maskImage: CARD_MASK, WebkitMaskImage: CARD_MASK }}
       >
         <InView className="absolute inset-0">
           <DitherLayers
@@ -446,7 +452,7 @@ export function LabDither() {
               <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
                 {GLYPHS.map((g) => (
                   <div key={g.code} className="flex flex-col items-center gap-1.5">
-                    <DitherHelmet code={g.code} team={g.team} size={88} speedFactor={speedFactor} />
+                    <DitherHelmet code={g.code} team={g.team} size={88} />
                     <span className="font-grotesk text-sm font-bold tracking-wide text-ink">{g.code}</span>
                   </div>
                 ))}
@@ -460,7 +466,7 @@ export function LabDither() {
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
               <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · gapless two-tone dither</div>
-              <MaskedDither maskMarkup={emblemSvgMarkup("tyre", BLUE)} color={BLUE} width={96} height={96} speedFactor={speedFactor} />
+              <MaskedDither maskMarkup={emblemSvgMarkup("tyre", BLUE)} color={BLUE} width={96} height={96} />
             </div>
           </div>
         </div>
