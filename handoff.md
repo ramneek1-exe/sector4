@@ -7,6 +7,22 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
+> ## 🔴 PICK UP HERE NEXT SESSION — dither-swap eyeball fixes (owner, 2026-07-18, deferred at usage limit)
+> The site-wide dither art swap (PR #35) is LIVE on prod. Owner eyeballed and found 3 issues — noted,
+> NOT yet worked on (owner: "don't work on these yet"):
+> 1. **No hover animation on the hero.** The cursor-trailing dither BLOB does not appear on the live home
+>    hero (worked in `/lab/dither`). Debug against the lab version: likely suspects — the blob's
+>    `interactive`/reduced-motion gating, the rAF loop not starting, mask CSS vars not set, or a z-index/
+>    stacking difference vs the lab panel. `app/components/DitherFog.tsx`.
+> 2. **Scrim edges visible on the hero.** The `.legible` radial white backing's edges are discernible over
+>    the new dither warp background (the old AsciiFog hid them). Tune the `.legible` gradient feathering
+>    (globals.css ~L215) or the fog/scrim contrast.
+> 3. **/learn card hover bloom overflows the rounded corner** (bottom-right). The bloom wrapper in
+>    `CardFog.tsx` isn't clipped by the card's `rounded-2xl` — give the card container `overflow-hidden`
+>    (check `ConceptCard.tsx`) or round/clip the bloom wrapper itself.
+> Reference recipe + working comparison stays at `/lab/dither`. Per-surface rollback = one import line
+> (spec §5). Spec/plan: `docs/superpowers/{specs,plans}/2026-07-18-dither-shader-swap*`.
+>
 > ## ⭐ NEXT-UP BACKLOG (owner-prioritized 2026-07-06 — pick up IN THIS ORDER)
 > 1. ✅ **DONE (2026-07-06, PR #22, merge `02f3d5c`) — `src/data/grid.py:load_qualifying_grid` date-gate.**
 >    The last ungated fastf1 read is closed: `session_in_future(getattr(s,"date",None))` guard reads `s.date`
@@ -77,6 +93,30 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-18 session — DITHER ART SWAP: lab (PR #34) + site-wide swap (PR #35) — LIVE, 3 eyeball fixes deferred
+> Owner found paper-design's Dithering shader and wanted to test-then-swap the homegrown ASCII art.
+> **Lab:** hidden `/lab/dither` (noindex, kept as reference/tuning page) went through **7 owner-reviewed
+> rounds** to lock the recipe. Locked: **hero** = warp, blue #406cd6 (size2/speed0.5/scale0.8) + sky #459ae4
+> (size2/speed0.35/scale0.55), 4x4, colorBack #fafafa, multiply-stacked over white + a cursor-trailing accent
+> #2f2e89 blob (radial 130px mask, rAF lerp 0.12, snap-on-entry, 300ms fade); **card** = same warp masked to
+> the CardFog bottom-right corner radial; **identity (helmets/emblems)** = solid exact SVG colours + cell=1
+> alpha-Bayer dithered EDGES (deterministic canvas, no shader), crisp numeral overlay.
+> **Hard-won lab lessons (do not relearn):** (a) `Dithering` transparent colorBack renders WHITE — use opaque
+> white + multiply; (b) a CSS mask creates a stacking context that ISOLATES blending → multiply must go on the
+> MASKED WRAPPER, never only on a canvas inside it (white-circle/invisible-bloom bug); (c) browser WebGL
+> context cap (~16) evicts oldest canvases — never mount many shaders at once (lab uses InView; CardFog mounts
+> only while active); (d) ImageDithering maps LUMINANCE→dot density (washed checker on mid-tone fills) — for
+> solid-fill glyphs use the Bayer-alpha approach in `app/lib/bayer.ts` instead.
+> **Swap (PR #35, merged + LIVE):** renderer swap INSIDE existing components, APIs unchanged: new
+> `DitherFog` replaces AsciiFog on home + /weekend; `CardFog` internals → dither corner bloom ({active} API,
+> unmounts at rest); `AsciiGlyph`/`AsciiEmblem` internals → shared `app/lib/bayer.ts` (solid fills, 1px Bayer
+> edges, 450ms Bayer-ordered dither-resolve reveal, reduced-motion instant; popover/DriverGlyph-fallback/
+> numerals intact; car via coverage→alpha). Untouched: og-image (server, no WebGL — style gap accepted),
+> AsciiFog.tsx, lab, TyreSpinner. Dep: `@paper-design/shaders-react` (Apache 2.0). Opus whole-branch review
+> READY FOR PREVIEW, no Critical; vitest 206/2skip, tsc+build clean.
+> **OPEN: 3 owner-eyeball fixes deferred — see 🔴 PICK UP HERE at the top** (hero blob missing on prod, scrim
+> edges visible, /learn bloom overflows rounded corner).
 >
 > ## 2026-07-18 session — /accuracy chart enrichment + GB live relabel (backlog #7): PR #31
 > Spec/plan `docs/superpowers/{specs,plans}/2026-07-18-accuracy-chart-enrichment*`; ledger `.superpowers/sdd/
