@@ -81,7 +81,7 @@ function BayerGlyph({
   markup,
   width,
   height,
-  cell = 3,
+  cell = 2,
 }: {
   markup: string;
   width: number;
