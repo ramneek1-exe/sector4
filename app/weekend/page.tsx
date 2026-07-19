@@ -9,7 +9,7 @@ import { snapshotKey, latestKey, type WeekendSnapshot } from "@/app/lib/snapshot
 import { resolvePrevGp, pastPredictionRows } from "@/app/lib/past-predictions";
 import { PastPredictions } from "@/app/components/PastPredictions";
 import { gpLabel } from "@/app/lib/circuits";
-import { AsciiFog } from "@/app/components/AsciiFog";
+import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { TrustBadge } from "@/app/components/TrustBadge";
 import { CorrectionForm } from "@/app/components/CorrectionForm";
@@ -50,13 +50,13 @@ function SideFog() {
         aria-hidden
         className="weekend-fog-left pointer-events-none fixed inset-y-0 left-0 -z-10 hidden w-[max(1.75rem,calc((100vw-48rem)/2))] sm:block"
       >
-        <AsciiFog className="h-full w-full" />
+        <DitherFog className="h-full w-full" />
       </div>
       <div
         aria-hidden
         className="weekend-fog-right pointer-events-none fixed inset-y-0 right-0 -z-10 hidden w-[max(1.75rem,calc((100vw-48rem)/2))] sm:block"
       >
-        <AsciiFog className="h-full w-full" />
+        <DitherFog className="h-full w-full" />
       </div>
       {/* Mobile: a static CSS inner-glow on each edge — sticky, no canvas, no scroll
           glitch. Runs past the bottom of the screen (h > viewport) so it never cuts off. */}

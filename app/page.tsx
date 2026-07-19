@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { AsciiFog } from "@/app/components/AsciiFog";
+import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import { TyreSpinner } from "@/app/components/TyreSpinner";
@@ -370,7 +370,7 @@ export default function Home() {
       {/* Action zone — the ONLY place the living ASCII fog animates, directly under the bar. */}
       <section className="relative flex min-h-[600px] w-full items-center justify-center">
         <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-screen max-w-[1500px] -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(ellipse_70%_64%_at_50%_50%,black_0%,transparent_72%)]">
-          <AsciiFog className="h-full w-full" />
+          <DitherFog className="h-full w-full" />
         </div>
         {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
         <div
