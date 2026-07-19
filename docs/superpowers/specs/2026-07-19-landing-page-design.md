@@ -41,7 +41,11 @@ IDENTICAL look with no new dependency and works with any `<video>` source:
 owner drops any test clip in) rendering `DitherVideo` full-width with variant toggles —
 2-tone palettes (ink-on-white, blue-on-white, white-on-ink), cols (160/240/320), 4x4 vs 8x8
 — plus the hero copy overlaid (wordmark + thesis + CTA mock) so the full hero moment is
-judged in-situ. Owner validates → buys footage → drops it at `public/hero.mp4`.
+judged in-situ. **Identity proof:** section E also renders ONE paused frame side-by-side —
+paper's actual `ImageDithering` (frame captured as a data-URI) vs our canvas ditherer on the
+same frame, same colours/size — so "identical" is verified by eye, not asserted; any visible
+difference gets matched before the purchase. Owner validates → buys footage → drops it at
+`public/hero.mp4`.
 
 ## 3. Route restructure
 
