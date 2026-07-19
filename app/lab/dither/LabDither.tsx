@@ -14,7 +14,7 @@ import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
 import { resolveGlyph } from "@/app/lib/glyph";
-import { HELMET_VIEWBOX, NUMBER_POS, VISOR, VISOR_FILL, helmetSvgMarkup } from "@/app/lib/helmet";
+import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { emblemSvgMarkup } from "@/app/lib/emblems";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
@@ -71,64 +71,64 @@ const GLYPHS: { code: string; team: string }[] = [
 const svgDataUri = (markup: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
 
-/** Visor-only alpha mask (same viewBox), for the second dither layer on the helmet. */
-function visorMaskMarkup(): string {
-  const { w, h } = HELMET_VIEWBOX;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}"><path d="${VISOR}" fill="#fff"/></svg>`;
-}
+/** Ordered-dither glyph: the coloured SVG drawn to a cell grid, with a 4x4 Bayer threshold
+ *  applied to the ALPHA channel only. Interior cells (alpha 1) always pass -> SOLID exact
+ *  colours (shell, visor, vent); only the antialiased edge dithers. Deterministic, static —
+ *  the control's look with a refined ordered-dither edge. */
+const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 
-/** Darken a #rrggbb hex by `f` (0..1). Used for the second dither tone of the SAME hue so
- *  the fill has NO white gaps: colorFront = team colour, colorBack = its darker shade. */
-function shade(hex: string, f: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  const ch = (v: number) => Math.round(v * (1 - f));
-  const r = ch((n >> 16) & 255), g = ch((n >> 8) & 255), b = ch(n & 255);
-  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-}
-
-/** Gapless dithered silhouette: a plain 2-tone Dithering field (team colour + its darker
- *  shade -- no white in the pattern) clipped to the shape via a CSS alpha mask of the same
- *  SVG the site renders. Fully filled, crisp edges, texture inside. */
-function MaskedDither({
-  maskMarkup,
-  color,
+function BayerGlyph({
+  markup,
   width,
   height,
+  cell = 3,
 }: {
-  maskMarkup: string;
-  color: string;
+  markup: string;
   width: number;
   height: number;
+  cell?: number;
 }) {
-  const mask = `url("${svgDataUri(maskMarkup)}")`;
-  return (
-    <div
-      className="relative"
-      style={{
-        width,
-        height,
-        maskImage: mask,
-        WebkitMaskImage: mask,
-        maskSize: "contain",
-        WebkitMaskSize: "contain",
-        maskRepeat: "no-repeat",
-        WebkitMaskRepeat: "no-repeat",
-        maskPosition: "center",
-        WebkitMaskPosition: "center",
-      }}
-    >
-      <Dithering
-        colorBack={shade(color, 0.35)}
-        colorFront={color}
-        shape="simplex"
-        type="4x4"
-        size={2}
-        speed={0}
-        scale={0.7}
-        className="absolute inset-0 h-full w-full"
-      />
-    </div>
-  );
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let cancelled = false;
+    const cols = Math.max(1, Math.round(width / cell));
+    const rows = Math.max(1, Math.round(height / cell));
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      const off = document.createElement("canvas");
+      off.width = cols;
+      off.height = rows;
+      const octx = off.getContext("2d");
+      const ctx = canvas.getContext("2d");
+      if (!octx || !ctx) return;
+      octx.drawImage(img, 0, 0, cols, rows);
+      const data = octx.getImageData(0, 0, cols, rows).data;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, width, height);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const i = (y * cols + x) * 4;
+          const a = data[i + 3] / 255;
+          const threshold = (BAYER4[(y % 4) * 4 + (x % 4)] + 0.5) / 16;
+          if (a >= threshold) {
+            ctx.fillStyle = `rgb(${data[i]},${data[i + 1]},${data[i + 2]})`;
+            ctx.fillRect(x * cell, y * cell, cell, cell);
+          }
+        }
+      }
+    };
+    img.src = svgDataUri(markup);
+    return () => {
+      cancelled = true;
+    };
+  }, [markup, width, height, cell]);
+  return <canvas ref={canvasRef} style={{ width, height }} aria-hidden />;
 }
 
 /** Helmet with the gapless dither fill + the crisp numeral overlay AsciiGlyph uses. */
@@ -137,23 +137,7 @@ function DitherHelmet({ code, team, size }: { code: string; team: string | null;
   const heightPx = size * (HELMET_VIEWBOX.h / HELMET_VIEWBOX.w);
   return (
     <div className="relative" style={{ width: size, height: heightPx }}>
-      <InView className="absolute inset-0">
-        <MaskedDither
-          maskMarkup={helmetSvgMarkup(g, false)}
-          color={g.helmetFill}
-          width={size}
-          height={heightPx}
-        />
-        {/* Visor: its own gapless two-tone dither layer in the site's visor colour. */}
-        <div className="absolute inset-0">
-          <MaskedDither
-            maskMarkup={visorMaskMarkup()}
-            color={VISOR_FILL}
-            width={size}
-            height={heightPx}
-          />
-        </div>
-      </InView>
+      <BayerGlyph markup={helmetSvgMarkup(g, false)} width={size} height={heightPx} />
       {g.number !== null && (
         <span
           className="pointer-events-none absolute select-none"
@@ -432,7 +416,7 @@ export function LabDither() {
 
       <Section
         title="B · Dither-composed identity"
-        note="Gapless dither: the fill is two tones of the SAME team colour (no white in the pattern), clipped to the helmet silhouette, numeral crisp. Legible at a glance, textured up close."
+        note="Solid exact colours in the fill (shell, visor, vent), ordered 4x4 Bayer dither on the edges only. The control look, refined."
       >
         <div className="space-y-8">
           <div className="grid gap-6 sm:grid-cols-2">
@@ -466,7 +450,7 @@ export function LabDither() {
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
               <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · gapless two-tone dither</div>
-              <MaskedDither maskMarkup={emblemSvgMarkup("tyre", BLUE)} color={BLUE} width={96} height={96} />
+              <BayerGlyph markup={emblemSvgMarkup("tyre", BLUE)} width={96} height={96} />
             </div>
           </div>
         </div>
