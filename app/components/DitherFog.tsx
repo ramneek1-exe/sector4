@@ -65,8 +65,26 @@ export function DitherFog({ className = "" }: { className?: string }) {
   const target = useRef({ x: -9999, y: -9999, active: false });
   const pos = useRef({ x: -9999, y: -9999 });
 
+  // Track the cursor on WINDOW (AsciiFog's pattern): the fog is mounted as a
+  // pointer-events-none background SIBLING behind the page content, so React mouse
+  // handlers on the fog root never fire — events target the content tree. Local
+  // coords come from the root's rect; `active` = cursor inside the fog's box.
   useEffect(() => {
     if (!interactive) return;
+    const onMove = (e: PointerEvent) => {
+      const el = rootRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height;
+      target.current = inside ? { x, y, active: true } : { ...target.current, active: false };
+    };
+    const onLeave = () => {
+      target.current = { ...target.current, active: false };
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
     let raf = 0;
     const tick = () => {
       const t = target.current;
@@ -87,25 +105,15 @@ export function DitherFog({ className = "" }: { className?: string }) {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
   }, [interactive]);
 
-  const onMove = (e: React.MouseEvent) => {
-    if (!interactive || !rootRef.current) return;
-    const r = rootRef.current.getBoundingClientRect();
-    target.current = { x: e.clientX - r.left, y: e.clientY - r.top, active: true };
-  };
-
   return (
-    <div
-      ref={rootRef}
-      onMouseMove={onMove}
-      onMouseLeave={() => {
-        target.current = { ...target.current, active: false };
-      }}
-      aria-hidden
-      className={`relative overflow-hidden ${className}`}
-    >
+    <div ref={rootRef} aria-hidden className={`relative overflow-hidden ${className}`}>
       <DitherLayers speedFactor={speedFactor} />
       {interactive && (
         <div

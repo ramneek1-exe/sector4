@@ -22,14 +22,14 @@ export function ConceptCard({ concept }: { concept: Concept }) {
       onPointerLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      className="legible group relative flex h-full flex-col gap-2 overflow-hidden rounded-2xl border border-ink/10 bg-white/80 p-5 transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_10px_34px_-14px_rgba(64,108,214,0.35)] focus-visible:-translate-y-0.5 focus-visible:border-accent focus-visible:outline-none motion-reduce:transition-colors motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
+      className="legible group relative isolate flex h-full flex-col gap-2 overflow-hidden rounded-2xl border border-ink/10 bg-white/80 p-5 transition-[transform,border-color,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_10px_34px_-14px_rgba(64,108,214,0.35)] focus-visible:-translate-y-0.5 focus-visible:border-accent focus-visible:outline-none motion-reduce:transition-colors motion-reduce:hover:translate-y-0 motion-reduce:focus-visible:translate-y-0"
     >
       <CardFog active={hover} />
       <div className="relative flex items-start justify-between gap-2">
         <span className="font-grotesk text-base font-bold text-ink">{concept.term}</span>
         <TrustBadge badge={concept.badge} />
       </div>
-      <span className="relative font-lastik text-sm text-muted">{concept.summary}</span>
+      <span className="relative font-lastik text-sm text-muted transition-colors duration-200 group-hover:text-ink group-focus-visible:text-ink">{concept.summary}</span>
     </Link>
   );
 }

@@ -213,11 +213,23 @@ body {
 /* Text legibility wash over the fog — a feathered white radial that fades to transparent.
    No border, no defined shape (edgeless, like the ascii fog). Padding gives the feather room. */
 .legible {
+  /* CLOSEST-SIDE sizing is the load-bearing part: the default (farthest-corner) ellipse
+     only reaches transparent at the box CORNERS, so the box edge slices the gradient at
+     ~60-70% alpha along the sides — a sharp rectangle over the dither warp. closest-side
+     inscribes the ellipse in the box, so alpha is exactly 0 at every side: no edge can
+     exist. Alpha holds strong deep into the ellipse so text keeps its backing. */
+  /* Continuous gaussian-like decay — a hold-then-drop curve reads as a defined white
+     oval; this one has no plateau and no cliff, so it blends like fog. */
   background: radial-gradient(
-    ellipse at center,
+    ellipse closest-side at center,
     rgba(250, 250, 250, 0.92) 0%,
-    rgba(250, 250, 250, 0.85) 50%,
-    rgba(250, 250, 250, 0) 82%
+    rgba(250, 250, 250, 0.86) 25%,
+    rgba(250, 250, 250, 0.74) 45%,
+    rgba(250, 250, 250, 0.58) 62%,
+    rgba(250, 250, 250, 0.4) 76%,
+    rgba(250, 250, 250, 0.22) 87%,
+    rgba(250, 250, 250, 0.09) 95%,
+    rgba(250, 250, 250, 0) 100%
   );
 }
 

@@ -94,7 +94,7 @@ export function TyreSpinner({ active, size = 22 }: { active: boolean; size?: num
   if (phase === "idle") return null;
   return (
     <span className="absolute inset-0 flex items-center justify-center">
-      <span className={phase === "out" ? "tyre-rollout" : "tyre-rollin"}>
+      <span className={`inline-flex leading-none ${phase === "out" ? "tyre-rollout" : "tyre-rollin"}`}>
         <span className="tyre-spin inline-flex">
           <TyreGlyph size={size} />
         </span>

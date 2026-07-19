@@ -16,6 +16,7 @@ import { TrustBadge } from "@/app/components/TrustBadge";
 import { CompoundCard } from "@/app/components/CompoundCard";
 import type { Concept } from "@/app/lib/concepts";
 import Link from "next/link";
+import { ASK_RESET_EVENT } from "@/app/components/SiteNav";
 
 // The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
 type Answer = ApiAnswer | { error: string };
@@ -312,6 +313,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
 
+  // Nav "Ask" clicked while already here: reset to the empty state (same-route Links
+  // no-op in the router, so this event is the reset signal — see SiteNav).
+  useEffect(() => {
+    const reset = () => {
+      setQuery("");
+      setAnswer(null);
+      setLoading(false);
+    };
+    window.addEventListener(ASK_RESET_EVENT, reset);
+    return () => window.removeEventListener(ASK_RESET_EVENT, reset);
+  }, []);
+
   async function run(q: string) {
     if (!q.trim()) return; // ignore empty submits (the bar starts empty now)
     setLoading(true);
@@ -375,7 +388,7 @@ export default function Home() {
         {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_38%_42%_at_50%_50%,rgba(250,250,250,0.5),rgba(250,250,250,0.14)_52%,transparent_70%)]"
+          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_40%_46%_at_50%_50%,rgba(250,250,250,0.55),rgba(250,250,250,0.4)_45%,rgba(250,250,250,0.18)_70%,rgba(250,250,250,0.06)_88%,transparent_100%)]"
         />
 
         {!answer && !loading && (

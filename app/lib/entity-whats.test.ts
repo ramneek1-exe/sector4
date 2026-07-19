@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getEntityWhat, getCircuitFacts, getCircuitName, entityKey, parsePopoverKey } from "./entity-whats";
+import { getEntityWhat, splitSentences, getCircuitFacts, getCircuitName, entityKey, parsePopoverKey } from "./entity-whats";
 
 describe("entity-whats accessors", () => {
   it("keys by type:slug", () => {
@@ -12,6 +12,15 @@ describe("entity-whats accessors", () => {
     expect(Array.isArray(facts)).toBe(true);
     expect(facts.length).toBeGreaterThan(1);
     expect(facts.every((f) => f.trim().length > 0 && !f.includes("  "))).toBe(true);
+  });
+  it("splitSentences never breaks on decimals or intra-token periods", () => {
+    const out = splitSentences(
+      "The facility near Stavelot spans 7.004 kilometers and hosted F1 since 1925. With two exceptions, it ran annually."
+    );
+    expect(out).toEqual([
+      "The facility near Stavelot spans 7.004 kilometers and hosted F1 since 1925.",
+      "With two exceptions, it ran annually.",
+    ]);
   });
   it("getCircuitName returns the track display name, or the gp key when absent", () => {
     expect(getCircuitName("Austria")).toBe("Red Bull Ring");
