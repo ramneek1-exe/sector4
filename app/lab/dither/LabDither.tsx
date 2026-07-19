@@ -1,15 +1,23 @@
 "use client";
 
-// Shader evaluation lab: paper-design `Dithering` (WebGL2 canvas, 2-color) vs the current
-// homegrown ASCII art. Each exhibit recreates a REAL site moment (home hero, glyph identity,
-// card hover) so the owner judges a swap in-situ, not in the abstract. All candidate configs
-// live in the const arrays below for fast tweaking. Reduced motion -> speed 0 (static frame).
+// Shader evaluation lab, round 2 (owner feedback): warp won the hero but must wear the
+// AsciiFog colour treatment (palette fog on the white page); glyphs/emblems are COMPOSED of
+// dither via ImageDithering over their existing SVG sources (not placed on a dither bg); the
+// card exhibit applies warp with CardFog's bottom-right corner-bloom placement. Configs live
+// in const arrays for fast tweaking. Reduced motion -> speed 0 (static frame).
 import { useEffect, useState } from "react";
-import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
+import {
+  Dithering,
+  ImageDithering,
+  type DitheringProps,
+} from "@paper-design/shaders-react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
+import { resolveGlyph } from "@/app/lib/glyph";
+import { helmetSvgMarkup } from "@/app/lib/helmet";
+import { emblemSvgMarkup } from "@/app/lib/emblems";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
 const INK = "#251f44";
@@ -17,44 +25,54 @@ const ACCENT = "#2f2e89";
 const BLUE = "#406cd6";
 const SKY = "#459ae4";
 const LIGHT = "#addcef";
-const PALE = "#bee2f0";
+const CLEAR = "#00000000"; // transparent back so layers stack on the white page like fog
 
 type Variant = {
   label: string;
-  layers: Partial<DitheringProps>[]; // stacked back-to-front; >1 fakes palette depth
+  layers: Partial<DitheringProps>[]; // transparent-back layers stacked over the white page
 };
 
-// A. Hero candidates. The shader is 2-color, so layered variants blend two instances
-// (different shape/speed, top layer screen-blended) to approach AsciiFog's 6-stop sweep.
+// A. Hero candidates: WARP, coloured like AsciiFog (palette fog over white). The shader is
+// 2-color per instance, so stacked transparent-back layers sweep the palette.
 const HERO_VARIANTS: Variant[] = [
   {
-    label: "ink x accent · sphere · 4x4",
-    layers: [{ colorBack: INK, colorFront: ACCENT, shape: "sphere", type: "4x4", size: 2, speed: 0.7, scale: 0.7 }],
-  },
-  {
-    label: "ink x light · warp · 4x4",
-    layers: [{ colorBack: INK, colorFront: LIGHT, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 }],
-  },
-  {
-    label: "layered: ink x blue swirl + transparent x sky wave (screen)",
+    label: "warp · blue + sky over white · 4x4",
     layers: [
-      { colorBack: INK, colorFront: BLUE, shape: "swirl", type: "4x4", size: 2, speed: 0.4, scale: 0.8 },
-      { colorBack: "#00000000", colorFront: SKY, shape: "wave", type: "4x4", size: 3, speed: 0.6, scale: 0.6 },
+      { colorBack: CLEAR, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
+      { colorBack: CLEAR, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
+    ],
+  },
+  {
+    label: "warp · accent + blue + light over white · 4x4",
+    layers: [
+      { colorBack: CLEAR, colorFront: ACCENT, shape: "warp", type: "4x4", size: 2, speed: 0.3, scale: 0.9 },
+      { colorBack: CLEAR, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.6 },
+      { colorBack: CLEAR, colorFront: LIGHT, shape: "warp", type: "4x4", size: 3, speed: 0.4, scale: 0.45 },
+    ],
+  },
+  {
+    label: "warp · ink + sky over white (high contrast) · 4x4",
+    layers: [
+      { colorBack: CLEAR, colorFront: INK, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.75 },
+      { colorBack: CLEAR, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.55, scale: 0.5 },
     ],
   },
 ];
 
-// D. Playground grid: shapes x dither types at brand colors.
-const PLAY_SHAPES: DitheringProps["shape"][] = ["sphere", "warp", "wave", "swirl", "simplex"];
-const PLAY_TYPES: DitheringProps["type"][] = ["4x4", "8x8"];
+// C. Card corner-bloom warp (CardFog placement): masked to the bottom-right, palette on white.
+const CARD_MASK =
+  "radial-gradient(120% 120% at 100% 100%, black 0%, black 35%, transparent 72%)";
 
-// Glyph identity row: real 2026 driver/team pairs (abstract helmets, PRD §8).
+// B. Identity: real 2026 driver/team pairs, composed of dither via their own SVG sources.
 const GLYPHS: { code: string; team: string }[] = [
   { code: "VER", team: "Red Bull Racing" },
   { code: "NOR", team: "McLaren" },
   { code: "LEC", team: "Ferrari" },
   { code: "RUS", team: "Mercedes" },
 ];
+
+const svgDataUri = (markup: string) =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -68,24 +86,35 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
-/** Stacked Dithering layers filling their parent (absolute). Top layers screen-blend. */
+/** Stacked transparent-back Dithering layers filling their parent (absolute). */
 function DitherLayers({ layers, speedFactor }: { layers: Partial<DitheringProps>[]; speedFactor: number }) {
   return (
     <>
       {layers.map((l, i) => (
-        <Dithering
-          key={i}
-          {...l}
-          speed={(l.speed ?? 0.5) * speedFactor}
-          className="absolute inset-0 h-full w-full"
-          style={i > 0 ? { mixBlendMode: "screen" } : undefined}
-        />
+        <Dithering key={i} {...l} speed={(l.speed ?? 0.5) * speedFactor} className="absolute inset-0 h-full w-full" />
       ))}
     </>
   );
 }
 
-/** The real home-hero moment (h1 + input shell + a chip) overlaid on an art background. */
+/** A driver helmet COMPOSED of dither: ImageDithering over the same team-coloured helmet SVG
+ *  AsciiGlyph rasterises, keeping the original team colours. Static (identity, not motion). */
+function DitherHelmet({ code, team, size }: { code: string; team: string | null; size: number }) {
+  const g = resolveGlyph(code, team);
+  const uri = svgDataUri(helmetSvgMarkup(g, true));
+  return (
+    <ImageDithering
+      image={uri}
+      originalColors
+      type="4x4"
+      size={2}
+      speed={0}
+      style={{ width: size, height: size * (611 / 732) }}
+    />
+  );
+}
+
+/** The real home-hero moment (h1 + input shell + chip) overlaid on an art background. */
 function HeroContent() {
   return (
     <div className="relative z-10 flex h-full flex-col items-center justify-center gap-5 px-6 text-center">
@@ -120,6 +149,30 @@ function HoverFogCard() {
   );
 }
 
+/** Candidate card: warp layers in the hero treatment, masked to CardFog's bottom-right bloom. */
+function DitherHoverCard({ speedFactor }: { speedFactor: number }) {
+  return (
+    <div className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-white p-6">
+      <div
+        className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        style={{ maskImage: CARD_MASK, WebkitMaskImage: CARD_MASK }}
+      >
+        <DitherLayers
+          layers={[
+            { colorBack: CLEAR, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
+            { colorBack: CLEAR, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
+          ]}
+          speedFactor={speedFactor}
+        />
+      </div>
+      <div className="relative z-10">
+        <h3 className="font-grotesk font-semibold text-ink">Dither warp bloom</h3>
+        <p className="mt-1 font-lastik text-sm text-muted">Same corner placement, warp texture. Hover.</p>
+      </div>
+    </div>
+  );
+}
+
 function PanelLabel({ children }: { children: React.ReactNode }) {
   return (
     <span className="absolute bottom-2 left-3 z-20 rounded bg-white/80 px-1.5 py-0.5 font-grotesk text-[10px] uppercase tracking-wide text-muted">
@@ -147,14 +200,14 @@ export function LabDither() {
       <header>
         <h1 className="font-pixel-serif text-4xl text-ink">Dither lab</h1>
         <p className="mt-2 max-w-prose font-lastik text-muted">
-          Evaluating the paper-design Dithering shader against the current ASCII art, on the real
-          site moments. Unlinked test page: nothing here ships.
+          Round 2: warp in the AsciiFog colour treatment, dither-composed glyphs, and the
+          CardFog-style corner bloom. Unlinked test page: nothing here ships.
         </p>
       </header>
 
       <Section
         title="A · Hero swap"
-        note="The home hero moment over each background. First panel is the current AsciiFog (control), then the shader candidates at brand colors."
+        note="The home hero over each background. Control is the current AsciiFog; candidates are WARP layered in the same palette-fog-on-white treatment."
       >
         <div className="space-y-6">
           <div className="relative h-72 overflow-hidden rounded-2xl border border-ink/10">
@@ -173,80 +226,81 @@ export function LabDither() {
       </Section>
 
       <Section
-        title="B · Identity on dither"
-        note="Driver helmets and the car emblem over the dithered texture: does the abstract glyph identity cohere on the new background?"
+        title="B · Dither-composed identity"
+        note="The helmet itself rendered by ImageDithering over the same team-coloured SVG AsciiGlyph uses (original colours kept), next to the current ASCII composition. Tyre emblem below."
       >
-        <div className="relative overflow-hidden rounded-2xl border border-ink/10 p-8">
-          <Dithering
-            colorBack={INK}
-            colorFront={ACCENT}
-            shape="warp"
-            type="4x4"
-            size={2}
-            speed={0.4 * speedFactor}
-            scale={0.9}
-            className="absolute inset-0 h-full w-full"
-          />
-          <div className="relative z-10 flex flex-wrap items-end justify-center gap-x-10 gap-y-6">
-            {GLYPHS.map((g) => (
-              <div key={g.code} className="flex flex-col items-center gap-1.5">
-                <AsciiGlyph code={g.code} team={g.team} size={88} />
-                <span className="font-grotesk text-sm font-bold tracking-wide text-white">{g.code}</span>
+        <div className="space-y-8">
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl border border-ink/10 p-6">
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">control · AsciiGlyph</div>
+              <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
+                {GLYPHS.map((g) => (
+                  <div key={g.code} className="flex flex-col items-center gap-1.5">
+                    <AsciiGlyph code={g.code} team={g.team} size={88} />
+                    <span className="font-grotesk text-sm font-bold tracking-wide text-ink">{g.code}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            <AsciiEmblem kind="car" size={72} cols={30} color={PALE} />
-            <AsciiEmblem kind="tyre" size={64} cols={22} color={LIGHT} />
+            </div>
+            <div className="rounded-2xl border border-ink/10 p-6">
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · ImageDithering 4x4</div>
+              <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
+                {GLYPHS.map((g) => (
+                  <div key={g.code} className="flex flex-col items-center gap-1.5">
+                    <DitherHelmet code={g.code} team={g.team} size={88} />
+                    <span className="font-grotesk text-sm font-bold tracking-wide text-ink">{g.code}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl border border-ink/10 p-6">
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">control · AsciiEmblem tyre</div>
+              <AsciiEmblem kind="tyre" size={96} cols={26} />
+            </div>
+            <div className="rounded-2xl border border-ink/10 p-6">
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · ImageDithering tyre</div>
+              <ImageDithering
+                image={svgDataUri(emblemSvgMarkup("tyre", BLUE))}
+                originalColors
+                type="4x4"
+                size={2}
+                speed={0}
+                style={{ width: 96, height: 96 }}
+              />
+            </div>
           </div>
         </div>
       </Section>
 
       <Section
         title="C · Card hover"
-        note="Current CardFog hover bloom vs a Dithering-backed card. Hover each."
+        note="Current CardFog bloom vs the warp in the same bottom-right corner placement and hero colour treatment. Hover each."
       >
         <div className="grid gap-5 sm:grid-cols-2">
           <HoverFogCard />
-          <div className="group relative overflow-hidden rounded-2xl border border-ink/10 bg-white p-6">
-            <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-25">
-              <Dithering
-                colorBack="#ffffff"
-                colorFront={BLUE}
-                shape="ripple"
-                type="4x4"
-                size={2}
-                speed={0.6 * speedFactor}
-                scale={0.7}
-                className="h-full w-full"
-              />
-            </div>
-            <div className="relative z-10">
-              <h3 className="font-grotesk font-semibold text-ink">Dithering hover</h3>
-              <p className="mt-1 font-lastik text-sm text-muted">Ripple dither fading in on hover.</p>
-            </div>
-          </div>
+          <DitherHoverCard speedFactor={speedFactor} />
         </div>
       </Section>
 
       <Section
         title="D · Playground"
-        note="Shapes x dither types at ink + accent. Scan for the texture that fits; tweak the const arrays in LabDither.tsx."
+        note="Warp parameter sweep at brand colours over white: size and scale variations to dial the texture. Tweak the grid in LabDither.tsx."
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {PLAY_TYPES.map((t) =>
-            PLAY_SHAPES.map((s) => (
-              <div key={`${s}-${t}`} className="relative aspect-square overflow-hidden rounded-xl border border-ink/10">
-                <Dithering
-                  colorBack={INK}
-                  colorFront={ACCENT}
-                  shape={s}
-                  type={t}
-                  size={2}
-                  speed={0.5 * speedFactor}
-                  scale={0.7}
-                  className="h-full w-full"
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[1, 2, 3, 4].map((sz) =>
+            [0.4, 0.8].map((sc) => (
+              <div key={`${sz}-${sc}`} className="relative aspect-square overflow-hidden rounded-xl border border-ink/10">
+                <DitherLayers
+                  layers={[
+                    { colorBack: CLEAR, colorFront: BLUE, shape: "warp", type: "4x4", size: sz, speed: 0.5, scale: sc },
+                    { colorBack: CLEAR, colorFront: SKY, shape: "warp", type: "4x4", size: sz, speed: 0.35, scale: sc * 0.7 },
+                  ]}
+                  speedFactor={speedFactor}
                 />
                 <PanelLabel>
-                  {s} · {t}
+                  size {sz} · scale {sc}
                 </PanelLabel>
               </div>
             )),
