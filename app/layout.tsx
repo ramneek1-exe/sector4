@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { fontVars } from "@/app/lib/fonts";
 import { SiteNav } from "@/app/components/SiteNav";
+import { SmoothScroll } from "@/app/components/SmoothScroll";
 
 const TAGLINE = "Honest podium odds, strategy, and the numbers behind them.";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
       <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg text-ink antialiased font-lastik pt-[68px]">
+        <SmoothScroll />
         {/* Persistent single-row nav (wordmark + section links + CTA). The fixed bar has
             a translucent backing so scrolled content passes UNDER it; the body's top
             padding (matching SiteNav NAV_H) keeps page content clear of it. */}
