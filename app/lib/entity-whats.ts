@@ -36,15 +36,20 @@ export function parsePopoverKey(key: string): { kind: "entity"; what: EntityWhat
   return { kind: "concept", slug: key };
 }
 
-// Split prose into sentences, keeping terminal punctuation, dropping empties.
-function sentences(text: string): string[] {
-  return (text.match(/[^.!?]+[.!?]+/g) ?? [text]).map((s) => s.trim()).filter(Boolean);
+// Split prose into sentences, keeping terminal punctuation, dropping empties. Splits only
+// where a terminator is followed by whitespace and a capital/quote/paren — so decimals
+// ("spans 7.004 kilometers") and other intra-token periods never break a sentence.
+export function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+(?=[A-Z"“'(])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 // The /weekend seam (replaces app/lib/circuit-facts.ts). Same signatures, now over entity whats.
 export function getCircuitFacts(gp: string): string[] {
   const w = getEntityWhat("circuit", gp);
-  return w ? sentences(w.summary) : [];
+  return w ? splitSentences(w.summary) : [];
 }
 export function getCircuitName(gp: string): string {
   return getEntityWhat("circuit", gp)?.track ?? gp;
