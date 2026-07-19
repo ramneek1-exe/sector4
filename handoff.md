@@ -7,21 +7,30 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — dither-swap eyeball fixes (owner, 2026-07-18, deferred at usage limit)
-> The site-wide dither art swap (PR #35) is LIVE on prod. Owner eyeballed and found 3 issues — noted,
-> NOT yet worked on (owner: "don't work on these yet"):
-> 1. **No hover animation on the hero.** The cursor-trailing dither BLOB does not appear on the live home
->    hero (worked in `/lab/dither`). Debug against the lab version: likely suspects — the blob's
->    `interactive`/reduced-motion gating, the rAF loop not starting, mask CSS vars not set, or a z-index/
->    stacking difference vs the lab panel. `app/components/DitherFog.tsx`.
-> 2. **Scrim edges visible on the hero.** The `.legible` radial white backing's edges are discernible over
->    the new dither warp background (the old AsciiFog hid them). Tune the `.legible` gradient feathering
->    (globals.css ~L215) or the fog/scrim contrast.
-> 3. **/learn card hover bloom overflows the rounded corner** (bottom-right). The bloom wrapper in
->    `CardFog.tsx` isn't clipped by the card's `rounded-2xl` — give the card container `overflow-hidden`
->    (check `ConceptCard.tsx`) or round/clip the bloom wrapper itself.
-> Reference recipe + working comparison stays at `/lab/dither`. Per-surface rollback = one import line
-> (spec §5). Spec/plan: `docs/superpowers/{specs,plans}/2026-07-18-dither-shader-swap*`.
+> ## 🔴 PICK UP HERE NEXT SESSION — LANDING PAGE (branch `landing-page`, PR #37 OPEN, ready for owner preview)
+> The dither-swap eyeball fixes are DONE (PR #36 merged + live). The LANDING PAGE is BUILT on PR #37
+> (branch `landing-page`, head `cf866f2`) — all 5 plan tasks complete, review-checked, local
+> next-start verified (/ 200, /ask 200). Spec/plan `docs/superpowers/{specs,plans}/2026-07-19-landing-page*`;
+> ledger `.superpowers/sdd/progress.md`.
+> **What's on the PR:** (1) `/` = new landing: full-viewport hero (DitherVideo over `/public/hero.mp4`,
+> falls back to DitherFog while the file doesn't exist — BY DESIGN), SECTOR4 Bebas wordmark + thesis +
+> CTA → /ask, ask-anything chips (deep-link `/ask?q=` prefill, no auto-run), honest-by-design (live
+> scored-race count, degrades to copy), learn, this-weekend, footer. `/` is force-dynamic. (2) Ask moved
+> VERBATIM to `/ask` (+9 prefill lines, window.location.search on mount). Nav: Ask→/ask,
+> `emitAskResetIfOnAsk`. (3) **`app/lib/bayer.ts`** gained the LUMINANCE path + BAYER8 (tested) — math
+> identical to paper's ImageDithering 4x4. (4) **`DitherVideo`** renders any <video> per-frame through it
+> (cols-grid + pixelated upscale; reduced-motion/autoplay-block → static frame; missing src/error →
+> children fallback; InView+tab-visibility-gated rAF). (5) **`/lab/dither` section E** = the b-roll test
+> bench: local FILE PICKER (nothing committed) + palette/cols/matrix toggles + hero-copy overlay + a
+> "Capture frame" PARITY PROOF (paper ImageDithering vs ours, same frame side-by-side).
+> **OWNER NEXT STEPS:** (a) eyeball the PR #37 preview: landing `/`, `/ask` (incl. nav-Ask reset + ?q=),
+> lab E with any local test clip; (b) verify the parity A/B; (c) purchase the licensed b-roll → drop at
+> `public/hero.mp4` (hero lights up automatically, no code change); (d) merge call.
+> **HARD-WON LESSON (this branch):** NEVER import VALUES from a "use client" module into a server
+> component — they become client references (`NAV_LINKS.map()` 500'd the landing at request time; build
+> passed because the route is dynamic). Pure nav constants now live in server-safe **`app/lib/nav.ts`**
+> (SiteNav re-exports for compat). For any new server route: smoke it with a local `next start` + curl,
+> not just `npm run build`.
 >
 > ## ⭐ NEXT-UP BACKLOG (owner-prioritized 2026-07-06 — pick up IN THIS ORDER)
 > 1. ✅ **DONE (2026-07-06, PR #22, merge `02f3d5c`) — `src/data/grid.py:load_qualifying_grid` date-gate.**
@@ -93,6 +102,29 @@
 >   `summary.nRaces >= 3` (L89) — a deliberate honesty gate (don't draw a season trend from 1–2 points). Early
 >   season correctly shows the scorecard + race-by-race rows and NO chart; the graph appears once ≥3 rounds are
 >   scored. So "no graph yet" is expected behaviour, not a bug.
+>
+> ## 2026-07-19 session — dither eyeball fixes: PR #36 MERGED + LIVE
+> All 3 deferred fixes + 5 more owner findings, iterated on the PR preview:
+> (1) **Hero cursor blob** — fog is a pointer-events-none background SIBLING, so React handlers on it
+> never fire; now tracks WINDOW pointermove (AsciiFog's pattern), active only inside the fog box.
+> (2) **`.legible` scrim saga (3 rounds, the lesson matters):** the visible hard edges were a GEOMETRY
+> bug — default radial ellipses size to farthest-corner, so the box edge slices the gradient at ~60-70%
+> alpha → sharp rectangles. Fix = **`ellipse closest-side`** (alpha reaches 0 at every side; an edge is
+> impossible). Then a hold-then-drop curve read as a white OVAL → final = continuous gaussian-like decay
+> (8 stops 0.92→0). DON'T weaken scrims to hide edges (looked terrible over the busy warp) — fix geometry.
+> (3) **/learn bloom overflow** — mix-blend child escapes border-radius clip (Chromium); bloom wrapper now
+> self-clips (`borderRadius:inherit` + overflow hidden) + card `isolate`. (4) Faint bloom on /accuracy rows
+> (`BloomCard` wrapper, CardFog `intensity` prop, 0.3). (5) /learn hover text contrast (muted→ink on
+> group-hover). (6) TyreSpinner centering (roll-in span was inline → baseline offset; now inline-flex).
+> (7) **Nav-Ask reset** (same-route Links no-op; ASK_RESET_EVENT from nav → page listener). (8) Sentence
+> splitter broke on decimals ("spans 7.004 km" → two paragraphs); now splits only at terminator +
+> whitespace + capital (`splitSentences`, tested).
+>
+> ## 2026-07-19 session — LANDING PAGE built (PR #37 OPEN — see 🔴 top block)
+> Full detail in the top block. Subagent-driven, 5 tasks; whole-branch review dispatch died at the
+> session limit mid-run → controller ran the invariant checklist inline (all pass) — but the
+> client-module-value crash slipped through and was caught by the owner on preview + root-caused via
+> local next-start repro (see the lesson in the top block).
 >
 > ## 2026-07-18 session — DITHER ART SWAP: lab (PR #34) + site-wide swap (PR #35) — LIVE, 3 eyeball fixes deferred
 > Owner found paper-design's Dithering shader and wanted to test-then-swap the homegrown ASCII art.
