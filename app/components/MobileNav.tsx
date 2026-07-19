@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { NAV_LINKS, isActiveLink, emitAskResetIfHome } from "@/app/components/SiteNav";
+import { NAV_LINKS, isActiveLink, emitAskResetIfOnAsk } from "@/app/components/SiteNav";
 
 gsap.registerPlugin(useGSAP);
 
@@ -207,7 +207,7 @@ export function MobileNav() {
                     href={href}
                     aria-current={active ? "page" : undefined}
                     onClick={() => {
-                      emitAskResetIfHome(pathname, href);
+                      emitAskResetIfOnAsk(pathname, href);
                       setOpen(false);
                     }}
                     className={`mnav-link relative cta-grow font-pixel text-4xl leading-none tracking-wide focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${

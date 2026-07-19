@@ -11,7 +11,7 @@ export const NAV_H = 68; // px (h-[68px]) — the layout pads the body by this s
 
 // One source of truth for the link list — consumed by the desktop row AND the mobile overlay.
 export const NAV_LINKS: { href: string; label: string }[] = [
-  { href: "/", label: "Ask" },
+  { href: "/ask", label: "Ask" },
   { href: "/learn", label: "Learn" },
   { href: "/accuracy", label: "Accuracy" },
   { href: "/weekend", label: "Upcoming weekend" },
@@ -22,11 +22,11 @@ export function isActiveLink(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-// Clicking "Ask" while already on / must reset the page (same-route Links no-op in the
-// router, so the answer state would otherwise persist). The page listens for this event.
+// Clicking "Ask" while already on /ask must reset the page (same-route Links no-op in
+// the router, so the answer state would otherwise persist). The page listens for this event.
 export const ASK_RESET_EVENT = "sector4:ask-reset";
-export function emitAskResetIfHome(pathname: string, href: string) {
-  if (href === "/" && pathname === "/") window.dispatchEvent(new Event(ASK_RESET_EVENT));
+export function emitAskResetIfOnAsk(pathname: string, href: string) {
+  if (href === "/ask" && pathname === "/ask") window.dispatchEvent(new Event(ASK_RESET_EVENT));
 }
 
 const linkClass =
@@ -56,7 +56,7 @@ export function SiteNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              onClick={() => emitAskResetIfHome(pathname, href)}
+              onClick={() => emitAskResetIfOnAsk(pathname, href)}
               className={`${linkClass} ${active ? "text-accent" : inactive}`}
             >
               {label}
