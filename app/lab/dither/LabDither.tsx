@@ -13,7 +13,8 @@ import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
-import { DriverGlyph } from "@/app/components/DriverGlyph";
+import { resolveGlyph } from "@/app/lib/glyph";
+import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { emblemSvgMarkup } from "@/app/lib/emblems";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
@@ -70,6 +71,108 @@ const GLYPHS: { code: string; team: string }[] = [
 const svgDataUri = (markup: string) =>
   `data:image/svg+xml;charset=utf-8,${encodeURIComponent(markup)}`;
 
+/** Darken a #rrggbb hex by `f` (0..1). Used for the second dither tone of the SAME hue so
+ *  the fill has NO white gaps: colorFront = team colour, colorBack = its darker shade. */
+function shade(hex: string, f: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = (v: number) => Math.round(v * (1 - f));
+  const r = ch((n >> 16) & 255), g = ch((n >> 8) & 255), b = ch(n & 255);
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+/** Gapless dithered silhouette: a plain 2-tone Dithering field (team colour + its darker
+ *  shade -- no white in the pattern) clipped to the shape via a CSS alpha mask of the same
+ *  SVG the site renders. Fully filled, crisp edges, texture inside. */
+function MaskedDither({
+  maskMarkup,
+  color,
+  width,
+  height,
+  speedFactor,
+}: {
+  maskMarkup: string;
+  color: string;
+  width: number;
+  height: number;
+  speedFactor: number;
+}) {
+  const mask = `url("${svgDataUri(maskMarkup)}")`;
+  return (
+    <div
+      className="relative"
+      style={{
+        width,
+        height,
+        maskImage: mask,
+        WebkitMaskImage: mask,
+        maskSize: "contain",
+        WebkitMaskSize: "contain",
+        maskRepeat: "no-repeat",
+        WebkitMaskRepeat: "no-repeat",
+        maskPosition: "center",
+        WebkitMaskPosition: "center",
+      }}
+    >
+      <Dithering
+        colorBack={shade(color, 0.35)}
+        colorFront={color}
+        shape="simplex"
+        type="4x4"
+        size={2}
+        speed={0.25 * speedFactor}
+        scale={0.7}
+        className="absolute inset-0 h-full w-full"
+      />
+    </div>
+  );
+}
+
+/** Helmet with the gapless dither fill + the crisp numeral overlay AsciiGlyph uses. */
+function DitherHelmet({
+  code,
+  team,
+  size,
+  speedFactor,
+}: {
+  code: string;
+  team: string | null;
+  size: number;
+  speedFactor: number;
+}) {
+  const g = resolveGlyph(code, team);
+  const heightPx = size * (HELMET_VIEWBOX.h / HELMET_VIEWBOX.w);
+  return (
+    <div className="relative" style={{ width: size, height: heightPx }}>
+      <InView className="absolute inset-0">
+        <MaskedDither
+          maskMarkup={helmetSvgMarkup(g, false)}
+          color={g.helmetFill}
+          width={size}
+          height={heightPx}
+          speedFactor={speedFactor}
+        />
+      </InView>
+      {g.number !== null && (
+        <span
+          className="pointer-events-none absolute select-none"
+          style={{
+            left: NUMBER_POS.x * size,
+            top: NUMBER_POS.y * heightPx,
+            transform: "translate(-50%, -50%)",
+            color: g.numberColor,
+            fontFamily: "Arial, Helvetica, sans-serif",
+            fontWeight: 800,
+            fontSize: Math.round(NUMBER_POS.size * heightPx),
+            lineHeight: 1,
+          }}
+        >
+          {g.number}
+        </span>
+      )}
+    </div>
+  );
+}
+
 
 /** Mounts children only while near the viewport, releasing WebGL contexts offscreen.
  *  (~30 always-mounted shader canvases exceeded the browser context cap — the oldest were
@@ -107,15 +210,7 @@ function useReducedMotion(): boolean {
 }
 
 /** White-backed Dithering layers, multiply-stacked so the palette accumulates over white. */
-function DitherLayers({
-  layers,
-  speedFactor,
-  offset,
-}: {
-  layers: Partial<DitheringProps>[];
-  speedFactor: number;
-  offset?: { x: number; y: number };
-}) {
+function DitherLayers({ layers, speedFactor }: { layers: Partial<DitheringProps>[]; speedFactor: number }) {
   return (
     <>
       {layers.map((l, i) => (
@@ -123,8 +218,6 @@ function DitherLayers({
           key={i}
           {...l}
           speed={(l.speed ?? 0.5) * speedFactor}
-          offsetX={(l.offsetX ?? 0) + (offset?.x ?? 0) * (i + 1) * 0.5}
-          offsetY={(l.offsetY ?? 0) + (offset?.y ?? 0) * (i + 1) * 0.5}
           className="absolute inset-0 h-full w-full"
           style={{ mixBlendMode: "multiply" }}
         />
@@ -133,8 +226,9 @@ function DitherLayers({
   );
 }
 
-/** Hero panel: pointer-reactive like AsciiFog — the pattern drifts toward the cursor and the
- *  motion speeds up on hover. Reduced motion disables both. */
+/** Hero panel: the base warp stays put; an extra dither layer, masked to a soft radial
+ *  BLOB, trails the cursor (rAF-lerped, like AsciiFog's cursor brighten). The blob has no
+ *  fixed shape: the mask is soft and the pattern inside it is animating warp. */
 function DitherHeroPanel({
   variant,
   speedFactor,
@@ -143,36 +237,77 @@ function DitherHeroPanel({
   speedFactor: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [hover, setHover] = useState(false);
+  const blobRef = useRef<HTMLDivElement>(null);
+  const target = useRef({ x: -9999, y: -9999, active: false });
+  const posRef = useRef({ x: -9999, y: -9999 });
   const interactive = speedFactor > 0;
+
+  useEffect(() => {
+    if (!interactive) return;
+    let raf = 0;
+    const tick = () => {
+      const t = target.current;
+      const p = posRef.current;
+      // Snap to the first entry point instead of lerping across the panel.
+      if (p.x < -1000 && t.active) {
+        p.x = t.x;
+        p.y = t.y;
+      }
+      p.x += (t.x - p.x) * 0.12;
+      p.y += (t.y - p.y) * 0.12;
+      const el = blobRef.current;
+      if (el) {
+        el.style.opacity = t.active ? "1" : "0";
+        el.style.setProperty("--mx", `${p.x}px`);
+        el.style.setProperty("--my", `${p.y}px`);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [interactive]);
 
   const onMove = (e: React.MouseEvent) => {
     if (!interactive || !ref.current) return;
     const r = ref.current.getBoundingClientRect();
-    setOffset({
-      x: ((e.clientX - r.left) / r.width - 0.5) * 0.25,
-      y: ((e.clientY - r.top) / r.height - 0.5) * 0.25,
-    });
+    target.current = { x: e.clientX - r.left, y: e.clientY - r.top, active: true };
   };
 
   return (
     <div
       ref={ref}
       onMouseMove={onMove}
-      onMouseEnter={() => interactive && setHover(true)}
       onMouseLeave={() => {
-        setHover(false);
-        setOffset({ x: 0, y: 0 });
+        target.current = { ...target.current, active: false };
       }}
       className="relative h-72 overflow-hidden rounded-2xl border border-ink/10 bg-white"
     >
       <InView className="absolute inset-0">
-        <DitherLayers
-          layers={variant.layers}
-          speedFactor={speedFactor * (hover ? 1.6 : 1)}
-          offset={offset}
-        />
+        <DitherLayers layers={variant.layers} speedFactor={speedFactor} />
+        {interactive && (
+          <div
+            ref={blobRef}
+            className="absolute inset-0 opacity-0 transition-opacity duration-300"
+            style={{
+              maskImage:
+                "radial-gradient(circle 130px at var(--mx, -9999px) var(--my, -9999px), black 0%, black 30%, transparent 75%)",
+              WebkitMaskImage:
+                "radial-gradient(circle 130px at var(--mx, -9999px) var(--my, -9999px), black 0%, black 30%, transparent 75%)",
+            }}
+          >
+            <Dithering
+              colorBack={WHITE}
+              colorFront={ACCENT}
+              shape="warp"
+              type="4x4"
+              size={2}
+              speed={0.9 * speedFactor}
+              scale={0.5}
+              className="absolute inset-0 h-full w-full"
+              style={{ mixBlendMode: "multiply" }}
+            />
+          </div>
+        )}
       </InView>
       <HeroContent />
       <PanelLabel>{variant.label}</PanelLabel>
@@ -275,7 +410,7 @@ export function LabDither() {
 
       <Section
         title="A · Hero swap"
-        note="Control is the current AsciiFog (cursor brightens the field). Candidates are warp in the same palette-on-white treatment; the pattern drifts toward your cursor and speeds up on hover."
+        note="Control is the current AsciiFog (cursor brightens the field). Candidates are warp in the palette-on-white treatment with a soft dither BLOB trailing the cursor."
       >
         <div className="space-y-6">
           <div className="relative h-72 overflow-hidden rounded-2xl border border-ink/10">
@@ -291,7 +426,7 @@ export function LabDither() {
 
       <Section
         title="B · Dither-composed identity"
-        note="Owner call: no dither texture on identity. Candidate is the solid vector helmet (team fills + crisp numeral) next to the current ASCII composition, so the pairing with a dithered hero can be judged."
+        note="Gapless dither: the fill is two tones of the SAME team colour (no white in the pattern), clipped to the helmet silhouette, numeral crisp. Legible at a glance, textured up close."
       >
         <div className="space-y-8">
           <div className="grid gap-6 sm:grid-cols-2">
@@ -307,11 +442,11 @@ export function LabDither() {
               </div>
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
-              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · solid vector (no dither)</div>
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · gapless two-tone dither</div>
               <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
                 {GLYPHS.map((g) => (
                   <div key={g.code} className="flex flex-col items-center gap-1.5">
-                    <DriverGlyph code={g.code} team={g.team} size={88} />
+                    <DitherHelmet code={g.code} team={g.team} size={88} speedFactor={speedFactor} />
                     <span className="font-grotesk text-sm font-bold tracking-wide text-ink">{g.code}</span>
                   </div>
                 ))}
@@ -324,9 +459,8 @@ export function LabDither() {
               <AsciiEmblem kind="tyre" size={96} cols={26} />
             </div>
             <div className="rounded-2xl border border-ink/10 p-6">
-              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · solid vector (no dither)</div>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={svgDataUri(emblemSvgMarkup("tyre", BLUE))} alt="tyre emblem, solid vector" width={96} height={96} />
+              <div className="mb-4 font-grotesk text-[10px] uppercase tracking-wide text-muted">candidate · gapless two-tone dither</div>
+              <MaskedDither maskMarkup={emblemSvgMarkup("tyre", BLUE)} color={BLUE} width={96} height={96} speedFactor={speedFactor} />
             </div>
           </div>
         </div>
