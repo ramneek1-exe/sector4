@@ -9,6 +9,8 @@ import schedule from "@/app/data/weekend-schedule.json";
 import { DitherVideo } from "@/app/components/DitherVideo";
 import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
+import { SectionReveal } from "@/app/components/SectionReveal";
+import { SectorDivider } from "@/app/components/SectorDivider";
 import { NAV_H, NAV_LINKS } from "@/app/lib/nav";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
@@ -60,11 +62,28 @@ export default async function LandingPage() {
     <>
       <Hero />
       <AskAnything />
-      <HonestByDesign liveScored={liveScored} />
+      <SectorDivider />
       <LearnTheSport />
+      <SectorDivider />
       <ThisWeekend />
+      <SectorDivider />
+      <HonestByDesign liveScored={liveScored} />
       <LandingFooter />
     </>
+  );
+}
+
+/** Oversized faded timing-sheet numeral ("S1".."S4"). Decorative; alternates side per
+ *  section via the caller's positioning classes. */
+function SectorNumeral({ n, className = "" }: { n: number; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      data-reveal
+      className={`pointer-events-none select-none font-grotesk text-[7rem] font-bold leading-none tracking-tight text-ink/[0.06] sm:text-[10rem] ${className}`}
+    >
+      S{n}
+    </span>
   );
 }
 
@@ -134,77 +153,64 @@ function Hero() {
 
 function AskAnything() {
   return (
-    <section className="mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
-      <p className={SECTION_LABEL}>Ask anything</p>
-      <h2 className={SECTION_HEADING}>Type a question. Get a straight answer.</h2>
-      <p className={SECTION_BODY}>
-        Podium odds, pit stops, tyre wear, the basics. Ask in plain English and get a grounded
-        explanation, not a guess dressed up as certainty.
-      </p>
-      <div className="mt-8 flex flex-wrap gap-3">
-        {EXAMPLE_QUERIES.map((q) => (
-          <Link
-            key={q}
-            href={`/ask?q=${encodeURIComponent(q)}`}
-            className="rounded-2xl border border-ink/10 bg-white/90 px-4 py-2.5 font-grotesk text-sm text-ink/80 shadow-sm transition hover:border-accent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
-          >
-            {q}
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/** The calibration pitch. `liveScored` is the count of non-reconstructed (actually-live)
- *  scored races from the season index; the line only renders when that fetch succeeded
- *  and found at least one, so a Blob outage or an empty season just drops the line rather
- *  than showing a false zero. */
-function HonestByDesign({ liveScored }: { liveScored: number }) {
-  return (
-    <section className="border-t border-ink/10 bg-ink/[0.02]">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
-        <AsciiEmblem kind="flag" size={64} className="shrink-0" />
-        <div>
-          <p className={SECTION_LABEL}>Honest by design</p>
-          <h2 className={SECTION_HEADING}>We show bands, not fake precision.</h2>
-          <p className={SECTION_BODY}>
-            Early season, podium odds are qualitative: a shot, an outside shot, unlikely. No
-            invented percentages. Every call we make gets scored against the real finish, and
-            we publish the record, good or bad.
-          </p>
-          {liveScored > 0 && (
-            <p className="mt-3 font-grotesk text-sm text-muted">
-              {liveScored} {liveScored === 1 ? "race" : "races"} scored live so far.
-            </p>
-          )}
-          <Link href="/accuracy" className={SECTION_LINK}>
-            See the record →
-          </Link>
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal>
+        <div className="absolute -top-6 right-0 sm:-top-10">
+          <SectorNumeral n={1} />
         </div>
-      </div>
+        <p data-reveal className={SECTION_LABEL}>
+          Sector 1 · Ask anything
+        </p>
+        <h2 data-reveal className={SECTION_HEADING}>
+          Formula 1, minus the false confidence.
+        </h2>
+        <p data-reveal className={SECTION_BODY}>
+          Podium odds, pit stops, tyre wear, the basics. Ask in plain English and get a
+          straight answer that says what the data shows, and what it can&apos;t.
+        </p>
+        <div data-reveal className="mt-8 flex flex-wrap gap-3">
+          {EXAMPLE_QUERIES.map((q) => (
+            <Link
+              key={q}
+              href={`/ask?q=${encodeURIComponent(q)}`}
+              className="rounded-2xl border border-ink/10 bg-white/90 px-4 py-2.5 font-grotesk text-sm text-ink/80 shadow-sm transition hover:border-accent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            >
+              {q}
+            </Link>
+          ))}
+        </div>
+      </SectionReveal>
     </section>
   );
 }
 
 function LearnTheSport() {
   return (
-    <section className="mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-        <AsciiEmblem kind="tyre" size={64} className="shrink-0" />
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div className="absolute -top-6 left-0 sm:-top-10">
+          <SectorNumeral n={2} />
+        </div>
+        <div data-reveal>
+          <AsciiEmblem kind="tyre" size={64} className="shrink-0" />
+        </div>
         <div>
-          <p className={SECTION_LABEL}>Learn the sport</p>
-          <h2 className={SECTION_HEADING}>Every answer teaches something.</h2>
-          <p className={SECTION_BODY}>
-            Predictions link straight to the concepts behind them: what tyre degradation is,
-            why undercuts work, what a stop-count call actually means. No jargon left
-            unexplained.
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 2 · Learn the sport
           </p>
-          <Link href="/learn" className={SECTION_LINK}>
+          <h2 data-reveal className={SECTION_HEADING}>
+            Every answer teaches you something.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Predictions link straight to the concepts behind them: what tyre degradation
+            is, why undercuts work, what a stop-count call actually means. Follow a
+            thread and the sport starts making sense.
+          </p>
+          <Link data-reveal href="/learn" className={SECTION_LINK}>
             Start learning →
           </Link>
         </div>
-      </div>
+      </SectionReveal>
     </section>
   );
 }
@@ -212,20 +218,66 @@ function LearnTheSport() {
 function ThisWeekend() {
   const dateLabel = formatRaceDate(schedule.final);
   return (
-    <section className="border-t border-ink/10 bg-ink/[0.02]">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
-        <AsciiEmblem kind="car" size={64} className="shrink-0" />
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div className="absolute -top-6 right-0 sm:-top-10">
+          <SectorNumeral n={3} />
+        </div>
+        <div data-reveal>
+          <AsciiEmblem kind="car" size={64} className="shrink-0" />
+        </div>
         <div>
-          <p className={SECTION_LABEL}>This weekend</p>
-          <h2 className={SECTION_HEADING}>{gpLabel(schedule.gp)} Grand Prix</h2>
-          <p className={SECTION_BODY}>
-            Race day is {dateLabel}. Predictions go up Friday and sharpen through qualifying.
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 3 · This weekend
           </p>
-          <Link href="/weekend" className={SECTION_LINK}>
+          <h2 data-reveal className={SECTION_HEADING}>
+            {gpLabel(schedule.gp)} Grand Prix
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Race day is {dateLabel}. Calls go up Friday and sharpen through qualifying,
+            and we say so while the picture is still fuzzy.
+          </p>
+          <Link data-reveal href="/weekend" className={SECTION_LINK}>
             See this weekend →
           </Link>
         </div>
-      </div>
+      </SectionReveal>
+    </section>
+  );
+}
+
+function HonestByDesign({ liveScored }: { liveScored: number }) {
+  return (
+    <section className="relative bg-ink/[0.02]">
+      <SectionReveal className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
+        <div className="absolute -top-6 left-0 sm:-top-10">
+          <SectorNumeral n={4} />
+        </div>
+        <div data-reveal>
+          <AsciiEmblem kind="flag" size={64} className="shrink-0" />
+        </div>
+        <div>
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 4 · Honest by design
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            The fourth sector is the truth.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            We show bands, not fake precision. Early season, podium odds are qualitative:
+            a shot, an outside shot, unlikely. Every call gets scored against the real
+            finish, and the record is public, good or bad.
+          </p>
+          {liveScored > 0 && (
+            <p data-reveal className="mt-3 font-grotesk text-sm text-muted">
+              {liveScored} {liveScored === 1 ? "race" : "races"} scored live so far.
+            </p>
+          )}
+          <Link data-reveal href="/accuracy" className={SECTION_LINK}>
+            See the record →
+          </Link>
+        </div>
+      </SectionReveal>
     </section>
   );
 }
