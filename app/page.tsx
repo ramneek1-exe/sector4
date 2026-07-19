@@ -68,9 +68,10 @@ export default async function LandingPage() {
   );
 }
 
-/** Full-viewport dramatic open: dithered video (falls back to the ambient fog warp until
- *  the owner drops in licensed b-roll), wordmark + thesis + CTA in one soft halo, a
- *  breathing scroll cue below. Everything here is a one-shot .fog-in entrance, staggered. */
+/** Type-led dramatic open: the thesis IS the hero (no wordmark; the nav carries the
+ *  brand). Dithered b-roll runs full-bleed behind it in the light site recipe; DitherFog
+ *  remains the no-src/error fallback. `data-hero` attributes are the stable hooks the
+ *  future preloader/reveal pass will target; keep them on these four layers. */
 function Hero() {
   return (
     <section
@@ -78,28 +79,29 @@ function Hero() {
       style={{ minHeight: `calc(100vh - ${NAV_H}px)` }}
     >
       <DitherVideo
+        data-hero="video"
         src="/hero.mp4"
-        colorBack="#251F44"
-        colorFront="#BEE2F0"
+        colorBack="#fafafa"
+        colorFront="#406cd6"
         cols={240}
         className="absolute inset-0 h-full w-full"
       >
         <DitherFog className="h-full w-full" />
       </DitherVideo>
 
-      <div className="legible relative z-10 flex flex-col items-center gap-6 px-10 py-14 text-center sm:px-16 sm:py-20">
-        <h1 className="fog-in font-bebas text-7xl leading-none tracking-wide text-ink sm:text-8xl md:text-9xl">
-          SECTOR4
+      <div
+        data-hero="thesis"
+        className="legible relative z-10 flex flex-col items-center gap-7 px-10 py-14 text-center sm:px-16 sm:py-20"
+      >
+        <h1 className="fog-in max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
+          A lap has three sectors.
+          <br />
+          This is the one where you find out why.
         </h1>
-        <p
-          style={{ animationDelay: "0.12s" }}
-          className="fog-in max-w-xl font-lastik text-xl leading-relaxed text-ink/90 sm:text-2xl"
-        >
-          An F1 companion that tells you the truth about what it knows.
-        </p>
         <Link
+          data-hero="cta"
           href="/ask"
-          style={{ animationDelay: "0.24s" }}
+          style={{ animationDelay: "0.18s" }}
           className="fog-in mt-2 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 font-grotesk text-lg font-medium text-white shadow-sm transition duration-200 hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
           Ask your first question
@@ -107,8 +109,9 @@ function Hero() {
       </div>
 
       <div
+        data-hero="cue"
         aria-hidden
-        style={{ animationDelay: "0.4s" }}
+        style={{ animationDelay: "0.36s" }}
         className="fog-in legible absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full p-3"
       >
         <svg

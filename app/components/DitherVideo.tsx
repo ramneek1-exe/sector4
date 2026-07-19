@@ -37,6 +37,7 @@ interface DitherVideoProps {
   matrix?: Matrix;
   className?: string;
   children?: React.ReactNode;
+  "data-hero"?: string;
 }
 
 function useReducedMotion(): boolean {
@@ -90,6 +91,7 @@ export function DitherVideo({
   matrix = "4x4",
   className = "",
   children,
+  "data-hero": dataHero,
 }: DitherVideoProps) {
   const reduced = useReducedMotion();
   const [failed, setFailed] = useState(false);
@@ -278,7 +280,12 @@ export function DitherVideo({
   const showFallback = !src || failed;
 
   return (
-    <div ref={rootRef} aria-hidden="true" className={`relative overflow-hidden ${className}`}>
+    <div
+      ref={rootRef}
+      aria-hidden="true"
+      data-hero={dataHero}
+      className={`relative overflow-hidden ${className}`}
+    >
       {src ? (
         <video
           ref={videoRef}
