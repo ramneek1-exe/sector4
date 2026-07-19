@@ -8,14 +8,16 @@
 // noise) with the crisp numeral overlaid exactly like AsciiGlyph does. Reduced motion ->
 // static frame, no pointer reactivity.
 import { useEffect, useRef, useState } from "react";
-import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
+import { Dithering, ImageDithering, type DitheringProps } from "@paper-design/shaders-react";
 import { AsciiFog } from "@/app/components/AsciiFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { CardFog } from "@/app/components/CardFog";
+import { DitherVideo } from "@/app/components/DitherVideo";
 import { resolveGlyph } from "@/app/lib/glyph";
 import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { emblemSvgMarkup } from "@/app/lib/emblems";
+import { bayerLuminancePasses } from "@/app/lib/bayer";
 
 // Brand palette (coolors bee2f0-459ae4-2f2e89-addcef-406cd6-251f44).
 const INK = "#251f44";
@@ -374,6 +376,122 @@ function PanelLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+// E. Video hero: three lab-styled palette options against the real DitherVideo component.
+const VIDEO_PALETTES: { label: string; front: string; back: string }[] = [
+  { label: "ink on white", front: INK, back: WHITE },
+  { label: "blue on white", front: BLUE, back: WHITE },
+  { label: "white on ink", front: WHITE, back: INK },
+];
+const HERO_COLS_OPTIONS = [160, 240, 320] as const;
+const HERO_MATRIX_OPTIONS = ["4x4", "8x8"] as const;
+// Both parity panels render at this fixed CSS width so paper's `size` (px per dither cell)
+// and our `cols` (cell count across the width) can be put on equal footing: size = width / cols.
+const PARITY_WIDTH = 320;
+
+function ToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 font-grotesk text-xs transition-colors ${
+        active ? "border-accent bg-accent text-white" : "border-ink/15 bg-white text-ink hover:border-ink/30"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+let parityCanvas: HTMLCanvasElement | null = null;
+
+/** Resolve any CSS colour string to packed RGBA bytes via a cached 1x1 canvas readback
+ *  (same technique DitherVideo uses internally, duplicated here since it isn't exported). */
+function colorToRgba(color: string): [number, number, number, number] {
+  if (!parityCanvas) {
+    parityCanvas = document.createElement("canvas");
+    parityCanvas.width = 1;
+    parityCanvas.height = 1;
+  }
+  const ctx = parityCanvas.getContext("2d");
+  if (!ctx) return [0, 0, 0, 255];
+  ctx.clearRect(0, 0, 1, 1);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+  return [r, g, b, a];
+}
+
+/** Our own dither path applied to a still captured frame (not a live video): draws the
+ *  frame into a cols x rows offscreen sample, runs it through the shared
+ *  bayerLuminancePasses, and paints the result in one putImageData - mirroring
+ *  DitherVideo's per-frame approach exactly, just once instead of on a rAF loop. This is
+ *  the "ours" half of the parity proof against paper's ImageDithering shader. */
+function DitherFrame({
+  image,
+  cols,
+  matrix,
+  front,
+  back,
+}: {
+  image: string;
+  cols: number;
+  matrix: "4x4" | "8x8";
+  front: string;
+  back: string;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (cancelled) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rows = Math.max(1, Math.round(cols * (img.naturalHeight / img.naturalWidth)));
+
+      const sample = document.createElement("canvas");
+      sample.width = cols;
+      sample.height = rows;
+      const sctx = sample.getContext("2d", { willReadFrequently: true });
+      const ctx = canvas.getContext("2d");
+      if (!sctx || !ctx) return;
+      sctx.drawImage(img, 0, 0, cols, rows);
+      const data = sctx.getImageData(0, 0, cols, rows).data;
+      const passes = bayerLuminancePasses(data, cols, rows, matrix);
+
+      canvas.width = cols;
+      canvas.height = rows;
+      const front4 = colorToRgba(front);
+      const back4 = colorToRgba(back);
+      const out = new Uint8ClampedArray(cols * rows * 4);
+      for (let i = 0; i < passes.length; i++) {
+        const o = i * 4;
+        const [r, g, b, a] = passes[i] ? front4 : back4;
+        out[o] = r;
+        out[o + 1] = g;
+        out[o + 2] = b;
+        out[o + 3] = a;
+      }
+      ctx.putImageData(new ImageData(out, cols, rows), 0, 0);
+    };
+    img.src = image;
+    return () => {
+      cancelled = true;
+    };
+  }, [image, cols, matrix, front, back]);
+
+  return <canvas ref={canvasRef} className="h-full w-full" style={{ imageRendering: "pixelated" }} />;
+}
+
 function Section({ title, note, children }: { title: string; note: string; children: React.ReactNode }) {
   return (
     <section className="mt-14">
@@ -387,6 +505,51 @@ function Section({ title, note, children }: { title: string; note: string; child
 export function LabDither() {
   const reduced = useReducedMotion();
   const speedFactor = reduced ? 0 : 1;
+
+  // E. Video hero state: the file picker is the only input, nothing gets committed.
+  const [heroSrc, setHeroSrc] = useState<string | undefined>(undefined);
+  const [heroPaletteIdx, setHeroPaletteIdx] = useState(0);
+  const [heroCols, setHeroCols] = useState<(typeof HERO_COLS_OPTIONS)[number]>(240);
+  const [heroMatrix, setHeroMatrix] = useState<(typeof HERO_MATRIX_OPTIONS)[number]>("4x4");
+  const [heroCapture, setHeroCapture] = useState<{ uri: string; width: number; height: number } | null>(null);
+  const heroObjectUrlRef = useRef<string | null>(null);
+  // A second, independent <video> (DitherVideo hides its own internally, with no ref
+  // escape hatch) purely so "Capture frame" has a real HTMLVideoElement to draw from.
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Revoke the previous object URL on unmount (change is handled inline in onHeroFile,
+  // since it needs the OLD value before setHeroSrc overwrites it).
+  useEffect(() => {
+    return () => {
+      if (heroObjectUrlRef.current) URL.revokeObjectURL(heroObjectUrlRef.current);
+    };
+  }, []);
+
+  const onHeroFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (heroObjectUrlRef.current) URL.revokeObjectURL(heroObjectUrlRef.current);
+    const url = URL.createObjectURL(file);
+    heroObjectUrlRef.current = url;
+    setHeroSrc(url);
+    setHeroCapture(null);
+  };
+
+  const onCaptureFrame = () => {
+    const video = heroVideoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) return;
+    const width = 480;
+    const height = Math.max(1, Math.round(width * (video.videoHeight / video.videoWidth)));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, width, height);
+    setHeroCapture({ uri: canvas.toDataURL("image/png"), width, height });
+  };
+
+  const heroPalette = VIDEO_PALETTES[heroPaletteIdx];
 
   return (
     <main className="mx-auto max-w-5xl px-5 pb-24 pt-10 sm:px-8">
@@ -488,6 +651,151 @@ export function LabDither() {
                 </PanelLabel>
               </div>
             )),
+          )}
+        </div>
+      </Section>
+
+      <Section
+        title="E · Video hero"
+        note="Validate the look and the dither parity BEFORE buying the b-roll. Pick any local clip - nothing here gets committed, the file picker is the only input."
+      >
+        <div className="space-y-6">
+          <label className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-full border border-ink/15 bg-white px-4 py-2 font-grotesk text-xs text-ink hover:border-ink/30">
+            <input type="file" accept="video/*" onChange={onHeroFile} className="hidden" />
+            Choose a video file
+          </label>
+
+          {heroSrc ? (
+            <>
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-grotesk text-[10px] uppercase tracking-wide text-muted">palette</span>
+                  {VIDEO_PALETTES.map((p, i) => (
+                    <ToggleButton key={p.label} active={i === heroPaletteIdx} onClick={() => setHeroPaletteIdx(i)}>
+                      {p.label}
+                    </ToggleButton>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-grotesk text-[10px] uppercase tracking-wide text-muted">cols</span>
+                  {HERO_COLS_OPTIONS.map((c) => (
+                    <ToggleButton key={c} active={c === heroCols} onClick={() => setHeroCols(c)}>
+                      {c}
+                    </ToggleButton>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-grotesk text-[10px] uppercase tracking-wide text-muted">matrix</span>
+                  {HERO_MATRIX_OPTIONS.map((m) => (
+                    <ToggleButton key={m} active={m === heroMatrix} onClick={() => setHeroMatrix(m)}>
+                      {m}
+                    </ToggleButton>
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative h-[70vh] w-full overflow-hidden rounded-2xl border border-ink/10 bg-ink">
+                <InView className="absolute inset-0">
+                  <DitherVideo
+                    src={heroSrc}
+                    colorBack={heroPalette.back}
+                    colorFront={heroPalette.front}
+                    cols={heroCols}
+                    matrix={heroMatrix}
+                    className="absolute inset-0 h-full w-full"
+                  />
+                </InView>
+                {/* Off-screen, independent of DitherVideo's own hidden video - exists only
+                    so "Capture frame" below has an HTMLVideoElement to draw from. */}
+                <video
+                  ref={heroVideoRef}
+                  src={heroSrc}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                  aria-hidden
+                  className="pointer-events-none absolute left-0 top-0 h-px w-px overflow-hidden opacity-0"
+                />
+                <div className="absolute inset-0 z-10 flex items-center justify-center px-6">
+                  <div className="legible flex flex-col items-center gap-5 rounded-[2rem] px-10 py-10 text-center">
+                    <h1 className="font-bebas text-7xl tracking-wide text-ink">SECTOR4</h1>
+                    <p className="max-w-md font-lastik text-lg text-ink">
+                      An F1 companion that tells you the truth about what it knows.
+                    </p>
+                    <button
+                      type="button"
+                      className="rounded-full bg-accent px-6 py-3 font-grotesk text-sm font-semibold text-white"
+                    >
+                      Ask your first question
+                    </button>
+                  </div>
+                </div>
+                <PanelLabel>
+                  {heroPalette.label} · cols {heroCols} · {heroMatrix}
+                </PanelLabel>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onCaptureFrame}
+                  className="rounded-full border border-ink/15 bg-white px-4 py-2 font-grotesk text-xs text-ink hover:border-ink/30"
+                >
+                  Capture frame
+                </button>
+                <span className="font-grotesk text-xs text-muted">
+                  grabs the current frame (~480px wide) for the parity check below
+                </span>
+              </div>
+
+              {heroCapture && (
+                <InView>
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <div>
+                      <div className="mb-2 font-grotesk text-[10px] uppercase tracking-wide text-muted">
+                        paper · ImageDithering (real shader)
+                      </div>
+                      <div
+                        className="overflow-hidden rounded-xl border border-ink/10"
+                        style={{ width: PARITY_WIDTH, aspectRatio: `${heroCapture.width} / ${heroCapture.height}` }}
+                      >
+                        <ImageDithering
+                          image={heroCapture.uri}
+                          colorBack={heroPalette.back}
+                          colorFront={heroPalette.front}
+                          colorHighlight={heroPalette.front}
+                          type={heroMatrix}
+                          size={PARITY_WIDTH / heroCols}
+                          colorSteps={2}
+                          speed={0}
+                          className="h-full w-full"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="mb-2 font-grotesk text-[10px] uppercase tracking-wide text-muted">
+                        ours · bayerLuminancePasses (same cols)
+                      </div>
+                      <div
+                        className="overflow-hidden rounded-xl border border-ink/10"
+                        style={{ width: PARITY_WIDTH, aspectRatio: `${heroCapture.width} / ${heroCapture.height}` }}
+                      >
+                        <DitherFrame
+                          image={heroCapture.uri}
+                          cols={heroCols}
+                          matrix={heroMatrix}
+                          front={heroPalette.front}
+                          back={heroPalette.back}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </InView>
+              )}
+            </>
+          ) : (
+            <p className="font-lastik text-sm text-muted">Pick a clip above to preview the hero.</p>
           )}
         </div>
       </Section>
