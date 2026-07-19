@@ -47,9 +47,21 @@ function useReducedMotion(): boolean {
  */
 export function CardFog({ active }: { active: boolean }) {
   const [mounted, setMounted] = useState(active);
+  // `shown` starts false so the browser paints an opacity-0 frame before the flip — without
+  // it the wrapper mounts already at opacity 1 and the fade-IN never runs (pops in).
+  const [shown, setShown] = useState(false);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reduced = useReducedMotion();
   const speedFactor = reduced ? 0 : 1;
+
+  useEffect(() => {
+    if (!mounted) {
+      setShown(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(raf);
+  }, [mounted]);
 
   useEffect(() => {
     if (active) {
@@ -73,7 +85,7 @@ export function CardFog({ active }: { active: boolean }) {
       aria-hidden
       className="pointer-events-none absolute inset-0 h-full w-full opacity-0 transition-opacity"
       style={{
-        opacity: active ? 1 : 0,
+        opacity: active && shown ? 1 : 0,
         transitionDuration: `${FADE_MS}ms`,
         mixBlendMode: "multiply",
         maskImage: CARD_MASK,
