@@ -22,6 +22,13 @@ export function isActiveLink(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
+// Clicking "Ask" while already on / must reset the page (same-route Links no-op in the
+// router, so the answer state would otherwise persist). The page listens for this event.
+export const ASK_RESET_EVENT = "sector4:ask-reset";
+export function emitAskResetIfHome(pathname: string, href: string) {
+  if (href === "/" && pathname === "/") window.dispatchEvent(new Event(ASK_RESET_EVENT));
+}
+
 const linkClass =
   "relative cta-grow font-pixel text-2xl leading-none tracking-wide transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60";
 
@@ -49,6 +56,7 @@ export function SiteNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
+              onClick={() => emitAskResetIfHome(pathname, href)}
               className={`${linkClass} ${active ? "text-accent" : inactive}`}
             >
               {label}
