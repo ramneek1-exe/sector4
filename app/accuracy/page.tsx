@@ -8,6 +8,7 @@ import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey, snapshotKey, type WeekendSnapshot } from "@/app/lib/snapshot";
 import { summarize, raceDetail, type CalibrationRow, type RaceDetail } from "@/app/lib/calibration";
 import { CalibrationChart } from "@/app/components/CalibrationChart";
+import { BloomCard } from "@/app/components/BloomCard";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 
 export const dynamic = "force-dynamic";
@@ -99,7 +100,8 @@ export default async function AccuracyPage() {
 
           <ol className="mt-8 space-y-3">
             {rows.map((r) => (
-              <li key={r.gp} className="rounded-md border border-ink/10 p-4">
+              <li key={r.gp}>
+                <BloomCard intensity={0.3} className="relative isolate overflow-hidden rounded-md border border-ink/10 p-4">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="font-grotesk font-semibold text-ink">
                     {r.gp}
@@ -137,6 +139,7 @@ export default async function AccuracyPage() {
                     Detail unavailable for this round.
                   </p>
                 )}
+                </BloomCard>
               </li>
             ))}
           </ol>

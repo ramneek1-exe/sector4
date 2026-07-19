@@ -45,7 +45,7 @@ function useReducedMotion(): boolean {
  * freed) — /learn is a card grid, so at-rest cards must not hold a live context each.
  * Reduced motion: shown as a static frame (speed 0) rather than suppressed outright.
  */
-export function CardFog({ active }: { active: boolean }) {
+export function CardFog({ active, intensity = 1 }: { active: boolean; intensity?: number }) {
   const [mounted, setMounted] = useState(active);
   // `shown` starts false so the browser paints an opacity-0 frame before the flip — without
   // it the wrapper mounts already at opacity 1 and the fade-IN never runs (pops in).
@@ -85,11 +85,16 @@ export function CardFog({ active }: { active: boolean }) {
       aria-hidden
       className="pointer-events-none absolute inset-0 h-full w-full opacity-0 transition-opacity"
       style={{
-        opacity: active && shown ? 1 : 0,
+        opacity: active && shown ? intensity : 0,
         transitionDuration: `${FADE_MS}ms`,
         mixBlendMode: "multiply",
         maskImage: CARD_MASK,
         WebkitMaskImage: CARD_MASK,
+        // Self-clip to the host card's rounded corners: the blended subtree can escape the
+        // parent's border-radius clip in Chromium, so the bloom carries its own rounded
+        // geometry instead of relying on the parent's overflow-hidden.
+        borderRadius: "inherit",
+        overflow: "hidden",
       }}
     >
       {BLOOM_LAYERS.map((l, i) => (

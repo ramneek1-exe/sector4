@@ -29,7 +29,7 @@ export function ConceptCard({ concept }: { concept: Concept }) {
         <span className="font-grotesk text-base font-bold text-ink">{concept.term}</span>
         <TrustBadge badge={concept.badge} />
       </div>
-      <span className="relative font-lastik text-sm text-muted">{concept.summary}</span>
+      <span className="relative font-lastik text-sm text-muted transition-colors duration-200 group-hover:text-ink group-focus-visible:text-ink">{concept.summary}</span>
     </Link>
   );
 }
