@@ -237,7 +237,7 @@ function ThisWeekend() {
 function HonestByDesign({ liveScored }: { liveScored: number }) {
   return (
     <section className="relative bg-ink/[0.02]">
-      <SectionReveal className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
+      <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
         <div className="absolute -top-6 left-0 sm:-top-10">
           <SectorNumeral n={4} />
         </div>
