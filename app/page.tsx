@@ -1,434 +1,299 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
-import { DitherFog } from "@/app/components/DitherFog";
-import { AsciiGlyph } from "@/app/components/AsciiGlyph";
-import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
-import { TyreSpinner } from "@/app/components/TyreSpinner";
-import { QueryChips } from "@/app/components/QueryChips";
-import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
-import { BAND_TEXT } from "@/app/lib/bands";
-import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
-import { NarrativeText } from "@/app/components/NarrativeText";
-import { TrustBadge } from "@/app/components/TrustBadge";
-import { CompoundCard } from "@/app/components/CompoundCard";
-import type { Concept } from "@/app/lib/concepts";
+// The sector4.net landing page (Task 5, landing-page plan). Server component: the hero's
+// video/fog canvas is the only client-side piece, and it lives entirely inside DitherVideo /
+// DitherFog (both already "use client"), so no island needs extracting here. The "Honest by
+// design" section does one live Blob read (season calibration index) and degrades to
+// copy-only if it fails or returns nothing — see HonestByDesign below.
 import Link from "next/link";
-import { ASK_RESET_EVENT } from "@/app/components/SiteNav";
+import type { Metadata } from "next";
+import schedule from "@/app/data/weekend-schedule.json";
+import { DitherVideo } from "@/app/components/DitherVideo";
+import { DitherFog } from "@/app/components/DitherFog";
+import { AsciiEmblem } from "@/app/components/AsciiEmblem";
+import { SectionReveal } from "@/app/components/SectionReveal";
+import { TrackSpine } from "@/app/components/TrackSpine";
+import { SectorNumeral } from "@/app/components/SectorNumeral";
+import { NAV_H, NAV_LINKS } from "@/app/lib/nav";
+import { getJson } from "@/app/lib/blob";
+import { seasonIndexKey } from "@/app/lib/snapshot";
+import type { CalibrationRow } from "@/app/lib/calibration";
+import { gpLabel } from "@/app/lib/circuits";
 
-// The /api/ask response is the orchestrator's Answer, plus a client-side error shape.
-type Answer = ApiAnswer | { error: string };
+// The live scored-race count below reads Blob per request (no-store); mark the route
+// dynamic explicitly, matching /accuracy and /weekend.
+export const dynamic = "force-dynamic";
 
-// Interleaved by kind (podium → strategy → pace → lookup, repeating) so consecutive
-// chips are always a different type — the picker cycles this array in order.
-const EXAMPLES = [
-  "Who's likely to podium at the next race?",
-  "How many pit stops at the Monaco Grand Prix?",
-  "Long-run pace at the 2026 Austrian Grand Prix",
-  "Pit-lane time loss at the next race?",
-  "What is DRS?",
-  "Podium odds for the British Grand Prix",
-  "How many stops at Austria?",
-  "How fast do tyres wear at Barcelona?",
-  "What are the tyre compounds?",
-  "Stops at the next race?",
-  "Race pace at the 2026 Chinese Grand Prix",
-  "How much time is lost in the pit lane at Monaco?",
-];
-
-// Subtle white backing so text stays legible over the fog — feathered to transparent,
-// no defined shape/border (edgeless, like the fog itself). See `.legible` in globals.css.
-const LEGIBLE = "legible";
-
-/** Top-4 podium as a horizontal helmet lineup — ASCII helmet + code under each. No box. */
-function PodiumLineup({ podium, narrative }: { podium: PodiumFacts; narrative: string }) {
-  return (
-    <div className="fog-in flex flex-col items-center gap-9 text-center">
-      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
-        {podium.year} {podium.gp} · podium odds
-        {podium.mode ? ` · ${podium.mode}` : ""}
-      </div>
-
-      {podium.drivers.length > 0 ? (
-        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
-          {podium.drivers.slice(0, 4).map((d) => (
-            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
-              <AsciiGlyph code={d.driver} team={d.team} size={96} />
-              <div className="mt-2 font-grotesk text-xl font-bold tracking-wide text-ink">{d.driver}</div>
-              <div
-                className={`font-grotesk text-[11px] font-semibold uppercase tracking-wide ${
-                  BAND_TEXT[d.band] ?? BAND_TEXT["outside shot"]
-                }`}
-              >
-                {d.band}
-              </div>
-              <div className="font-mono text-[11px] text-muted">p≈{d.p_podium}</div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-muted">{podium.reason ?? "Not enough data for this weekend yet."}</p>
-      )}
-
-      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
-      <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
-        Honest bands, not precise %s — the p values are the model’s raw probabilities and are not yet
-        calibrated
-        {typeof podium.n_train_races === "number" && ` · trained on ${podium.n_train_races} prior weekends`}.
-      </p>
-    </div>
-  );
-}
-
-/** Pace-gap answer: ranked helmets fastest-first with delta + uncertainty. Supporting, not a podium. */
-function PaceCard({ pace, narrative }: { pace: PaceFacts; narrative: string }) {
-  return (
-    <div className="fog-in flex flex-col items-center gap-9 text-center">
-      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
-        {pace.year} {pace.gp} · long-run pace gaps
-      </div>
-      {pace.drivers.length > 0 ? (
-        <div className="flex flex-wrap items-end justify-center gap-x-6 gap-y-6 sm:gap-x-10">
-          {pace.drivers.slice(0, 5).map((d) => (
-            <div key={d.driver} className="legible flex flex-col items-center gap-1.5 rounded-2xl px-3 py-2">
-              <AsciiGlyph code={d.driver} team={d.team} size={88} />
-              <div className="mt-2 font-grotesk text-lg font-bold tracking-wide text-ink">{d.driver}</div>
-              <div className={`font-mono text-sm font-semibold text-ink/85 ${LEGIBLE} px-2 py-0.5`}>
-                {d.pace_delta_s > 0 ? "+" : ""}
-                {d.pace_delta_s}s<span className="font-medium text-ink/55"> ±{d.uncertainty_s}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-muted">{pace.reason ?? "Not enough data for this weekend yet."}</p>
-      )}
-      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
-      <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
-        Supporting context: long-run pace gaps and their uncertainty, not a podium or result prediction
-        {typeof pace.n_train_races === "number" && ` · trained on ${pace.n_train_races} prior weekends`}.
-      </p>
-    </div>
-  );
-}
-
-/** Compact, scrollable modal of every driver's predicted stops. Click the backdrop or
- *  press Escape to dismiss; fixed-position so it never stretches the card or the fog. */
-function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onClose: () => void }) {
-  // `show` drives the enter/exit transition; closing fades out THEN unmounts (via onClose).
-  const [show, setShow] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setShow(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const close = () => {
-    setShow(false);
-    window.setTimeout(onClose, 180); // matches the transition duration
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Per-driver stop strategy for the ${strategy.year} ${strategy.gp}`}
-      onClick={close}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4 backdrop-blur-sm transition-opacity duration-200 motion-reduce:transition-none ${
-        show ? "opacity-100" : "opacity-0"
-      }`}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className={`relative flex max-h-[70vh] w-full max-w-sm flex-col rounded-2xl border border-ink/15 bg-white/95 shadow-xl transition duration-200 ease-out motion-reduce:transition-none ${
-          show ? "scale-100 opacity-100" : "scale-95 opacity-0"
-        }`}
-      >
-        <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
-          <div className="font-grotesk text-[11px] font-semibold uppercase tracking-wide text-muted">
-            {strategy.year} {strategy.gp} · per-driver stops
-          </div>
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Close"
-            className="rounded-full px-2 py-0.5 font-grotesk text-sm text-muted transition hover:bg-ink/5 hover:text-ink"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="grid min-h-0 grid-cols-3 gap-x-2 gap-y-4 overflow-y-auto p-4 sm:grid-cols-4">
-          {strategy.drivers.map((d) => (
-            <div key={d.driver} className="flex flex-col items-center gap-0.5">
-              <AsciiGlyph code={d.driver} team={d.team} size={42} />
-              <div className="font-grotesk text-[11px] font-bold text-ink">{d.driver}</div>
-              <div className="font-mono text-[11px] font-semibold leading-tight text-ink/85">
-                {d.n_stops}-stop<span className="font-medium text-ink/55"> · {Math.round(d.confidence * 100)}%</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>,
-    document.body,
-  );
-}
-
-const MODE_LABEL: Record<string, string> = {
-  actual: "actual result",
-  historical: "historical norm",
-  predicted: "prediction",
+export const metadata: Metadata = {
+  // `absolute` bypasses the root layout's "%s · Sector 4" template — the wordmark IS the
+  // whole title here, not a page name to suffix.
+  title: { absolute: "Sector 4" },
+  description:
+    "An F1 companion that tells you the truth about what it knows: honest podium odds, " +
+    "real strategy calls, and the numbers behind them.",
 };
 
-/** Strategy answer: race-level stop call first, then deg->stops narrative, SC caveat, secondary per-driver. */
-function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrative: string }) {
-  const dom = strategy.dominant;
-  const [open, setOpen] = useState(false);
-  const modeLabel = strategy.mode ? MODE_LABEL[strategy.mode] : undefined;
+const EXAMPLE_QUERIES = [
+  "Who's likely to podium at the next race?",
+  "How many pit stops at Monaco?",
+  "What is DRS?",
+  "How fast do tyres wear at Barcelona?",
+];
+
+const SECTION_LABEL =
+  "mb-3 font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted";
+const SECTION_HEADING = "font-pixel-serif text-4xl text-ink sm:text-5xl";
+const SECTION_BODY = "mt-4 max-w-xl font-lastik text-lg leading-relaxed text-muted";
+const SECTION_LINK =
+  "cta-grow relative mt-5 inline-block font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none";
+
+function formatRaceDate(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(iso));
+}
+
+export default async function LandingPage() {
+  const index = await getJson<CalibrationRow[]>(seasonIndexKey(schedule.year));
+  const liveScored = (index ?? []).filter((r) => !r.reconstructed).length;
+
   return (
-    <div className="fog-in flex flex-col items-center gap-7 text-center">
-      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
-        {strategy.year} {strategy.gp} · stop-count strategy
+    <>
+      <Hero />
+      {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
+          section box, and the grid box + parked car sit at that same anchor - simply
+          cancelling the numeral's own negative offset (the previous pt-6/pt-10) still
+          left the car crowding straight into the hero's bottom edge. This is real
+          clearance beyond that, so the whole S1 start (numeral, box, car) sits
+          clearly below the hero. */}
+      <div className="relative pt-24 sm:pt-32">
+        <TrackSpine />
+        <AskAnything />
+        <LearnTheSport />
+        <ThisWeekend />
+        <HonestByDesign liveScored={liveScored} />
       </div>
-      {dom ? (
-        <div className="flex flex-col items-center gap-2">
-          {modeLabel && (
-            <div className={`font-grotesk text-[11px] font-semibold uppercase tracking-wider text-muted ${LEGIBLE} px-3 py-0.5`}>
-              {modeLabel}
-            </div>
-          )}
-          <div className={`font-pixel-serif text-5xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-            {strategy.mode === "actual" && dom.share != null && dom.share < 0.5 ? "Most common:" : "Mostly a"} {dom.n_stops}-stop
-            {dom.share != null && (
-              <span className="ml-2 align-middle font-mono text-base text-muted">{Math.round(dom.share * 100)}% of the grid</span>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p className="text-muted">{strategy.reason ?? "Not enough data for this weekend yet."}</p>
-      )}
-      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
-      {strategy.mode === "predicted" && strategy.sc_caveat && (
-        <p className={`max-w-lg font-grotesk text-[11px] text-amber-700 ${LEGIBLE} px-3 py-1.5`}>{strategy.sc_caveat}</p>
-      )}
-      {strategy.drivers.length > 0 && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-ink/25 bg-white/90 px-4 py-2 font-grotesk text-xs font-semibold uppercase tracking-wide text-ink/75 shadow-sm backdrop-blur transition hover:border-accent hover:text-ink"
-        >
-          Per-driver detail
-        </button>
-      )}
-      {open && <DriverStopsModal strategy={strategy} onClose={() => setOpen(false)} />}
-    </div>
+      <LandingFooter />
+    </>
   );
 }
 
-/** Computed-stat answer (e.g. pit-loss). No box. */
-/** Concept answer: the hand-authored summary + trust badge + a link to the full /learn page. */
-function ConceptCard({ concept }: { concept: Concept }) {
+/** Type-led dramatic open: the thesis IS the hero (no wordmark; the nav carries the
+ *  brand). Dithered b-roll runs full-bleed behind it in the light site recipe; DitherFog
+ *  remains the no-src/error fallback. `data-hero` attributes are the stable hooks the
+ *  future preloader/reveal pass will target; keep them on these four layers. */
+function Hero() {
   return (
-    <div className="fog-in flex max-w-xl flex-col items-center gap-4 text-center">
-      <div className="flex items-center gap-3">
-        <h2 className={`font-pixel text-4xl leading-none tracking-wide text-ink ${LEGIBLE} px-3 py-1`}>
-          {concept.term}
+    <section
+      className="relative flex w-full items-center justify-center overflow-hidden"
+      style={{ minHeight: `calc(100vh - ${NAV_H}px)` }}
+    >
+      <DitherVideo
+        data-hero="video"
+        src="/hero.mp4"
+        colorBack="#fafafa"
+        colorFront="#406cd6"
+        gain={4}
+        cols={240}
+        colsDesktop={420}
+        className="absolute inset-0 h-full w-full"
+      >
+        <DitherFog className="h-full w-full" />
+      </DitherVideo>
+
+      <div
+        data-hero="thesis"
+        className="legible relative z-10 flex flex-col items-center gap-7 px-10 py-14 text-center sm:px-16 sm:py-20"
+      >
+        <h1 className="fog-in max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
+          A lap has three sectors.
+          <br />
+          This is the one where you find out why.
+        </h1>
+        <Link
+          data-hero="cta"
+          href="/ask"
+          style={{ animationDelay: "0.18s" }}
+          className="fog-in mt-2 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 font-grotesk text-lg font-medium text-white shadow-sm transition duration-200 hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        >
+          Ask your first question
+        </Link>
+      </div>
+
+      <div
+        data-hero="cue"
+        aria-hidden
+        style={{ animationDelay: "0.36s" }}
+        className="fog-in legible absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full p-3"
+      >
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="animate-bounce text-ink/60 motion-reduce:animate-none"
+        >
+          <path d="M12 5v14M5 12l7 7 7-7" />
+        </svg>
+      </div>
+    </section>
+  );
+}
+
+function AskAnything() {
+  return (
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal>
+        <div className="absolute -top-6 right-0 sm:-top-10">
+          <SectorNumeral n={1} />
+        </div>
+        <p data-reveal className={SECTION_LABEL}>
+          Sector 1 · Ask anything
+        </p>
+        <h2 data-reveal className={SECTION_HEADING}>
+          Formula 1, minus the false confidence.
         </h2>
-        <TrustBadge badge={concept.badge} />
-      </div>
-      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>
-        {concept.summary}
-      </p>
-      <Link
-        href={`/learn/${concept.slug}`}
-        className="cta-grow relative font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
-      >
-        Read more →
-      </Link>
-    </div>
-  );
-}
-
-function StatAnswer({ facts, narrative }: { facts: StatFacts; narrative: string }) {
-  return (
-    <div className="fog-in flex flex-col items-center gap-4 text-center">
-      {facts.value !== null && (
-        <div className="flex flex-col items-center gap-1">
-          <div className={`font-pixel-serif text-7xl font-bold tracking-tight text-ink ${LEGIBLE} px-5 py-2`}>
-            {facts.value}
-            <span className="ml-1 text-3xl text-muted">{facts.units}</span>
-          </div>
-          {facts.year != null && (
-            <span className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>
-              {facts.gp} · {facts.year}
-            </span>
-          )}
-        </div>
-      )}
-      <NarrativeText narrative={narrative} className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`} />
-      {facts.insights && facts.insights.length > 0 && (
-        <ul className="flex max-w-xl flex-col items-center gap-1">
-          {facts.insights.map((line) => (
-            <li
-              key={line}
-              className={`font-grotesk text-[12px] leading-snug text-ink/70 ${LEGIBLE} px-3 py-1`}
+        <p data-reveal className={SECTION_BODY}>
+          Podium odds, pit stops, tyre wear, the basics. Ask in plain English and get a
+          straight answer that says what the data shows, and what it can&apos;t.
+        </p>
+        <div data-reveal className="mt-8 flex flex-wrap gap-3">
+          {EXAMPLE_QUERIES.map((q) => (
+            <Link
+              key={q}
+              href={`/ask?q=${encodeURIComponent(q)}`}
+              className="rounded-2xl border border-ink/10 bg-white/90 px-4 py-2.5 font-grotesk text-sm text-ink/80 shadow-sm transition hover:border-accent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             >
-              {line}
-            </li>
+              {q}
+            </Link>
           ))}
-        </ul>
-      )}
-      <p className={`font-grotesk text-[11px] uppercase tracking-wide text-muted ${LEGIBLE} px-3 py-1`}>Source: {facts.source}</p>
-    </div>
+        </div>
+      </SectionReveal>
+    </section>
   );
 }
 
-/** Pre-query state: a hint + example queries, sitting in the same fog as the answers. */
-function EmptyState({ onPick }: { onPick: (q: string) => void }) {
+function LearnTheSport() {
   return (
-    <div className="fog-in absolute inset-0 flex flex-col items-center justify-center gap-5 text-center">
-      <p className={`max-w-md font-lastik text-lg text-ink/70 ${LEGIBLE} px-4 py-2`}>
-        Follow the live 2026 season: honest podium odds, real pit-stop calls, and the numbers behind them, explained.
-      </p>
-      <QueryChips examples={EXAMPLES} onPick={onPick} />
-    </div>
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div className="absolute -top-6 left-0 sm:-top-10">
+          <SectorNumeral n={2} />
+        </div>
+        <div data-reveal>
+          <AsciiEmblem kind="tyre" size={64} className="shrink-0" />
+        </div>
+        <div>
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 2 · Learn the sport
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            Every answer teaches you something.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Predictions link straight to the concepts behind them: what tyre degradation
+            is, why undercuts work, what a stop-count call actually means. Follow a
+            thread and the sport starts making sense.
+          </p>
+          <Link data-reveal href="/learn" className={SECTION_LINK}>
+            Start learning →
+          </Link>
+        </div>
+      </SectionReveal>
+    </section>
   );
 }
 
-export default function Home() {
-  const [query, setQuery] = useState("");
-  const [answer, setAnswer] = useState<Answer | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingLine, setLoadingLine] = useState(LOADING_LINES[0]);
-
-  // Nav "Ask" clicked while already here: reset to the empty state (same-route Links
-  // no-op in the router, so this event is the reset signal — see SiteNav).
-  useEffect(() => {
-    const reset = () => {
-      setQuery("");
-      setAnswer(null);
-      setLoading(false);
-    };
-    window.addEventListener(ASK_RESET_EVENT, reset);
-    return () => window.removeEventListener(ASK_RESET_EVENT, reset);
-  }, []);
-
-  async function run(q: string) {
-    if (!q.trim()) return; // ignore empty submits (the bar starts empty now)
-    setLoading(true);
-    setLoadingLine(pickLoadingLine());
-    setAnswer(null);
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q }),
-      });
-      setAnswer(await res.json());
-    } catch {
-      setAnswer({ error: "request failed" });
-    } finally {
-      setLoading(false);
-    }
-  }
-
+function ThisWeekend() {
+  const dateLabel = formatRaceDate(schedule.final);
   return (
-    <main className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center gap-10 px-5 pb-16 pt-10 sm:px-8">
-      <h1 className="fog-in self-start font-pixel-serif text-5xl text-ink sm:text-6xl">Ask</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          void run(query);
-        }}
-        style={{ animationDelay: "0.09s" }}
-        className="fog-in flex w-full max-w-xl gap-2"
-      >
-        <div className="bar-shell flex-1">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="h-12 w-full rounded-full border border-ink/15 bg-white px-5 font-grotesk text-sm text-ink shadow-sm outline-none transition-colors placeholder:text-muted hover:border-accent/70 focus:border-accent"
-            placeholder="What's on your mind this race weekend?"
-          />
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
+        <div className="absolute -top-6 right-0 sm:-top-10">
+          <SectorNumeral n={3} />
         </div>
-        <button
-          className={`relative inline-flex h-12 items-center justify-center overflow-hidden rounded-full px-7 font-grotesk text-lg font-medium shadow-sm transition duration-200 motion-reduce:hover:translate-y-0 ${
-            loading
-              ? "bg-[#f3f3f3] text-ink"
-              : "bg-accent text-white hover:-translate-y-px hover:bg-accent-bright"
-          }`}
-          disabled={loading}
-          aria-busy={loading}
-        >
-          {/* Label stays in the DOM (invisible while loading) to hold the button width. */}
-          <span className={`block transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}>
-            Ask
-          </span>
-          <TyreSpinner active={loading} size={30} />
-        </button>
-      </form>
-
-      {/* Action zone — the ONLY place the living ASCII fog animates, directly under the bar. */}
-      <section className="relative flex min-h-[600px] w-full items-center justify-center">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[760px] w-screen max-w-[1500px] -translate-x-1/2 -translate-y-1/2 [mask-image:radial-gradient(ellipse_70%_64%_at_50%_50%,black_0%,transparent_72%)]">
-          <DitherFog className="h-full w-full" />
+        <div data-reveal>
+          <AsciiEmblem kind="car" size={64} className="shrink-0" />
         </div>
-        {/* Soft light behind the content so text reads over the fog — boxless, no card. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-[5] [background:radial-gradient(ellipse_40%_46%_at_50%_50%,rgba(250,250,250,0.55),rgba(250,250,250,0.4)_45%,rgba(250,250,250,0.18)_70%,rgba(250,250,250,0.06)_88%,transparent_100%)]"
-        />
+        <div>
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 3 · This weekend
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            {gpLabel(schedule.gp)} Grand Prix
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Race day is {dateLabel}. Calls go up Friday and sharpen through qualifying,
+            and we say so while the picture is still fuzzy.
+          </p>
+          <Link data-reveal href="/weekend" className={SECTION_LINK}>
+            See this weekend →
+          </Link>
+        </div>
+      </SectionReveal>
+    </section>
+  );
+}
 
-        {!answer && !loading && (
-          <EmptyState
-            onPick={(q) => {
-              setQuery(q);
-              void run(q);
-            }}
-          />
-        )}
-        <ConceptPopoverProvider>
-          {loading && (
-            <p className={`fog-in font-pixel text-3xl tracking-wide text-ink/75 ${LEGIBLE} px-4 py-2`}>{loadingLine}</p>
+function HonestByDesign({ liveScored }: { liveScored: number }) {
+  return (
+    <section className="relative bg-ink/[0.02]">
+      <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
+        <div className="absolute -top-6 left-0 sm:-top-10">
+          <SectorNumeral n={4} />
+        </div>
+        <div data-reveal>
+          <AsciiEmblem kind="flag" size={64} className="shrink-0" />
+        </div>
+        <div>
+          <p data-reveal className={SECTION_LABEL}>
+            Sector 4 · Honest by design
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            The fourth sector is the truth.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            We show bands, not fake precision. Early season, podium odds are qualitative:
+            a shot, an outside shot, unlikely. Every call gets scored against the real
+            finish, and the record is public, good or bad.
+          </p>
+          {liveScored > 0 && (
+            <p data-reveal className="mt-3 font-grotesk text-sm text-muted">
+              {liveScored} {liveScored === 1 ? "race" : "races"} scored live so far.
+            </p>
           )}
-          {answer && "supported" in answer && answer.supported && "facts" in answer && (
-            <StatAnswer facts={answer.facts} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && answer.supported && "podium" in answer && (
-            <PodiumLineup podium={answer.podium} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && answer.supported && "pace" in answer && (
-            <PaceCard pace={answer.pace} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && answer.supported && "strategy" in answer && (
-            <StrategyCard strategy={answer.strategy} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && answer.supported && "compound" in answer && (
-            <CompoundCard compound={answer.compound} narrative={answer.narrative} />
-          )}
-          {answer && "supported" in answer && answer.supported && "concept" in answer && (
-            <ConceptCard concept={answer.concept} />
-          )}
-          {answer && "supported" in answer && !answer.supported && (
-            <p className={`fog-in max-w-xl text-center font-lastik text-lg text-muted ${LEGIBLE} px-4 py-2`}>{answer.message}</p>
-          )}
-          {answer && "error" in answer && (
-            <p className={`fog-in text-center font-grotesk text-red-600 ${LEGIBLE} px-4 py-2`}>Error: {answer.error}</p>
-          )}
-        </ConceptPopoverProvider>
-      </section>
-    </main>
+          <Link data-reveal href="/accuracy" className={SECTION_LINK}>
+            See the record →
+          </Link>
+        </div>
+      </SectionReveal>
+    </section>
+  );
+}
+
+function LandingFooter() {
+  return (
+    <div className="border-t border-ink/10 px-6 py-10 sm:px-8">
+      <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-4">
+        <span className="font-bebas text-2xl tracking-wide text-ink">SECTOR4</span>
+        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
+          {NAV_LINKS.map(({ href, label }) => (
+            <Link
+              key={href}
+              href={href}
+              className="font-grotesk text-sm text-muted transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    </div>
   );
 }

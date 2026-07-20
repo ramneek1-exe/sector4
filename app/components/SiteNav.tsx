@@ -3,32 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MobileNav } from "@/app/components/MobileNav";
+import { NAV_LINKS, isActiveLink, emitAskResetIfOnAsk } from "@/app/lib/nav";
+
+// Moved to app/lib/nav.ts (server-safe); re-exported here for existing importers.
+export { NAV_H, NAV_LINKS, isActiveLink, ASK_RESET_EVENT, emitAskResetIfOnAsk } from "@/app/lib/nav";
+
 
 // Single-row persistent site nav (lives in the root layout, so it's on every page).
 // SECTOR4 wordmark on the left (the ONLY use of Bebas Neue); the section links + the
 // live-weekend CTA on the right, all in PP NeueBit with a growing-underline hover.
-export const NAV_H = 68; // px (h-[68px]) — the layout pads the body by this so content clears it
-
-// One source of truth for the link list — consumed by the desktop row AND the mobile overlay.
-export const NAV_LINKS: { href: string; label: string }[] = [
-  { href: "/", label: "Ask" },
-  { href: "/learn", label: "Learn" },
-  { href: "/accuracy", label: "Accuracy" },
-  { href: "/weekend", label: "Upcoming weekend" },
-];
-
-// Root matches only on exact "/"; every other href matches by path prefix.
-export function isActiveLink(pathname: string, href: string): boolean {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
-}
-
-// Clicking "Ask" while already on / must reset the page (same-route Links no-op in the
-// router, so the answer state would otherwise persist). The page listens for this event.
-export const ASK_RESET_EVENT = "sector4:ask-reset";
-export function emitAskResetIfHome(pathname: string, href: string) {
-  if (href === "/" && pathname === "/") window.dispatchEvent(new Event(ASK_RESET_EVENT));
-}
-
 const linkClass =
   "relative cta-grow font-pixel text-2xl leading-none tracking-wide transition-colors duration-200 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60";
 
@@ -56,7 +39,7 @@ export function SiteNav() {
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
-              onClick={() => emitAskResetIfHome(pathname, href)}
+              onClick={() => emitAskResetIfOnAsk(pathname, href)}
               className={`${linkClass} ${active ? "text-accent" : inactive}`}
             >
               {label}

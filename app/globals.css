@@ -222,13 +222,13 @@ body {
      oval; this one has no plateau and no cliff, so it blends like fog. */
   background: radial-gradient(
     ellipse closest-side at center,
-    rgba(250, 250, 250, 0.92) 0%,
-    rgba(250, 250, 250, 0.86) 25%,
-    rgba(250, 250, 250, 0.74) 45%,
-    rgba(250, 250, 250, 0.58) 62%,
-    rgba(250, 250, 250, 0.4) 76%,
-    rgba(250, 250, 250, 0.22) 87%,
-    rgba(250, 250, 250, 0.09) 95%,
+    rgba(250, 250, 250, 0.55) 0%,
+    rgba(250, 250, 250, 0.5) 25%,
+    rgba(250, 250, 250, 0.42) 45%,
+    rgba(250, 250, 250, 0.32) 62%,
+    rgba(250, 250, 250, 0.22) 76%,
+    rgba(250, 250, 250, 0.12) 87%,
+    rgba(250, 250, 250, 0.05) 95%,
     rgba(250, 250, 250, 0) 100%
   );
 }
