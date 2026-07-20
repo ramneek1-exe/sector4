@@ -15,11 +15,71 @@ import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 const CAR_W = 56;
 const TRACK = "#251F44"; // ink
 const KERB_RED = "#d2504a";
+// Each curve connector is built with a VERTICAL tangent at both ends (see
+// track-path.ts) so it reads straight near the anchors and only actually bends
+// through its middle. Kerbs should mark just that bend, not the full connector
+// length, so we trim to this middle parameter window before striping.
+const KERB_T0 = 0.42;
+const KERB_T1 = 0.58;
 
 interface Measured {
   geometry: TrackGeometry;
   width: number;
   height: number;
+}
+
+interface Pt {
+  x: number;
+  y: number;
+}
+
+function lerp(a: Pt, b: Pt, t: number): Pt {
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+}
+
+// De Casteljau split of a cubic bezier at parameter t: returns the two cubics
+// covering [0,t] and [t,1].
+function splitCubic(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t: number) {
+  const a = lerp(p0, p1, t);
+  const b = lerp(p1, p2, t);
+  const c = lerp(p2, p3, t);
+  const d = lerp(a, b, t);
+  const e = lerp(b, c, t);
+  const f = lerp(d, e, t);
+  return {
+    left: [p0, a, d, f] as [Pt, Pt, Pt, Pt],
+    right: [f, e, c, p3] as [Pt, Pt, Pt, Pt],
+  };
+}
+
+// Extract the sub-curve of a cubic bezier covering parameter range [t0, t1] —
+// two sequential De Casteljau splits (a bezier's sub-range is itself a bezier).
+function subCubic(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t0: number, t1: number) {
+  const right = splitCubic(p0, p1, p2, p3, t0).right;
+  const s1 = (t1 - t0) / (1 - t0);
+  return splitCubic(right[0], right[1], right[2], right[3], s1).left;
+}
+
+const CURVE_RE =
+  /^M (-?[\d.]+) (-?[\d.]+) C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)$/;
+
+// Trim a curve connector's path down to just its bend (middle parameter window),
+// so kerbs stripe the apex only, not the straight-tangent lead-in/out at each end.
+// Falls back to the full segment if the "M x y C x1 y1 x2 y2 x3 y3" shape ever
+// doesn't match (defensive; buildTrackGeometry always emits exactly this shape).
+function kerbD(d: string): string {
+  const m = CURVE_RE.exec(d);
+  if (!m) return d;
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = m.slice(1).map(Number);
+  const [p0, p1, p2, p3] = subCubic(
+    { x: x0, y: y0 },
+    { x: x1, y: y1 },
+    { x: x2, y: y2 },
+    { x: x3, y: y3 },
+    KERB_T0,
+    KERB_T1,
+  );
+  return `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y} ${p2.x} ${p2.y} ${p3.x} ${p3.y}`;
 }
 
 export function TrackSpine() {
@@ -176,26 +236,25 @@ export function TrackSpine() {
         viewBox={`0 0 ${Math.round(width)} ${Math.round(height)}`}
         className="absolute inset-0"
       >
-        {/* Kerbs: red base + offset white dashes, curves only, under the track line. */}
-        {curves.map((c, i) => (
-          <g key={i} data-kerb opacity={0.55}>
-            <path
-              d={c.d}
-              fill="none"
-              stroke={KERB_RED}
-              strokeWidth={8}
-              strokeDasharray="12 12"
-            />
-            <path
-              d={c.d}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth={8}
-              strokeDasharray="12 12"
-              strokeDashoffset={12}
-            />
-          </g>
-        ))}
+        {/* Kerbs: red base + offset white dashes, at the BEND of each curve connector
+            only (trimmed to the middle parameter window — see kerbD), under the
+            track line. */}
+        {curves.map((c, i) => {
+          const d = kerbD(c.d);
+          return (
+            <g key={i} data-kerb opacity={0.55}>
+              <path d={d} fill="none" stroke={KERB_RED} strokeWidth={8} strokeDasharray="12 12" />
+              <path
+                d={d}
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth={8}
+                strokeDasharray="12 12"
+                strokeDashoffset={12}
+              />
+            </g>
+          );
+        })}
         {/* The racing line itself. */}
         <path
           data-track-main
