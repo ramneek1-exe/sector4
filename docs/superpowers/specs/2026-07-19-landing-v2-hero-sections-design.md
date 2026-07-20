@@ -26,8 +26,9 @@ resolution loss invisible).
 - **No wordmark in the hero.** The fixed nav carries the brand.
 - **Centered, type-led thesis** (the statement IS the hero):
   > A lap has three sectors. This is the one where you find out why.
-  Large serif (`font-pixel-serif` scale, like section headings but bigger), max-width
-  constrained, `.legible` scrim retained (closest-side ellipse — see PR #36 lesson).
+  > Large serif (`font-pixel-serif` scale, like section headings but bigger), max-width
+  > constrained, `.legible` scrim retained (closest-side ellipse — see PR #36 lesson).
+  >
 - **CTA unchanged:** "Ask your first question" → `/ask`.
 - **Motion: minimal now, reveal-ready.** Keep the existing staggered one-shot entrance.
   Structure the DOM so the later preloader→hero reveal slots in without rework: the video
@@ -42,12 +43,12 @@ hero thesis ("a lap has three sectors…").
 
 **New order (S4 = brand payoff):**
 
-| # | Section | Heading direction |
-|---|---------|-------------------|
-| S1 | Ask anything | **"Formula 1, minus the false confidence."** (owner-picked line) |
-| S2 | Learn the sport | rewrite, teaching angle |
-| S3 | This weekend | rewrite, race-date + sharpening-through-quali angle |
-| S4 | Honest by design | rewrite as the payoff: the fourth sector is the truth; live scored-race count + "See the record" → `/accuracy` closes the page |
+| #  | Section          | Heading direction                                                                                                                |
+| -- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| S1 | Ask anything     | **"Formula 1, minus the false confidence."** (owner-picked line)                                                           |
+| S2 | Learn the sport  | rewrite, teaching angle                                                                                                          |
+| S3 | This weekend     | rewrite, race-date + sharpening-through-quali angle                                                                              |
+| S4 | Honest by design | rewrite as the payoff: the fourth sector is the truth; live scored-race count + "See the record" →`/accuracy` closes the page |
 
 - **Sector numeral:** each section carries an oversized, faded timing-sheet numeral
   ("S1"…"S4", Space Grotesk, decorative aria-hidden), positioned per-section (offset,
@@ -61,14 +62,42 @@ hero thesis ("a lap has three sectors…").
 - **Live scored count** behavior unchanged (renders only when the Blob fetch succeeds and
   count ≥ 1; degrades to copy).
 
+## 2b. Race-track spine (owner amendment, 2026-07-19 second pass)
+
+Replaces the separate SectorDivider timing lines with ONE continuous track that connects
+the sections, S1 → S4. Owner vision, decisions locked in brainstorm:
+
+- **One continuous SVG path** over the whole sections region (absolute overlay behind the
+  content, content stays above it). The path visits each section's numeral side (S1 right,
+  S2 left, S3 right, S4 left — the numerals' alternating sides become the racing line),
+  with smooth S-curves between sections and short straights at each section.
+- **Start/finish furniture:** a grid box (starting-slot bracket, the "]" grid marking) at
+  the S1 end of the track; a chequered finish strip at the S4 end.
+- **Kerbs:** red/white alternating stripes (two overlaid dashed strokes) along the CURVE
+  segments only; straights stay clean.
+- **The car:** the existing abstract side-profile car (AsciiEmblem `kind="car"`, the
+  rights-safe silhouette) rides the path via GSAP MotionPathPlugin with `autoRotate` —
+  the floor stays parallel to the track by construction.
+- **Scrubbed:** track draw (DrawSVG) and car position share one ScrollTrigger with
+  `scrub` — scroll down = the track draws and the car drives S1→S4; scroll up reverses.
+  Car rides the leading edge of the drawn line.
+- **Mobile (below md):** simplified vertical track along the column edge (straights +
+  kerb accents, grid box + chequered kept, car still drives).
+- **Reduced motion:** the full track + kerbs + furniture render complete and static; the
+  car sits parked at the S4 finish; no scrub, no tweens.
+- **Numeral dither hover:** each sector numeral (S1..S4) gets the card-hover treatment —
+  CardFog's warp bloom mounts on hover/focus within the numeral's box and unmounts at
+  rest (same `{active}` mount discipline, so the WebGL budget is unaffected at rest).
+- SectorDivider (built in this branch) is absorbed/removed; the track carries the rhythm.
+
 ## 3. Motion system (owner directive: GSAP, smooth)
 
 - **Site-wide smooth scroll: Lenis** (new small dep) in a client `SmoothScrollProvider`
   mounted in `layout.tsx`, syncing ScrollTrigger (`lenis.on("scroll", ScrollTrigger.update)`
   + gsap ticker driving `lenis.raf`). Native scroll semantics are preserved, so the fixed
-  nav, anchor links, and existing pages (`/ask`, `/weekend`, `/accuracy`, `/learn`) keep
-  working untouched. **Disabled entirely under `prefers-reduced-motion`** (and Lenis is
-  skipped on touch devices' native momentum by its defaults).
+    nav, anchor links, and existing pages (`/ask`, `/weekend`, `/accuracy`, `/learn`) keep
+    working untouched. **Disabled entirely under `prefers-reduced-motion`** (and Lenis is
+    skipped on touch devices' native momentum by its defaults).
 - **ScrollTrigger** (GSAP already a dep, 3.12.5): per-section in-view entrances — sector
   numeral, heading, body, link staggered; one timeline per section, `once: true`, no
   scrubbing/pinning/scrolljack.
