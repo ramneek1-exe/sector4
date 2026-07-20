@@ -4,8 +4,9 @@
 // sector numerals S1 -> S4, drawn/scrubbed with scroll, with the abstract car riding
 // the path (MotionPath autoRotate keeps its floor parallel to the track). Rendered as
 // the first child of the relative sections wrapper; measures [data-sector-anchor]
-// elements inside that wrapper. Under prefers-reduced-motion (or before JS runs) the
-// full track renders statically and the car parks at the finish.
+// elements inside that wrapper. Under prefers-reduced-motion (with JS running) the
+// full track renders statically and the car parks at the finish; before JS runs (or
+// with JS unavailable), only the empty placeholder renders.
 import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/app/lib/gsap";
 import { buildTrackGeometry, type TrackGeometry } from "@/app/lib/track-path";
@@ -39,10 +40,21 @@ export function TrackSpine() {
       const anchors = Array.from(
         wrapper.querySelectorAll<HTMLElement>("[data-sector-anchor]"),
       ).map((el) => {
-        const r = el.getBoundingClientRect();
+        // Layout coordinates (offsetLeft/offsetTop), not getBoundingClientRect:
+        // gBCR includes CSS transforms, and SectionReveal's [data-reveal] entrance
+        // transform on these same numerals would skew the track before it settles.
+        // offsetLeft/offsetTop ignore transforms entirely.
+        let x = 0;
+        let y = 0;
+        let node: HTMLElement | null = el;
+        while (node && node !== wrapper) {
+          x += node.offsetLeft;
+          y += node.offsetTop;
+          node = node.offsetParent as HTMLElement | null;
+        }
         return {
-          x: r.left - wrap.left + r.width / 2,
-          y: r.top - wrap.top + r.height / 2,
+          x: x + el.offsetWidth / 2,
+          y: y + el.offsetHeight / 2,
         };
       });
       const geometry = buildTrackGeometry(anchors);
@@ -76,8 +88,14 @@ export function TrackSpine() {
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       const trackPath = svg.querySelector<SVGPathElement>("[data-track-main]");
       if (!trackPath) return;
+      // DrawSVG stays on the undashed main line only: DrawSVGPlugin overwrites
+      // stroke-dasharray wholesale, which would destroy the kerbs' 12/12 offset
+      // red/white stripe pattern. Kerbs reveal via opacity on the same scrubbed
+      // timeline instead.
       const strokes = svg.querySelectorAll<SVGPathElement>("[data-track-draw]");
+      const kerbs = svg.querySelectorAll<SVGGElement>("[data-kerb]");
       gsap.set(strokes, { drawSVG: "0%" });
+      gsap.set(kerbs, { autoAlpha: 0 });
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
@@ -87,19 +105,21 @@ export function TrackSpine() {
           scrub: 1,
         },
       });
-      tl.to(strokes, { drawSVG: "100%", duration: 1 }, 0).to(
-        car,
-        {
-          duration: 1,
-          motionPath: {
-            path: trackPath,
-            align: trackPath,
-            alignOrigin: [0.5, 0.5],
-            autoRotate: true,
+      tl.to(strokes, { drawSVG: "100%", duration: 1 }, 0)
+        .to(kerbs, { autoAlpha: 0.55, duration: 0.35 }, 0.15)
+        .to(
+          car,
+          {
+            duration: 1,
+            motionPath: {
+              path: trackPath,
+              align: trackPath,
+              alignOrigin: [0.5, 0.5],
+              autoRotate: true,
+            },
           },
-        },
-        0,
-      );
+          0,
+        );
       // ScrollTrigger measures on creation; a rebuild after resize needs fresh math.
       ScrollTrigger.refresh();
     });
@@ -107,7 +127,13 @@ export function TrackSpine() {
   }, [measured]);
 
   if (!measured) {
-    return <div ref={rootRef} aria-hidden className="absolute inset-0" />;
+    return (
+      <div
+        ref={rootRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 hidden sm:block"
+      />
+    );
   }
 
   const { geometry, width, height } = measured;
@@ -129,9 +155,8 @@ export function TrackSpine() {
       >
         {/* Kerbs: red base + offset white dashes, curves only, under the track line. */}
         {curves.map((c, i) => (
-          <g key={i} opacity={0.55}>
+          <g key={i} data-kerb opacity={0.55}>
             <path
-              data-track-draw
               d={c.d}
               fill="none"
               stroke={KERB_RED}
@@ -139,7 +164,6 @@ export function TrackSpine() {
               strokeDasharray="12 12"
             />
             <path
-              data-track-draw
               d={c.d}
               fill="none"
               stroke="#ffffff"
