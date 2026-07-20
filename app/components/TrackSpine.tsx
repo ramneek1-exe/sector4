@@ -187,22 +187,19 @@ export function TrackSpine() {
           car,
           {
             duration: 1,
+            // Plain autoRotate: the floor tracks the tangent exactly ("parallel to
+            // the track"), no clamp. Measured this track's actual tangent swing
+            // (getPointAtLength sampling): ~18deg-166deg - always some downward
+            // component, never past horizontal into reverse/upside-down territory,
+            // so nothing needs correcting. (An earlier version ALSO conditionally
+            // mirrored the car - scaleY flip whenever rotation crossed 90/270 - that
+            // was the actual "upside down" bug: a discrete pop each time an S-bend
+            // crossed the threshold, not the rotation angle itself. No flip, no pop.)
             motionPath: {
               path: carPath,
               align: carPath,
               alignOrigin: [0.5, 0.5],
               autoRotate: true,
-            },
-            onUpdate: () => {
-              // Full autoRotate on this track swings roughly 18deg-166deg (measured
-              // against the actual bends) - past that, the car reads as lying flat/
-              // sideways, and further still as reversing. Bank WITH the curve (floor
-              // leans toward the tangent - the original ask) but clamp the swing to a
-              // band around straight-down (90) that never reaches horizontal, so it
-              // never looks flat, backward, or - since it's a smooth clamp, not the
-              // old discrete mirror-flip - never pops/inverts either.
-              const raw = ((gsap.getProperty(car, "rotation") as number) % 360 + 360) % 360;
-              gsap.set(car, { rotation: Math.max(55, Math.min(125, raw)) });
             },
           },
           0,

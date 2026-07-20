@@ -13,7 +13,7 @@
 // (font-grotesk font-bold, matching size/tracking) painted white-on-black into an SVG
 // luminance mask - because it's the live DOM/CSS (not a rasterized image), it inherits
 // the real Space Grotesk font with no risk of a substitute-font mismatch.
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { CardFog } from "@/app/components/CardFog";
 
 const NUMERAL_TEXT_CLASS =
@@ -22,9 +22,30 @@ const NUMERAL_TEXT_CLASS =
 export function SectorNumeral({ n, className = "" }: { n: number; className?: string }) {
   const [hovered, setHovered] = useState(false);
   const maskId = `sector-numeral-mask-${useId()}`;
+  const wrapperRef = useRef<HTMLSpanElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  // SVG <text> layout (dominant-baseline) and the HTML span's own line-box don't
+  // share metrics tables, so a mask <text> anchored at a guessed y drifts off the
+  // VISIBLE (overflow-cropped) glyph by a font-dependent amount. Measure the real
+  // span's offset from the wrapper instead of guessing, and re-measure on resize
+  // (the font-size itself is responsive, sm:text-[10rem]).
+  const [textTop, setTextTop] = useState(0);
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const wrapper = wrapperRef.current;
+      const text = textRef.current;
+      if (!wrapper || !text) return;
+      setTextTop(text.getBoundingClientRect().top - wrapper.getBoundingClientRect().top);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
 
   return (
     <span
+      ref={wrapperRef}
       aria-hidden
       data-reveal
       data-sector-anchor
@@ -38,7 +59,7 @@ export function SectorNumeral({ n, className = "" }: { n: number; className?: st
             <rect x="-1000" y="-1000" width="3000" height="3000" fill="black" />
             <text
               x="0"
-              y="0"
+              y={textTop}
               dominantBaseline="text-before-edge"
               fill="white"
               className={NUMERAL_TEXT_CLASS}
@@ -55,6 +76,7 @@ export function SectorNumeral({ n, className = "" }: { n: number; className?: st
         <CardFog active={hovered} intensity={0.5} />
       </div>
       <span
+        ref={textRef}
         className={`pointer-events-none relative leading-none text-ink/[0.06] ${NUMERAL_TEXT_CLASS}`}
       >
         S{n}
