@@ -62,7 +62,13 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
-      <div className="relative">
+      {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
+          section box, and the grid box + parked car sit at that same anchor - simply
+          cancelling the numeral's own negative offset (the previous pt-6/pt-10) still
+          left the car crowding straight into the hero's bottom edge. This is real
+          clearance beyond that, so the whole S1 start (numeral, box, car) sits
+          clearly below the hero. */}
+      <div className="relative pt-24 sm:pt-32">
         <TrackSpine />
         <AskAnything />
         <LearnTheSport />
@@ -91,6 +97,7 @@ function Hero() {
         colorFront="#406cd6"
         gain={4}
         cols={240}
+        colsDesktop={420}
         className="absolute inset-0 h-full w-full"
       >
         <DitherFog className="h-full w-full" />

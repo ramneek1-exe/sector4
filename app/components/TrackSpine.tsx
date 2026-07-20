@@ -2,8 +2,10 @@
 
 // The landing's race-track spine (spec 2b): one continuous SVG track connecting the
 // sector numerals S1 -> S4, drawn/scrubbed with scroll, with the abstract car riding
-// the path (MotionPath autoRotate keeps its floor parallel to the track). Rendered as
-// the first child of the relative sections wrapper; measures [data-sector-anchor]
+// the path (MotionPath autoRotate banks it with the curve, clamped to a band around
+// straight-down so it never reads as flat/sideways or reversing - see the scrub
+// timeline for why). Rendered as the first child of the relative sections wrapper;
+// measures [data-sector-anchor]
 // elements inside that wrapper. Under prefers-reduced-motion (with JS running) the
 // full track renders statically and the car parks at the finish; before JS runs (or
 // with JS unavailable), only the empty placeholder renders.
@@ -15,17 +17,22 @@ import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 const CAR_W = 56;
 const TRACK = "#251F44"; // ink
 const KERB_RED = "#d2504a";
-// Each curve connector is built with a VERTICAL tangent at both ends (see
-// track-path.ts) so it reads straight near the anchors and only actually bends
-// through its middle. Kerbs should mark just that bend, not the full connector
-// length, so we trim to this middle parameter window before striping.
-const KERB_T0 = 0.42;
-const KERB_T1 = 0.58;
+// Each curve connector is an S-curve (ogee) with a VERTICAL tangent at both ends
+// (see track-path.ts): curvature is HIGHEST near each end, where the path peels
+// away from straight, and crosses zero at the middle (the inflection point, where
+// the S reverses bend direction) - the middle is the straightest part, not the
+// bendiest. So kerbs stripe TWO zones per connector, near the exit of one sector
+// and the entry of the next, leaving the near-straight middle third bare.
+const KERB_ZONES: [number, number][] = [
+  [0.05, 0.35],
+  [0.65, 0.95],
+];
 
 interface Measured {
   geometry: TrackGeometry;
   width: number;
   height: number;
+  viewportH: number;
 }
 
 interface Pt {
@@ -63,30 +70,28 @@ function subCubic(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t0: number, t1: number) {
 const CURVE_RE =
   /^M (-?[\d.]+) (-?[\d.]+) C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)$/;
 
-// Trim a curve connector's path down to just its bend (middle parameter window),
-// so kerbs stripe the apex only, not the straight-tangent lead-in/out at each end.
-// Falls back to the full segment if the "M x y C x1 y1 x2 y2 x3 y3" shape ever
-// doesn't match (defensive; buildTrackGeometry always emits exactly this shape).
-function kerbD(d: string): string {
+// Trim a curve connector down to its two bend zones (exit of one sector, entry of
+// the next) - see KERB_ZONES. Falls back to the full segment (as a single zone) if
+// the "M x y C x1 y1 x2 y2 x3 y3" shape ever doesn't match (defensive;
+// buildTrackGeometry always emits exactly this shape).
+function kerbD(d: string): string[] {
   const m = CURVE_RE.exec(d);
-  if (!m) return d;
+  if (!m) return [d];
   const [x0, y0, x1, y1, x2, y2, x3, y3] = m.slice(1).map(Number);
-  const [p0, p1, p2, p3] = subCubic(
-    { x: x0, y: y0 },
-    { x: x1, y: y1 },
-    { x: x2, y: y2 },
-    { x: x3, y: y3 },
-    KERB_T0,
-    KERB_T1,
-  );
-  return `M ${p0.x} ${p0.y} C ${p1.x} ${p1.y} ${p2.x} ${p2.y} ${p3.x} ${p3.y}`;
+  const p0 = { x: x0, y: y0 };
+  const p1 = { x: x1, y: y1 };
+  const p2 = { x: x2, y: y2 };
+  const p3 = { x: x3, y: y3 };
+  return KERB_ZONES.map(([t0, t1]) => {
+    const [a, b, c, dd] = subCubic(p0, p1, p2, p3, t0, t1);
+    return `M ${a.x} ${a.y} C ${b.x} ${b.y} ${c.x} ${c.y} ${dd.x} ${dd.y}`;
+  });
 }
 
 export function TrackSpine() {
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const carRef = useRef<HTMLDivElement>(null);
-  const carInnerRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<Measured | null>(null);
 
   // Measure the wrapper + numeral anchors; rebuild on resize (rAF-debounced).
@@ -120,7 +125,9 @@ export function TrackSpine() {
       });
       const geometry = buildTrackGeometry(anchors);
       setMeasured(
-        geometry ? { geometry, width: wrap.width, height: wrap.height } : null,
+        geometry
+          ? { geometry, width: wrap.width, height: wrap.height, viewportH: window.innerHeight }
+          : null,
       );
     };
     const schedule = () => {
@@ -142,9 +149,8 @@ export function TrackSpine() {
     if (!measured) return;
     const svg = svgRef.current;
     const car = carRef.current;
-    const carInner = carInnerRef.current;
     const wrapper = rootRef.current?.parentElement;
-    if (!svg || !car || !carInner || !wrapper) return;
+    if (!svg || !car || !wrapper) return;
 
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -188,14 +194,15 @@ export function TrackSpine() {
               autoRotate: true,
             },
             onUpdate: () => {
-              // The car glyph faces right; autoRotate aligns +x to the tangent, so
-              // leftward travel (rotation in (90, 270)) would render it upside down.
-              // Mirror the INNER wrapper only — the outer stays the motionPath
-              // target — so the floor stays parallel to the track without ever
-              // flipping roof-down.
-              const r =
-                (((gsap.getProperty(car, "rotation") as number) % 360) + 360) % 360;
-              gsap.set(carInner, { scaleY: r > 90 && r < 270 ? -1 : 1 });
+              // Full autoRotate on this track swings roughly 18deg-166deg (measured
+              // against the actual bends) - past that, the car reads as lying flat/
+              // sideways, and further still as reversing. Bank WITH the curve (floor
+              // leans toward the tangent - the original ask) but clamp the swing to a
+              // band around straight-down (90) that never reaches horizontal, so it
+              // never looks flat, backward, or - since it's a smooth clamp, not the
+              // old discrete mirror-flip - never pops/inverts either.
+              const raw = ((gsap.getProperty(car, "rotation") as number) % 360 + 360) % 360;
+              gsap.set(car, { rotation: Math.max(55, Math.min(125, raw)) });
             },
           },
           0,
@@ -216,12 +223,14 @@ export function TrackSpine() {
     );
   }
 
-  const { geometry, width, height } = measured;
+  const { geometry, width, height, viewportH } = measured;
   const curves = geometry.segments.filter((s) => s.kind === "curve");
   const { start, finish } = geometry;
   // Car-only path: the drawn line stops at `finish`, but the car keeps going and exits
-  // the viewport below it (change 2) — never rendered (fill/stroke none).
-  const carD = `${geometry.d} L ${finish.x} ${finish.y + 480}`;
+  // the viewport below it (change 2) — never rendered (fill/stroke none). Scaled to the
+  // viewport's own height so it clears a fullscreen browser, not just a fixed distance
+  // that reads as "barely dips off" on a tall screen.
+  const carD = `${geometry.d} L ${finish.x} ${finish.y + Math.max(480, viewportH)}`;
 
   return (
     <div
@@ -236,13 +245,12 @@ export function TrackSpine() {
         viewBox={`0 0 ${Math.round(width)} ${Math.round(height)}`}
         className="absolute inset-0"
       >
-        {/* Kerbs: red base + offset white dashes, at the BEND of each curve connector
-            only (trimmed to the middle parameter window — see kerbD), under the
-            track line. */}
-        {curves.map((c, i) => {
-          const d = kerbD(c.d);
-          return (
-            <g key={i} data-kerb opacity={0.55}>
+        {/* Kerbs: red base + offset white dashes, at the two BEND zones of each curve
+            connector (exiting one sector, entering the next — see KERB_ZONES),
+            under the track line. */}
+        {curves.flatMap((c, i) =>
+          kerbD(c.d).map((d, z) => (
+            <g key={`${i}-${z}`} data-kerb opacity={0.55}>
               <path d={d} fill="none" stroke={KERB_RED} strokeWidth={8} strokeDasharray="12 12" />
               <path
                 d={d}
@@ -253,8 +261,8 @@ export function TrackSpine() {
                 strokeDashoffset={12}
               />
             </g>
-          );
-        })}
+          )),
+        )}
         {/* The racing line itself. */}
         <path
           data-track-main
@@ -267,9 +275,16 @@ export function TrackSpine() {
         />
         {/* Invisible car-only path: the exit leg past the finish is never drawn. */}
         <path data-car-path d={carD} fill="none" stroke="none" />
-        {/* Grid box: starting-slot bracket, open toward travel (downward). */}
+        {/* Grid box: starting-slot bracket. Closed side sits at the track's start
+            (where the car is parked, facing into the drawn line); open side faces
+            back up the straight, away from the track - a closed-bottom "⊔", not a
+            closed-top "⊓" (which reads upside down: closed end facing away from
+            the track it's meant to open onto). Sized around CAR_W (the car's
+            rotated nose-tail length runs close to that) with margin, since the
+            scrub centers the car exactly on `start` (motionPath alignOrigin
+            [0.5,0.5]) - too tight a box and the nose/tail poke out either end. */}
         <path
-          d={`M ${start.x - 16} ${start.y + 16} L ${start.x - 16} ${start.y - 8} L ${start.x + 16} ${start.y - 8} L ${start.x + 16} ${start.y + 16}`}
+          d={`M ${start.x - 20} ${start.y - CAR_W / 2 - 8} L ${start.x - 20} ${start.y + CAR_W / 2 - 8} L ${start.x + 20} ${start.y + CAR_W / 2 - 8} L ${start.x + 20} ${start.y - CAR_W / 2 - 8}`}
           fill="none"
           stroke={TRACK}
           strokeOpacity={0.5}
@@ -302,7 +317,11 @@ export function TrackSpine() {
           transform: `translate(${finish.x - CAR_W / 2}px, ${finish.y - CAR_W / 4}px) rotate(90deg)`,
         }}
       >
-        <div ref={carInnerRef}>
+        {/* CAR_SILHOUETTE is drawn nose-LEFT (front wing left, rear wing right); this
+            static mirror corrects it to nose-right, matching the parked rotate(90deg)
+            above (nose ends up pointing down, roof staying put to one side - see the
+            rotation-pinning note on the scrub timeline for why it never flips). */}
+        <div style={{ transform: "scaleX(-1)" }}>
           <AsciiEmblem kind="car" size={CAR_W} />
         </div>
       </div>

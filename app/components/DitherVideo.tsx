@@ -34,6 +34,9 @@ interface DitherVideoProps {
   colorBack: string;
   colorFront: string;
   cols?: number;
+  /** Denser grid (smaller cells, more detail) from the `md` breakpoint up; `cols`
+   *  stays the mobile/tablet value. Omit to use `cols` at every width. */
+  colsDesktop?: number;
   matrix?: Matrix;
   /** Linear luminance boost for dark footage (1 = neutral); see bayerLuminancePasses. */
   gain?: number;
@@ -52,6 +55,20 @@ function useReducedMotion(): boolean {
     return () => mq.removeEventListener("change", on);
   }, []);
   return reduced;
+}
+
+/** Matches Tailwind's `md` breakpoint (768px) — the same desktop/mobile split the
+ *  rest of the app's responsive layout uses. */
+function useIsDesktop(): boolean {
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setDesktop(mq.matches);
+    const on = (e: MediaQueryListEvent) => setDesktop(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return desktop;
 }
 
 /** `src="/hero.mp4"` (local /public asset) omits crossOrigin; only a remote absolute URL needs it. */
@@ -89,7 +106,8 @@ export function DitherVideo({
   poster,
   colorBack,
   colorFront,
-  cols = 240,
+  cols: colsProp = 240,
+  colsDesktop,
   matrix = "4x4",
   gain = 1,
   className = "",
@@ -97,6 +115,8 @@ export function DitherVideo({
   "data-hero": dataHero,
 }: DitherVideoProps) {
   const reduced = useReducedMotion();
+  const isDesktop = useIsDesktop();
+  const cols = isDesktop && colsDesktop ? colsDesktop : colsProp;
   const [failed, setFailed] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [inView, setInView] = useState(false);
