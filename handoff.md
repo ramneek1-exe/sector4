@@ -7,11 +7,31 @@
 > FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
 > PRODUCTION (`sector4-zeta.vercel.app`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — LANDING PAGE (branch `landing-page`, PR #37 OPEN, ready for owner preview)
-> The dither-swap eyeball fixes are DONE (PR #36 merged + live). The LANDING PAGE is BUILT on PR #37
-> (branch `landing-page`, head `cf866f2`) — all 5 plan tasks complete, review-checked, local
-> next-start verified (/ 200, /ask 200). Spec/plan `docs/superpowers/{specs,plans}/2026-07-19-landing-page*`;
-> ledger `.superpowers/sdd/progress.md`.
+> ## 🔴 PICK UP HERE NEXT SESSION — LANDING V2 (branch `landing-page`, PR #37 OPEN, head `7a22fa8`, awaiting owner preview)
+> **LANDING V2 BUILT on top of v1 (2026-07-19 second session, owner-brainstormed).** Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-19-landing-v2-hero-sections*`; ledger `.superpowers/sdd/progress.md`.
+> Whole-branch review READY FOR OWNER PREVIEW (zero Critical/Important). What changed vs v1:
+> (1) **Hero = type-led**: NO wordmark (nav carries brand); thesis IS the hero, verbatim "A lap has three
+> sectors. / This is the one where you find out why."; light recipe (#fafafa/#406cd6, cols 240) over REAL
+> b-roll — owner bought it, `public/hero.mp4` committed (0.85MB 960x540, recompressed from 46MB original
+> via ffmpeg CRF28, audio stripped; original NOT in repo). `data-hero` attrs (video/thesis/cta/cue) =
+> stable hooks for the LATER preloader pass. (2) **Sections = sector conceit**, REORDERED S1 Ask ("Formula
+> 1, minus the false confidence."), S2 Learn, S3 Weekend, S4 Honest payoff ("The fourth sector is the
+> truth."); oversized faded SectorNumeral per section (alternating sides), DrawSVG SectorDivider timing
+> lines between. (3) **Motion**: site-wide Lenis smooth scroll (layout `SmoothScroll`, null-rendering,
+> synced to ScrollTrigger via gsap ticker) + `SectionReveal` ([data-reveal] stagger, once:true); gsap
+> ^3.15 (DrawSVG now free/public) + lenis deps; ALL motion in gsap.matchMedia reduced-motion gates,
+> hidden states via gsap.set only (never CSS — no-JS users see everything). `app/lib/gsap.ts` = the one
+> client-only plugin-registration point; `app/lib/motion.ts` pure/tested.
+> **OWNER PREVIEW CHECKLIST (PR #37, comment posted):** (a) hero over real footage — palette tunable in
+> /lab/dither E; (b) S4 numeral anchors viewport-edge (full-width section, unlike S1-S3) — check wide
+> viewports; (c) reduced-motion OS check; (d) smooth-scroll feel on all 5 routes; (e) merge call.
+> **DEFERRED NEXT PASSES (owner ordering): preloader + hero reveal choreography, THEN footer redesign.**
+> **KNOWN FOLLOW-UP (Minor):** MobileNav overlay + wheel on narrow non-touch window accumulates Lenis
+> targetScroll (jump on close); fix = lenis.stop()/start() around overlay-open or data-lenis-prevent.
+>
+> ### Landing v1 (same PR, context)
+> All 5 v1 plan tasks complete + review-checked (spec/plan `2026-07-19-landing-page*`).
 > **What's on the PR:** (1) `/` = new landing: full-viewport hero (DitherVideo over `/public/hero.mp4`,
 > falls back to DitherFog while the file doesn't exist — BY DESIGN), SECTOR4 Bebas wordmark + thesis +
 > CTA → /ask, ask-anything chips (deep-link `/ask?q=` prefill, no auto-run), honest-by-design (live
