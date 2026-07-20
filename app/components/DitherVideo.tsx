@@ -287,7 +287,7 @@ export function DitherVideo({
       ref={rootRef}
       aria-hidden="true"
       data-hero={dataHero}
-      className={`relative overflow-hidden ${className}`}
+      className={`overflow-hidden ${className}`}
     >
       {src ? (
         <video
