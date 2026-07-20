@@ -52,6 +52,17 @@ describe("bayer", () => {
     const passes = bayerLuminancePasses(px(4, 4, () => [255, 255, 255, 0]), 4, 4);
     expect(passes).toEqual(Array(16).fill(false));
   });
+  it("gain stretches dark input: 32/255 gray at gain 4 dithers like mid-gray", () => {
+    const dark = px(4, 4, () => [32, 32, 32, 255]);
+    const noGain = bayerLuminancePasses(dark, 4, 4, "4x4", 1).filter(Boolean).length;
+    const gained = bayerLuminancePasses(dark, 4, 4, "4x4", 4).filter(Boolean).length;
+    expect(noGain).toBeLessThanOrEqual(2);
+    expect(gained).toBe(8);
+  });
+  it("gain clamps at 1: white at gain 4 still passes everything, no overflow", () => {
+    const passes = bayerLuminancePasses(px(4, 4, () => [255, 255, 255, 255]), 4, 4, "4x4", 4);
+    expect(passes).toEqual(Array(16).fill(true));
+  });
   it("bayerLuminancePasses works with 8x8 matrix", () => {
     const passes = bayerLuminancePasses(px(8, 8, () => [255, 255, 255, 255]), 8, 8, "8x8");
     expect(passes).toEqual(Array(64).fill(true));

@@ -35,6 +35,8 @@ interface DitherVideoProps {
   colorFront: string;
   cols?: number;
   matrix?: Matrix;
+  /** Linear luminance boost for dark footage (1 = neutral); see bayerLuminancePasses. */
+  gain?: number;
   className?: string;
   children?: React.ReactNode;
   "data-hero"?: string;
@@ -89,6 +91,7 @@ export function DitherVideo({
   colorFront,
   cols = 240,
   matrix = "4x4",
+  gain = 1,
   className = "",
   children,
   "data-hero": dataHero,
@@ -189,7 +192,7 @@ export function DitherVideo({
       return;
     }
 
-    const passes = bayerLuminancePasses(data, cols, rows, matrix);
+    const passes = bayerLuminancePasses(data, cols, rows, matrix, gain);
 
     if (canvas.width !== cols || canvas.height !== rows) {
       canvas.width = cols;
@@ -209,7 +212,7 @@ export function DitherVideo({
       out[o + 3] = a;
     }
     ctx.putImageData(new ImageData(out, cols, rows), 0, 0);
-  }, [cols, matrix]);
+  }, [cols, matrix, gain]);
 
   // Wire up the video element: attempt playback once data is available; reduced motion
   // and blocked-autoplay both fall back to a single painted frame, no loop.

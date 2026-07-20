@@ -102,6 +102,7 @@ function Hero() {
         src="/hero.mp4"
         colorBack="#fafafa"
         colorFront="#406cd6"
+        gain={4}
         cols={240}
         className="absolute inset-0 h-full w-full"
       >

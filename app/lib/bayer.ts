@@ -28,7 +28,8 @@ export function bayerLuminancePasses(
   data: Uint8ClampedArray,
   cols: number,
   rows: number,
-  matrix: "4x4" | "8x8" = "4x4"
+  matrix: "4x4" | "8x8" = "4x4",
+  gain = 1
 ): boolean[] {
   const result: boolean[] = [];
   const getThreshold = matrix === "8x8" ? bayerThreshold8 : bayerThreshold;
@@ -45,7 +46,9 @@ export function bayerLuminancePasses(
       const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
       // Premultiply by alpha
       const alpha = a / 255;
-      const luminance = lum * alpha;
+      // `gain` linearly stretches dark sources (e.g. night-time b-roll whose mean
+      // luma sits far below the Bayer threshold range) up into it; 1 = neutral.
+      const luminance = Math.min(1, lum * alpha * gain);
 
       const threshold = getThreshold(x, y);
       result.push(luminance >= threshold);
