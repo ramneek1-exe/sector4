@@ -10,7 +10,8 @@ import { DitherVideo } from "@/app/components/DitherVideo";
 import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { SectionReveal } from "@/app/components/SectionReveal";
-import { SectorDivider } from "@/app/components/SectorDivider";
+import { TrackSpine } from "@/app/components/TrackSpine";
+import { SectorNumeral } from "@/app/components/SectorNumeral";
 import { NAV_H, NAV_LINKS } from "@/app/lib/nav";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
@@ -61,29 +62,15 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
-      <AskAnything />
-      <SectorDivider />
-      <LearnTheSport />
-      <SectorDivider />
-      <ThisWeekend />
-      <SectorDivider />
-      <HonestByDesign liveScored={liveScored} />
+      <div className="relative">
+        <TrackSpine />
+        <AskAnything />
+        <LearnTheSport />
+        <ThisWeekend />
+        <HonestByDesign liveScored={liveScored} />
+      </div>
       <LandingFooter />
     </>
-  );
-}
-
-/** Oversized faded timing-sheet numeral ("S1".."S4"). Decorative; alternates side per
- *  section via the caller's positioning classes. */
-function SectorNumeral({ n, className = "" }: { n: number; className?: string }) {
-  return (
-    <span
-      aria-hidden
-      data-reveal
-      className={`pointer-events-none select-none font-grotesk text-[7rem] font-bold leading-none tracking-tight text-ink/[0.06] sm:text-[10rem] ${className}`}
-    >
-      S{n}
-    </span>
   );
 }
 
