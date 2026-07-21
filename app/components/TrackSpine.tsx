@@ -2,10 +2,11 @@
 
 // The landing's race-track spine (spec 2b): one continuous SVG track connecting the
 // sector numerals S1 -> S4, drawn/scrubbed with scroll, with the abstract car riding
-// the path (MotionPath autoRotate banks it with the curve; a separate horizontal
-// mirror toggles at each connector's own inflection point, since S1..S4 alternate
-// sides so consecutive bends alternate which way they curve - see the scrub timeline
-// for the parity math). Rendered as the first child of the relative sections wrapper;
+// the path (MotionPath autoRotate banks it with the curve; a separate mirror ACROSS
+// the track's own axis toggles at each connector's own inflection point, since
+// S1..S4 alternate sides so consecutive bends alternate which way they curve - see
+// the scrub timeline for the parity math). Rendered as the first child of the
+// relative sections wrapper;
 // measures [data-sector-anchor] elements inside that wrapper. Under
 // prefers-reduced-motion (with JS running) the full track renders statically and the
 // car parks at the finish; before JS runs (or with JS unavailable), only the empty
@@ -220,10 +221,11 @@ export function TrackSpine() {
       // (right/left/right/left), so consecutive connectors alternate WHICH way they
       // bend too - S1->S2 and S3->S4 curve the same direction, S2->S3 curves the
       // opposite way. autoRotate alone banks correctly within a single bend, but a
-      // side-view car glyph needs an extra horizontal mirror to keep reading
-      // "upright" once the bend's own chirality flips - toggled exactly at each
-      // connector's midpoint (the one point on a bend that's momentarily as vertical
-      // as the straights either side of it, so the mirror lands invisibly).
+      // side-view car glyph needs an extra mirror ACROSS the track's own axis (roof
+      // for floor, not nose for tail) to keep reading "upright" once the bend's own
+      // chirality flips - toggled exactly at each connector's midpoint (the one
+      // point on a bend that's momentarily as vertical as the straights either side
+      // of it, so the mirror lands invisibly).
       const flipThresholds = measured.geometry.segments
         .filter((s) => s.kind === "curve")
         .map((c) => curveMidpoint(c.d))
@@ -253,8 +255,14 @@ export function TrackSpine() {
               autoRotate: true,
             },
             onUpdate: () => {
+              // scaleY, not scaleX: carFlip sits inside `car` (the autoRotate
+              // target), so its local frame is already rotated with the tangent -
+              // local +x IS the direction of travel. Mirroring on X would flip
+              // nose-for-tail; the correction needed here is roof-for-floor,
+              // perpendicular to travel - i.e. across the track's own axis - which
+              // is local Y.
               const passed = flipThresholds.filter((t) => tl.progress() >= t).length;
-              gsap.set(carFlip, { scaleX: passed % 2 === 1 ? 1 : -1 });
+              gsap.set(carFlip, { scaleY: passed % 2 === 1 ? -1 : 1 });
             },
           },
           0,
@@ -369,14 +377,19 @@ export function TrackSpine() {
           transform: `translate(${finish.x - CAR_W / 2}px, ${finish.y - CAR_W / 4}px) rotate(90deg)`,
         }}
       >
-        {/* CAR_SILHOUETTE is drawn nose-LEFT (front wing left, rear wing right).
-            Parked default is scaleX(1) (the RAW, uncorrected orientation): the car
-            rests at `finish` (S4), which sits on the same side as S2 - the "flipped"
-            side per the scrub's own parity toggle below (S1/S3 = scaleX(-1)
-            corrected-to-nose-right baseline, S2/S4 = scaleX(1) raw). The scrubbed
-            timeline drives this same node via carFlipRef once motion is allowed. */}
-        <div ref={carFlipRef} style={{ transform: "scaleX(1)" }}>
-          <AsciiEmblem kind="car" size={CAR_W} />
+        {/* carFlipRef: the roof/floor mirror (scaleY, toggled by the scrub timeline
+            - see its onUpdate for why it's Y, not X). Parked default is scaleY(-1):
+            the car rests at `finish` (S4), which is on the same side/chirality
+            group as S2 - the "flipped" state in the scrub's own parity (S1/S3 =
+            scaleY(1) baseline, S2/S4 = scaleY(-1)). */}
+        <div ref={carFlipRef} style={{ transform: "scaleY(-1)" }}>
+          {/* CAR_SILHOUETTE is drawn nose-LEFT (front wing left, rear wing right); this
+              PERMANENT mirror corrects it to nose-right. Unlike carFlipRef above, this
+              one never toggles - it's a fixed property of the source asset, not of
+              which bend the car is currently in. */}
+          <div style={{ transform: "scaleX(-1)" }}>
+            <AsciiEmblem kind="car" size={CAR_W} />
+          </div>
         </div>
       </div>
     </div>
