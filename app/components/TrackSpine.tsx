@@ -2,13 +2,15 @@
 
 // The landing's race-track spine (spec 2b): one continuous SVG track connecting the
 // sector numerals S1 -> S4, drawn/scrubbed with scroll, with the abstract car riding
-// the path (MotionPath autoRotate banks it with the curve, clamped to a band around
-// straight-down so it never reads as flat/sideways or reversing - see the scrub
-// timeline for why). Rendered as the first child of the relative sections wrapper;
-// measures [data-sector-anchor]
-// elements inside that wrapper. Under prefers-reduced-motion (with JS running) the
-// full track renders statically and the car parks at the finish; before JS runs (or
-// with JS unavailable), only the empty placeholder renders.
+// the path (MotionPath autoRotate banks it with the curve; a separate mirror ACROSS
+// the track's own axis toggles at each connector's own inflection point, since
+// S1..S4 alternate sides so consecutive bends alternate which way they curve - see
+// the scrub timeline for the parity math). Rendered as the first child of the
+// relative sections wrapper;
+// measures [data-sector-anchor] elements inside that wrapper. Under
+// prefers-reduced-motion (with JS running) the full track renders statically and the
+// car parks at the finish; before JS runs (or with JS unavailable), only the empty
+// placeholder renders.
 import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/app/lib/gsap";
 import { buildTrackGeometry, type TrackGeometry } from "@/app/lib/track-path";
@@ -67,8 +69,43 @@ function subCubic(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t0: number, t1: number) {
   return splitCubic(right[0], right[1], right[2], right[3], s1).left;
 }
 
+// Point on a cubic bezier at parameter t (standard Bernstein form).
+function cubicPointAt(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t: number): Pt {
+  const mt = 1 - t;
+  const a = mt * mt * mt;
+  const b = 3 * mt * mt * t;
+  const c = 3 * mt * t * t;
+  const d = t * t * t;
+  return {
+    x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
+    y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
+  };
+}
+
 const CURVE_RE =
   /^M (-?[\d.]+) (-?[\d.]+) C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)$/;
+
+// Point on a curve connector's own "M x y C x1 y1 x2 y2 x3 y3" string at parameter t.
+function curvePointAt(d: string, t: number): Pt | null {
+  const m = CURVE_RE.exec(d);
+  if (!m) return null;
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = m.slice(1).map(Number);
+  return cubicPointAt({ x: x0, y: y0 }, { x: x1, y: y1 }, { x: x2, y: y2 }, { x: x3, y: y3 }, t);
+}
+
+// Binary search for the arc length along `path` whose point has the given Y — the
+// whole track runs monotonically downward (S1..S4 stack top to bottom), so this
+// always converges.
+function lengthAtY(path: SVGPathElement, targetY: number, total: number): number {
+  let lo = 0;
+  let hi = total;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2;
+    if (path.getPointAtLength(mid).y < targetY) lo = mid;
+    else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
 
 // Trim a curve connector down to its two bend zones (exit of one sector, entry of
 // the next) - see KERB_ZONES. Falls back to the full segment (as a single zone) if
@@ -92,6 +129,7 @@ export function TrackSpine() {
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const carRef = useRef<HTMLDivElement>(null);
+  const carFlipRef = useRef<HTMLDivElement>(null);
   const [measured, setMeasured] = useState<Measured | null>(null);
 
   // Measure the wrapper + numeral anchors; rebuild on resize (rAF-debounced).
@@ -149,8 +187,9 @@ export function TrackSpine() {
     if (!measured) return;
     const svg = svgRef.current;
     const car = carRef.current;
+    const carFlip = carFlipRef.current;
     const wrapper = rootRef.current?.parentElement;
-    if (!svg || !car || !wrapper) return;
+    if (!svg || !car || !carFlip || !wrapper) return;
 
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -172,6 +211,31 @@ export function TrackSpine() {
       // at exactly the moment the car crosses the finish point.
       const trackLen = trackPath.getTotalLength();
       const carLen = carPath.getTotalLength();
+
+      // Progress (0..1 of the shared scrub) at which arc-length position `L` along
+      // trackPath is reached — used to time both the kerb reveals and the flip below
+      // against the SAME clock the line-draw itself uses (L/carLen, since the draw
+      // tween shares this timeline at constant car speed).
+      const progressAtY = (y: number) => lengthAtY(trackPath, y, trackLen) / carLen;
+
+      // Mirror-flip progress thresholds: every connector's S-bend reverses its own
+      // curvature at its midpoint, and S1..S4 alternate sides (right/left/right/
+      // left), so consecutive connectors alternate WHICH way they bend too - S1->S2
+      // and S3->S4 curve the same direction, S2->S3 curves the opposite way.
+      // autoRotate alone banks correctly within a single bend, but a side-view car
+      // glyph needs an extra mirror ACROSS the track's own axis (roof for floor, not
+      // nose for tail) to keep reading "upright" once the bend's own chirality
+      // flips. Triggered as soon as the car enters the FIRST kerb zone of the bend
+      // (matching when the kerbs themselves first appear, not the geometric
+      // midpoint) - earlier than the perfectly-vertical inflection point, so the
+      // mirror is eased (see the tween below), not snapped, to stay smooth.
+      const flipThresholds = measured.geometry.segments
+        .filter((s) => s.kind === "curve")
+        .map((c) => curvePointAt(c.d, KERB_ZONES[0][0]))
+        .filter((p): p is Pt => p !== null)
+        .map((p) => progressAtY(p.y))
+        .sort((a, b) => a - b);
+
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
@@ -181,29 +245,51 @@ export function TrackSpine() {
           scrub: 1,
         },
       });
-      tl.to(strokes, { drawSVG: "100%", duration: trackLen / carLen }, 0)
-        .to(kerbs, { autoAlpha: 0.55, duration: 0.35 }, 0.15)
-        .to(
-          car,
-          {
-            duration: 1,
-            // Plain autoRotate: the floor tracks the tangent exactly ("parallel to
-            // the track"), no clamp. Measured this track's actual tangent swing
-            // (getPointAtLength sampling): ~18deg-166deg - always some downward
-            // component, never past horizontal into reverse/upside-down territory,
-            // so nothing needs correcting. (An earlier version ALSO conditionally
-            // mirrored the car - scaleY flip whenever rotation crossed 90/270 - that
-            // was the actual "upside down" bug: a discrete pop each time an S-bend
-            // crossed the threshold, not the rotation angle itself. No flip, no pop.)
-            motionPath: {
-              path: carPath,
-              align: carPath,
-              alignOrigin: [0.5, 0.5],
-              autoRotate: true,
-            },
+      tl.to(strokes, { drawSVG: "100%", duration: trackLen / carLen }, 0);
+
+      // Each kerb zone reveals individually, timed to when the drawn line reaches
+      // ITS OWN start point - so they appear progressively as the track grows
+      // (the first one, right at S1's exit, sits at a near-zero threshold and so is
+      // already visible at the top of the page) instead of every kerb on the page
+      // fading in together at one fixed early moment.
+      measured.geometry.segments
+        .filter((s) => s.kind === "curve")
+        .forEach((c, i) => {
+          KERB_ZONES.forEach(([t0], z) => {
+            const p = curvePointAt(c.d, t0);
+            const kerbEl = svg.querySelector<SVGGElement>(`[data-kerb-id="${i}-${z}"]`);
+            if (!p || !kerbEl) return;
+            tl.to(kerbEl, { autoAlpha: 0.55, duration: 0.03 }, progressAtY(p.y));
+          });
+        });
+
+      // Tracks the last-applied flip state so onUpdate only fires a transition on
+      // an ACTUAL crossing, not every scrub tick; the very first evaluation (page
+      // load, whatever scroll position that lands at) snaps instantly rather than
+      // visibly animating in.
+      let lastPassed: number | null = null;
+      tl.to(
+        car,
+        {
+          duration: 1,
+          motionPath: {
+            path: carPath,
+            align: carPath,
+            alignOrigin: [0.5, 0.5],
+            autoRotate: true,
           },
-          0,
-        );
+          onUpdate: () => {
+            const passed = flipThresholds.filter((t) => tl.progress() >= t).length;
+            if (passed === lastPassed) return;
+            const initial = lastPassed === null;
+            lastPassed = passed;
+            const scaleY = passed % 2 === 1 ? -1 : 1;
+            if (initial) gsap.set(carFlip, { scaleY });
+            else gsap.to(carFlip, { scaleY, duration: 0.3, ease: "power2.out", overwrite: true });
+          },
+        },
+        0,
+      );
       // ScrollTrigger measures on creation; a rebuild after resize needs fresh math.
       ScrollTrigger.refresh();
     });
@@ -247,7 +333,7 @@ export function TrackSpine() {
             under the track line. */}
         {curves.flatMap((c, i) =>
           kerbD(c.d).map((d, z) => (
-            <g key={`${i}-${z}`} data-kerb opacity={0.55}>
+            <g key={`${i}-${z}`} data-kerb data-kerb-id={`${i}-${z}`} opacity={0.55}>
               <path d={d} fill="none" stroke={KERB_RED} strokeWidth={8} strokeDasharray="12 12" />
               <path
                 d={d}
@@ -314,12 +400,19 @@ export function TrackSpine() {
           transform: `translate(${finish.x - CAR_W / 2}px, ${finish.y - CAR_W / 4}px) rotate(90deg)`,
         }}
       >
-        {/* CAR_SILHOUETTE is drawn nose-LEFT (front wing left, rear wing right); this
-            static mirror corrects it to nose-right, matching the parked rotate(90deg)
-            above (nose ends up pointing down, roof staying put to one side - see the
-            rotation-pinning note on the scrub timeline for why it never flips). */}
-        <div style={{ transform: "scaleX(-1)" }}>
-          <AsciiEmblem kind="car" size={CAR_W} />
+        {/* carFlipRef: the roof/floor mirror (scaleY, toggled by the scrub timeline
+            - see its onUpdate for why it's Y, not X). Parked default is scaleY(-1):
+            the car rests at `finish` (S4), which is on the same side/chirality
+            group as S2 - the "flipped" state in the scrub's own parity (S1/S3 =
+            scaleY(1) baseline, S2/S4 = scaleY(-1)). */}
+        <div ref={carFlipRef} style={{ transform: "scaleY(-1)" }}>
+          {/* CAR_SILHOUETTE is drawn nose-LEFT (front wing left, rear wing right); this
+              PERMANENT mirror corrects it to nose-right. Unlike carFlipRef above, this
+              one never toggles - it's a fixed property of the source asset, not of
+              which bend the car is currently in. */}
+          <div style={{ transform: "scaleX(-1)" }}>
+            <AsciiEmblem kind="car" size={CAR_W} />
+          </div>
         </div>
       </div>
     </div>
