@@ -85,16 +85,12 @@ function cubicPointAt(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t: number): Pt {
 const CURVE_RE =
   /^M (-?[\d.]+) (-?[\d.]+) C (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+)$/;
 
-// Each connector's control points are built symmetrically (see track-path.ts), so
-// t=0.5 is exactly its inflection point - the instant curvature reverses sign,
-// i.e. where the bend's "chirality" (which way it turns) flips. That's also the one
-// point on a bend where a corrective mirror is least jarring: the path is at its
-// most vertical there, same as the straights on either side.
-function curveMidpoint(d: string): Pt | null {
+// Point on a curve connector's own "M x y C x1 y1 x2 y2 x3 y3" string at parameter t.
+function curvePointAt(d: string, t: number): Pt | null {
   const m = CURVE_RE.exec(d);
   if (!m) return null;
   const [x0, y0, x1, y1, x2, y2, x3, y3] = m.slice(1).map(Number);
-  return cubicPointAt({ x: x0, y: y0 }, { x: x1, y: y1 }, { x: x2, y: y2 }, { x: x3, y: y3 }, 0.5);
+  return cubicPointAt({ x: x0, y: y0 }, { x: x1, y: y1 }, { x: x2, y: y2 }, { x: x3, y: y3 }, t);
 }
 
 // Binary search for the arc length along `path` whose point has the given Y — the
@@ -216,21 +212,28 @@ export function TrackSpine() {
       const trackLen = trackPath.getTotalLength();
       const carLen = carPath.getTotalLength();
 
+      // Progress (0..1 of the shared scrub) at which arc-length position `L` along
+      // trackPath is reached — used to time both the kerb reveals and the flip below
+      // against the SAME clock the line-draw itself uses (L/carLen, since the draw
+      // tween shares this timeline at constant car speed).
+      const progressAtY = (y: number) => lengthAtY(trackPath, y, trackLen) / carLen;
+
       // Mirror-flip progress thresholds: every connector's S-bend reverses its own
-      // curvature at its midpoint (see curveMidpoint), and S1..S4 alternate sides
-      // (right/left/right/left), so consecutive connectors alternate WHICH way they
-      // bend too - S1->S2 and S3->S4 curve the same direction, S2->S3 curves the
-      // opposite way. autoRotate alone banks correctly within a single bend, but a
-      // side-view car glyph needs an extra mirror ACROSS the track's own axis (roof
-      // for floor, not nose for tail) to keep reading "upright" once the bend's own
-      // chirality flips - toggled exactly at each connector's midpoint (the one
-      // point on a bend that's momentarily as vertical as the straights either side
-      // of it, so the mirror lands invisibly).
+      // curvature at its midpoint, and S1..S4 alternate sides (right/left/right/
+      // left), so consecutive connectors alternate WHICH way they bend too - S1->S2
+      // and S3->S4 curve the same direction, S2->S3 curves the opposite way.
+      // autoRotate alone banks correctly within a single bend, but a side-view car
+      // glyph needs an extra mirror ACROSS the track's own axis (roof for floor, not
+      // nose for tail) to keep reading "upright" once the bend's own chirality
+      // flips. Triggered as soon as the car enters the FIRST kerb zone of the bend
+      // (matching when the kerbs themselves first appear, not the geometric
+      // midpoint) - earlier than the perfectly-vertical inflection point, so the
+      // mirror is eased (see the tween below), not snapped, to stay smooth.
       const flipThresholds = measured.geometry.segments
         .filter((s) => s.kind === "curve")
-        .map((c) => curveMidpoint(c.d))
+        .map((c) => curvePointAt(c.d, KERB_ZONES[0][0]))
         .filter((p): p is Pt => p !== null)
-        .map((p) => lengthAtY(trackPath, p.y, trackLen) / carLen)
+        .map((p) => progressAtY(p.y))
         .sort((a, b) => a - b);
 
       const tl = gsap.timeline({
@@ -242,31 +245,51 @@ export function TrackSpine() {
           scrub: 1,
         },
       });
-      tl.to(strokes, { drawSVG: "100%", duration: trackLen / carLen }, 0)
-        .to(kerbs, { autoAlpha: 0.55, duration: 0.35 }, 0.15)
-        .to(
-          car,
-          {
-            duration: 1,
-            motionPath: {
-              path: carPath,
-              align: carPath,
-              alignOrigin: [0.5, 0.5],
-              autoRotate: true,
-            },
-            onUpdate: () => {
-              // scaleY, not scaleX: carFlip sits inside `car` (the autoRotate
-              // target), so its local frame is already rotated with the tangent -
-              // local +x IS the direction of travel. Mirroring on X would flip
-              // nose-for-tail; the correction needed here is roof-for-floor,
-              // perpendicular to travel - i.e. across the track's own axis - which
-              // is local Y.
-              const passed = flipThresholds.filter((t) => tl.progress() >= t).length;
-              gsap.set(carFlip, { scaleY: passed % 2 === 1 ? -1 : 1 });
-            },
+      tl.to(strokes, { drawSVG: "100%", duration: trackLen / carLen }, 0);
+
+      // Each kerb zone reveals individually, timed to when the drawn line reaches
+      // ITS OWN start point - so they appear progressively as the track grows
+      // (the first one, right at S1's exit, sits at a near-zero threshold and so is
+      // already visible at the top of the page) instead of every kerb on the page
+      // fading in together at one fixed early moment.
+      measured.geometry.segments
+        .filter((s) => s.kind === "curve")
+        .forEach((c, i) => {
+          KERB_ZONES.forEach(([t0], z) => {
+            const p = curvePointAt(c.d, t0);
+            const kerbEl = svg.querySelector<SVGGElement>(`[data-kerb-id="${i}-${z}"]`);
+            if (!p || !kerbEl) return;
+            tl.to(kerbEl, { autoAlpha: 0.55, duration: 0.03 }, progressAtY(p.y));
+          });
+        });
+
+      // Tracks the last-applied flip state so onUpdate only fires a transition on
+      // an ACTUAL crossing, not every scrub tick; the very first evaluation (page
+      // load, whatever scroll position that lands at) snaps instantly rather than
+      // visibly animating in.
+      let lastPassed: number | null = null;
+      tl.to(
+        car,
+        {
+          duration: 1,
+          motionPath: {
+            path: carPath,
+            align: carPath,
+            alignOrigin: [0.5, 0.5],
+            autoRotate: true,
           },
-          0,
-        );
+          onUpdate: () => {
+            const passed = flipThresholds.filter((t) => tl.progress() >= t).length;
+            if (passed === lastPassed) return;
+            const initial = lastPassed === null;
+            lastPassed = passed;
+            const scaleY = passed % 2 === 1 ? -1 : 1;
+            if (initial) gsap.set(carFlip, { scaleY });
+            else gsap.to(carFlip, { scaleY, duration: 0.3, ease: "power2.out", overwrite: true });
+          },
+        },
+        0,
+      );
       // ScrollTrigger measures on creation; a rebuild after resize needs fresh math.
       ScrollTrigger.refresh();
     });
@@ -310,7 +333,7 @@ export function TrackSpine() {
             under the track line. */}
         {curves.flatMap((c, i) =>
           kerbD(c.d).map((d, z) => (
-            <g key={`${i}-${z}`} data-kerb opacity={0.55}>
+            <g key={`${i}-${z}`} data-kerb data-kerb-id={`${i}-${z}`} opacity={0.55}>
               <path d={d} fill="none" stroke={KERB_RED} strokeWidth={8} strokeDasharray="12 12" />
               <path
                 d={d}
