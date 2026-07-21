@@ -53,9 +53,30 @@ export function SectorNumeral({ n, className = "" }: { n: number; className?: st
       onPointerLeave={() => setHovered(false)}
       className={`relative isolate inline-block overflow-hidden ${className}`}
     >
-      <svg width="0" height="0" className="absolute" aria-hidden>
+      {/* Safari silently drops a CSS mask-image referencing an SVG <mask> when the
+          housing <svg> is zero-sized (width/height 0) - Chrome tolerates it, WebKit
+          doesn't reliably resolve the reference and just skips the mask, showing the
+          bloom unclipped. Giving it the wrapper's own real box (still paints nothing
+          - <defs> never renders) is the standard cross-browser fix; explicit x/y/
+          width/height on <mask> itself for the same reason (WebKit wants them
+          explicit rather than relying on the objectBoundingBox default). */}
+      <svg
+        width="100%"
+        height="100%"
+        className="pointer-events-none absolute inset-0"
+        aria-hidden
+        focusable="false"
+      >
         <defs>
-          <mask id={maskId} maskUnits="objectBoundingBox" maskContentUnits="userSpaceOnUse">
+          <mask
+            id={maskId}
+            x="0"
+            y="0"
+            width="100%"
+            height="100%"
+            maskUnits="objectBoundingBox"
+            maskContentUnits="userSpaceOnUse"
+          >
             <rect x="-1000" y="-1000" width="3000" height="3000" fill="black" />
             <text
               x="0"
