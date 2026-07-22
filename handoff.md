@@ -1,56 +1,120 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-02.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-22.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
-> PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), AND the M3
-> FRONTEND (ASCII/dither glyph + UI system) are all MERGED to `main` and live on
-> PRODUCTION (`sector4-zeta.vercel.app`).**
+> PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), M3 FRONTEND
+> (ASCII/dither glyph + UI system), AND the LANDING PAGE (v1+v2, full race-track spine)
+> are all MERGED to `main` and LIVE on PRODUCTION (`sector4.net`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — LANDING V2 (branch `landing-page`, PR #37 OPEN, head `7a22fa8`, awaiting owner preview)
-> **LANDING V2 BUILT on top of v1 (2026-07-19 second session, owner-brainstormed).** Spec/plan
-> `docs/superpowers/{specs,plans}/2026-07-19-landing-v2-hero-sections*`; ledger `.superpowers/sdd/progress.md`.
-> Whole-branch review READY FOR OWNER PREVIEW (zero Critical/Important). What changed vs v1:
-> (1) **Hero = type-led**: NO wordmark (nav carries brand); thesis IS the hero, verbatim "A lap has three
-> sectors. / This is the one where you find out why."; light recipe (#fafafa/#406cd6, cols 240) over REAL
-> b-roll — owner bought it, `public/hero.mp4` committed (0.85MB 960x540, recompressed from 46MB original
-> via ffmpeg CRF28, audio stripped; original NOT in repo). `data-hero` attrs (video/thesis/cta/cue) =
-> stable hooks for the LATER preloader pass. (2) **Sections = sector conceit**, REORDERED S1 Ask ("Formula
-> 1, minus the false confidence."), S2 Learn, S3 Weekend, S4 Honest payoff ("The fourth sector is the
-> truth."); oversized faded SectorNumeral per section (alternating sides), DrawSVG SectorDivider timing
-> lines between. (3) **Motion**: site-wide Lenis smooth scroll (layout `SmoothScroll`, null-rendering,
-> synced to ScrollTrigger via gsap ticker) + `SectionReveal` ([data-reveal] stagger, once:true); gsap
-> ^3.15 (DrawSVG now free/public) + lenis deps; ALL motion in gsap.matchMedia reduced-motion gates,
-> hidden states via gsap.set only (never CSS — no-JS users see everything). `app/lib/gsap.ts` = the one
-> client-only plugin-registration point; `app/lib/motion.ts` pure/tested.
-> **OWNER PREVIEW CHECKLIST (PR #37, comment posted):** (a) hero over real footage — palette tunable in
-> /lab/dither E; (b) S4 numeral anchors viewport-edge (full-width section, unlike S1-S3) — check wide
-> viewports; (c) reduced-motion OS check; (d) smooth-scroll feel on all 5 routes; (e) merge call.
-> **DEFERRED NEXT PASSES (owner ordering): preloader + hero reveal choreography, THEN footer redesign.**
-> **KNOWN FOLLOW-UP (Minor):** MobileNav overlay + wheel on narrow non-touch window accumulates Lenis
-> targetScroll (jump on close); fix = lenis.stop()/start() around overlay-open or data-lenis-prevent.
+> ## 🔴 PICK UP HERE NEXT SESSION — LANDING FOOTER REDESIGN (not started)
+> Landing is fully shipped and stable (see below); the footer is explicitly the last
+> deferred piece from the original landing-v2 ordering (owner: "hero first, then
+> sections working downwards... finally coming back to the preloader + hero reveal
+> followed by the footer"). **Preloader + hero reveal is STILL ALSO deferred** — owner
+> jumped straight to footer this time; confirm with them whether preloader comes first
+> or footer now leads. Current footer is the ORIGINAL v1 one, untouched by any v2/v2b
+> work: `LandingFooter()` in `app/page.tsx` (bottom of file) — wordmark + `NAV_LINKS`
+> row, plain `border-t`, no motion, no sector conceit. Brainstorm fresh (new spec/plan
+> under `docs/superpowers/{specs,plans}/`) — the sector-numbered/race-track visual
+> language from the rest of the page is the obvious throughline to consider, but that's
+> a design call, not a given.
 >
-> ### Landing v1 (same PR, context)
-> All 5 v1 plan tasks complete + review-checked (spec/plan `2026-07-19-landing-page*`).
-> **What's on the PR:** (1) `/` = new landing: full-viewport hero (DitherVideo over `/public/hero.mp4`,
-> falls back to DitherFog while the file doesn't exist — BY DESIGN), SECTOR4 Bebas wordmark + thesis +
-> CTA → /ask, ask-anything chips (deep-link `/ask?q=` prefill, no auto-run), honest-by-design (live
-> scored-race count, degrades to copy), learn, this-weekend, footer. `/` is force-dynamic. (2) Ask moved
-> VERBATIM to `/ask` (+9 prefill lines, window.location.search on mount). Nav: Ask→/ask,
-> `emitAskResetIfOnAsk`. (3) **`app/lib/bayer.ts`** gained the LUMINANCE path + BAYER8 (tested) — math
-> identical to paper's ImageDithering 4x4. (4) **`DitherVideo`** renders any <video> per-frame through it
-> (cols-grid + pixelated upscale; reduced-motion/autoplay-block → static frame; missing src/error →
-> children fallback; InView+tab-visibility-gated rAF). (5) **`/lab/dither` section E** = the b-roll test
-> bench: local FILE PICKER (nothing committed) + palette/cols/matrix toggles + hero-copy overlay + a
-> "Capture frame" PARITY PROOF (paper ImageDithering vs ours, same frame side-by-side).
-> **OWNER NEXT STEPS:** (a) eyeball the PR #37 preview: landing `/`, `/ask` (incl. nav-Ask reset + ?q=),
-> lab E with any local test clip; (b) verify the parity A/B; (c) purchase the licensed b-roll → drop at
-> `public/hero.mp4` (hero lights up automatically, no code change); (d) merge call.
-> **HARD-WON LESSON (this branch):** NEVER import VALUES from a "use client" module into a server
-> component — they become client references (`NAV_LINKS.map()` 500'd the landing at request time; build
-> passed because the route is dynamic). Pure nav constants now live in server-safe **`app/lib/nav.ts`**
-> (SiteNav re-exports for compat). For any new server route: smoke it with a local `next start` + curl,
-> not just `npm run build`.
+> ## LANDING PAGE — full status (v1 → v2 → v2b → 4 post-merge fix PRs, ALL LIVE)
+> Built across two sessions (2026-07-19, 2026-07-20/21/22). Spec/plan trail:
+> `docs/superpowers/{specs,plans}/2026-07-19-landing-page*` (v1),
+> `2026-07-19-landing-v2-hero-sections*` (v2: hero rework + sector sections + Lenis),
+> `2026-07-19-landing-v2b-track-spine*` (v2b: race-track spine + numeral hover). Ledger
+> `.superpowers/sdd/progress.md` has full per-task detail; this is the compressed
+> current-state summary.
+>
+> **Hero:** type-led, NO wordmark (nav carries brand) — thesis IS the hero, verbatim "A
+> lap has three sectors. / This is the one where you find out why." + CTA "Ask your
+> first question" → `/ask`. Full-bleed `DitherVideo` over the real licensed b-roll
+> (`public/hero.mp4`, 0.85MB 960x540, committed), light recipe `#fafafa`/`#406cd6`,
+> `cols={240}` mobile / `colsDesktop={420}` from `md` up. **`gain={4}`** on `DitherVideo`
+> (new prop, `bayerLuminancePasses`'s 5th arg) — the footage's mean luma (~32/255) was
+> too dark for the light palette and painted all-background without it; this is now a
+> load-bearing prop, don't remove. `.legible` scrim intensity ~halved from the original
+> (see `app/globals.css`) so the footage reads through the text. `data-hero` attrs
+> (video/thesis/cta/cue) are stable hooks for the deferred preloader pass.
+>
+> **Sections:** S1 Ask ("Formula 1, minus the false confidence.") → S2 Learn → S3
+> Weekend → S4 Honest payoff ("The fourth sector is the truth."). Real `pt-24 sm:pt-32`
+> clearance below the hero (the numerals' own negative offset alone wasn't enough — car
+> was crowding the hero edge).
+>
+> **Race-track spine (`app/components/TrackSpine.tsx`)** replaced the original
+> SectorDivider lines: one continuous SVG path connecting the four `SectorNumeral`
+> anchors (geometry in `app/lib/track-path.ts`, pure/tested — straights at each anchor,
+> cubic S-curve connectors), scroll-scrubbed (`scrub: 1`) via `app/lib/gsap.ts`
+> (ScrollTrigger + DrawSVGPlugin + MotionPathPlugin, gsap ^3.15). Grid-box start bracket
+> (closed-bottom/open-top — closed side must face the track), chequered finish strip,
+> car (`AsciiEmblem kind="car"`) rides the path via `MotionPath` + `autoRotate`, exits
+> past the finish off-screen (scaled to `viewportH`) rather than stopping on it — fully
+> scroll-reversible. **Car mirror:** `autoRotate` alone banks correctly within one bend,
+> but S1..S4 alternate sides so consecutive connectors alternate WHICH way they curve
+> (S1→S2 and S3→S4 same direction, S2→S3 opposite) — a `scaleY` mirror (across the
+> track's own axis, NOT `scaleX` which flips nose-for-tail — that was a real bug, fixed)
+> toggles at each connector's kerb-entry point (not the geometric midpoint — was too
+> late), eased 0.3s via `gsap.to` on an ACTUAL-crossing guard (not every scrub tick),
+> first-load evaluation snaps silently. **Kerbs:** two zones per connector near each end
+> (`KERB_ZONES`, an S-curve's curvature peaks near the ends, not the dead-straight
+> middle) — each zone reveals INDIVIDUALLY, timed to when the drawn line reaches that
+> zone's own start point (progressive reveal as the track grows, not one bulk fade for
+> every kerb on the page). Reduced-motion: full static track, car parked at finish,
+> zero scrub — architecturally can't render before JS runs (measurement needs
+> `getBoundingClientRect`), accepted as a benign no-JS degrade since the whole overlay
+> is `aria-hidden`/decorative. **Hidden below `sm`** — deliberate (overlay competes with
+> full-width text on narrow screens), not a bug; if a mobile version is ever wanted it's
+> new scope, not a fix.
+>
+> **`SectorNumeral`** (`app/components/SectorNumeral.tsx`): oversized faded "S{n}",
+> hover-interactive — CardFog dither bloom clipped to the EXACT glyph shape via an
+> inline SVG `<clipPath>` containing a live `<text>` (inherits the real font, no
+> rasterization). **Two real cross-browser bugs found and fixed here, in order:**
+> (1) `useId()` emits colons (`:r4:`) — valid as an HTML `id`, but `url(#id)` is a CSS
+> fragment reference needing them escaped; Chrome tolerates the raw colon, Safari
+> doesn't and silently drops the reference. Fixed by stripping to
+> `[a-zA-Z0-9_-]` before building the id. **This alone did NOT fix Safari** — (2) the
+> real cause was `mask-image` applied to an ancestor of `mix-blend-mode` + WebGL canvas
+> content (CardFog's own corner-gradient mask + multiply-blended `Dithering` canvases):
+> a documented WebKit weak spot where masks need a luminance composite into the blend
+> group that Safari doesn't reliably perform across layers. **Fix: `clip-path` instead
+> of `mask-image`** — a hard geometric clip resolved before blending, not subject to
+> that compositing bug. Confirmed fixed on all browsers by the owner. (3) Separately,
+> `intensity={0.5}` was washing the bloom to half strength for no design reason — the
+> `/learn` cards (`ConceptCard`) use CardFog's default of `1`; dropped the override to
+> match, full color now.
+>
+> **Site-wide:** Lenis smooth scroll (`app/components/SmoothScroll.tsx`, mounted in
+> `layout.tsx`, synced to ScrollTrigger via the gsap ticker), `SectionReveal`
+> ([data-reveal] stagger entrances, `once: true`). All motion inside
+> `gsap.matchMedia("(prefers-reduced-motion: no-preference)")`, hidden states set via
+> `gsap.set` only — never CSS — so reduced-motion/no-JS users see full content.
+> **Known follow-up (Minor, not fixed):** MobileNav overlay + wheel scroll on a narrow
+> non-touch window can accumulate Lenis's `targetScroll` (a jump on close) — fix would
+> be `lenis.stop()/start()` around the overlay-open state, or `data-lenis-prevent`.
+>
+> **Merged PRs (chronological):** #37 (v1+v2 combined, hero/sections/motion) →
+> #38 (v2b track spine + fix wave: car flip/kerb-zones/grid-box/S1-clearance/numeral
+> hover/hero-gain/scrim) → #39 (Safari mask colon fix, insufficient alone) → #40
+> (mask→clip-path, the actual Safari fix) → #41 (numeral bloom intensity). All on
+> `main`, all live. `landing-page` branch still exists but has nothing unmerged as of
+> this writing — start fresh work on a NEW branch, don't assume `landing-page` is
+> current without checking `git log main..landing-page` first.
+>
+> **Ops lessons from this stretch (read before touching TrackSpine/DitherVideo again):**
+> - `pkill -f "next start"` does NOT kill the prod server locally — it renames to
+>   `next-server`. Kill by PID from `lsof -ti tcp:3000 -sTCP:LISTEN` or every "verify"
+>   is against a stale build. (See memory `next-server-kill-by-port`.)
+> - When a visual bug report doesn't match what a screenshot shows, don't trust a
+>   screenshot taken against a server you didn't just restart+rebuild — this cost real
+>   time twice this session.
+> - Geometric/animation bugs (car orientation, kerb placement) are worth instrumenting
+>   directly in the browser (expose the gsap timeline on `window`, sample with real
+>   settle time past `scrub`'s smoothing window) rather than reasoning from screenshots
+>   alone — caught a wrong root-cause guess this way before shipping it.
 >
 > ## ⭐ NEXT-UP BACKLOG (owner-prioritized 2026-07-06 — pick up IN THIS ORDER)
 > 1. ✅ **DONE (2026-07-06, PR #22, merge `02f3d5c`) — `src/data/grid.py:load_qualifying_grid` date-gate.**
