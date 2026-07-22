@@ -5,6 +5,14 @@
 // /accuracy (the Great Britain 2026 failure). This scans the season's rounds and backfills
 // any completed round still missing its `final`. Idempotent; reuses writeWeekendSnapshot.
 // I/O is injectable so the logic is unit-testable without Blob.
+//
+// LABELING: a missed `final` is NOT necessarily "never predicted live" — R17 rolls
+// schedule.gp the same day as the race (evening), which structurally beats the next
+// once-daily Vercel cron fire, so EVERY race's `final` capture window is missed by
+// due-write, live races included (Belgium 2026 was mislabeled this way). The honest signal
+// is whether an earlier LIVE checkpoint (post-quali/pre-quali) already exists for the gp —
+// if so we forecast it before the race and the final backfill is written unflagged; only a
+// gp with no prior live checkpoint (true pre-beta history) gets `reconstructed:true`.
 import { getJson as realGetJson } from "./blob";
 import { snapshotKey, type WeekendSnapshot } from "./snapshot";
 import { writeWeekendSnapshot, getActualFinish as realGetActualFinish } from "./snapshot-write";
@@ -12,7 +20,25 @@ import { writeWeekendSnapshot, getActualFinish as realGetActualFinish } from "./
 export interface ReconcileDeps {
   getJson?: <T>(key: string) => Promise<T | null>;
   getActualFinish?: (year: number, gp: string) => Promise<string[]>;
-  write?: (year: number, gp: string) => Promise<unknown>;
+  write?: (year: number, gp: string, reconstructed: boolean) => Promise<unknown>;
+}
+
+/** True when this gp already has a live (non-reconstructed) pre-race checkpoint — i.e. we
+ *  forecast this weekend before the race, we just missed the `final` capture window. The
+ *  daily cron + R17's same-day schedule roll structurally can't land `final`'s due-write
+ *  inside the current gp's window (the roll always beats the next once-daily cron fire), so
+ *  a missed `final` alone does NOT mean "never predicted live" — check the earlier
+ *  checkpoints, which the due-write DOES catch during the week before the roll. */
+async function hadLiveCheckpoint(
+  year: number,
+  gp: string,
+  getJson: <T>(key: string) => Promise<T | null>,
+): Promise<boolean> {
+  for (const checkpoint of ["post-quali", "pre-quali"] as const) {
+    const snap = await getJson<WeekendSnapshot>(snapshotKey(year, gp, checkpoint));
+    if (snap && !snap.reconstructed) return true;
+  }
+  return false;
 }
 
 export interface ReconcileResult {
@@ -33,7 +59,9 @@ export async function reconcileFinals(
   const getJson = deps.getJson ?? realGetJson;
   const getActualFinish = deps.getActualFinish ?? realGetActualFinish;
   const write =
-    deps.write ?? ((y: number, g: string) => writeWeekendSnapshot(y, g, "final", { force: false, reconstructed: true }));
+    deps.write ??
+    ((y: number, g: string, reconstructed: boolean) =>
+      writeWeekendSnapshot(y, g, "final", { force: false, reconstructed }));
 
   const backfilled: string[] = [];
   const alreadyPresent: string[] = [];
@@ -49,7 +77,8 @@ export async function reconcileFinals(
       notRaced.push(gp);
       continue;
     }
-    await write(year, gp);
+    const liveForecast = await hadLiveCheckpoint(year, gp, getJson);
+    await write(year, gp, !liveForecast);
     backfilled.push(gp);
   }
 

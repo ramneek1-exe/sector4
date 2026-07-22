@@ -2,17 +2,26 @@ import { describe, it, expect, vi } from "vitest";
 import { reconcileFinals, safeReconcileFinals } from "./reconcile-finals";
 import { snapshotKey } from "./snapshot";
 
-// Injected deps: a map of existing final-snapshot keys, and a map of gp -> finishOrder.
+// Injected deps: a map of existing final-snapshot keys, a map of gp -> finishOrder, and a
+// map of arbitrary snapshot keys -> snapshot contents (for pre-quali/post-quali lookups).
 function deps(opts: {
   existingFinals?: string[];
   actuals?: Record<string, string[]>;
+  snapshots?: Record<string, { reconstructed?: boolean }>;
 }) {
-  const existing = new Set(opts.existingFinals ?? []);
+  const existingFinals = new Set(opts.existingFinals ?? []);
   const actuals = opts.actuals ?? {};
-  const write = vi.fn(async (_y: number, _g: string) => ({ status: "snapshotted" }));
+  const snapshots = opts.snapshots ?? {};
+  const write = vi.fn(
+    async (_y: number, _g: string, _reconstructed: boolean) => ({ status: "snapshotted" }),
+  );
   return {
     write,
-    getJson: async <T>(key: string) => (existing.has(key) ? ({} as T) : null),
+    getJson: async <T>(key: string) => {
+      if (existingFinals.has(key)) return {} as T;
+      if (key in snapshots) return snapshots[key] as T;
+      return null;
+    },
     getActualFinish: async (_y: number, gp: string) => actuals[gp] ?? [],
   };
 }
@@ -20,14 +29,39 @@ function deps(opts: {
 const YEAR = 2026;
 
 describe("reconcileFinals", () => {
-  it("backfills a completed round with no final snapshot", async () => {
+  it("backfills a completed round with no final snapshot as reconstructed (no prior live checkpoint)", async () => {
     const d = deps({ actuals: { "Great Britain": ["NOR", "LEC", "PIA"] } });
     const out = await reconcileFinals(YEAR, ["Great Britain"], d);
     expect(out.backfilled).toEqual(["Great Britain"]);
     expect(out.alreadyPresent).toEqual([]);
     expect(out.notRaced).toEqual([]);
     expect(d.write).toHaveBeenCalledTimes(1);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain");
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true);
+  });
+
+  it("backfills a missed final as LIVE (not reconstructed) when a live post-quali checkpoint already exists", async () => {
+    // Mirrors Belgium 2026: forecast live pre-race (post-quali written by the due-write cron
+    // before schedule.gp rolled), but the `final` write window was missed by cron timing.
+    const d = deps({
+      actuals: { Belgium: ["VER", "NOR", "PIA"] },
+      snapshots: {
+        [snapshotKey(YEAR, "Belgium", "post-quali")]: { reconstructed: false },
+      },
+    });
+    const out = await reconcileFinals(YEAR, ["Belgium"], d);
+    expect(out.backfilled).toEqual(["Belgium"]);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Belgium", false);
+  });
+
+  it("still marks reconstructed:true when the only prior checkpoint was itself reconstructed", async () => {
+    const d = deps({
+      actuals: { China: ["VER", "NOR", "PIA"] },
+      snapshots: {
+        [snapshotKey(YEAR, "China", "post-quali")]: { reconstructed: true },
+      },
+    });
+    const out = await reconcileFinals(YEAR, ["China"], d);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "China", true);
   });
 
   it("skips a round whose final snapshot already exists", async () => {
@@ -67,7 +101,7 @@ describe("reconcileFinals", () => {
     expect(out.backfilled).toEqual(["Great Britain"]);
     expect(out.notRaced).toEqual(["Belgium"]);
     expect(d.write).toHaveBeenCalledTimes(1);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain");
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true);
   });
 });
 
