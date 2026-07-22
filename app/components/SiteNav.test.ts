@@ -8,7 +8,7 @@ describe("NAV_LINKS", () => {
       "Ask",
       "Learn",
       "Accuracy",
-      "Upcoming weekend",
+      "Next race",
     ]);
   });
 });

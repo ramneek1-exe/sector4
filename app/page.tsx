@@ -223,7 +223,7 @@ function ThisWeekend() {
         </div>
         <div>
           <p data-reveal className={SECTION_LABEL}>
-            Sector 3 · This weekend
+            Sector 3 · Next race
           </p>
           <h2 data-reveal className={SECTION_HEADING}>
             {gpLabel(schedule.gp)} Grand Prix
@@ -233,7 +233,7 @@ function ThisWeekend() {
             and we say so while the picture is still fuzzy.
           </p>
           <Link data-reveal href="/weekend" className={SECTION_LINK}>
-            See this weekend →
+            See next race →
           </Link>
         </div>
       </SectionReveal>
