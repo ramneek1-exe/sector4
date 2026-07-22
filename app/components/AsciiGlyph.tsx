@@ -3,28 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import { DriverGlyph } from "@/app/components/DriverGlyph";
 import { useConceptPopover } from "@/app/components/ConceptPopover";
-import { bayerCells, type BayerCell } from "@/app/lib/bayer";
+import { thresholdCells, type BayerCell } from "@/app/lib/bayer";
 import { resolveGlyph, driverName } from "@/app/lib/glyph";
 import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { getEntityWhat, entityKey } from "@/app/lib/entity-whats";
 
 const REVEAL_MS = 450; // dither-resolve reveal duration
-// Default sampling grid width when the caller doesn't pin `cols` (pre-dither-swap value,
-// restored: see AsciiEmblem's DEFAULT_COLS for why the size-derived 1px/cell default
-// regressed to reading as specks instead of legible pixel art).
-const DEFAULT_COLS = 32;
+// Target CSS px per grid cell when the caller doesn't pin `cols` -- see AsciiEmblem's
+// DEFAULT_CELL_PX for the owner-reviewed rationale (threshold quantization at 2px/cell,
+// no ordered-dither scatter).
+const DEFAULT_CELL_PX = 2;
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);
 }
 
 /**
- * The driver helmet rendered as a BAYER-DITHERED field (PRD §8). The helmet is
- * rasterised off-screen at a 1 CSS px per cell grid; each pixel is thresholded
- * through the shared ordered-Bayer matrix (app/lib/bayer.ts) so solid interiors
- * fill exactly and antialiased edges dither. The team colour is retained; a crisp
- * numeral is overlaid for legibility. Cells resolve in Bayer order on entry
- * (dither-resolve reveal). The vector glyph is the SSR / no-canvas fallback.
+ * The driver helmet rendered as a hard-threshold pixel-art field (PRD §8). The helmet is
+ * rasterised off-screen at the sampling grid; each cell is a majority-coverage alpha
+ * threshold (app/lib/bayer.ts) so solid interiors fill exactly and edges quantize to a
+ * clean staircase, not a dither scatter. The team colour is retained; a crisp numeral is
+ * overlaid for legibility. Cells resolve in reading order on entry (dither-resolve
+ * reveal). The vector glyph is the SSR / no-canvas fallback.
  */
 export function AsciiGlyph({
   code,
@@ -49,12 +49,13 @@ export function AsciiGlyph({
     open(entityKey("driver", code), e.currentTarget.getBoundingClientRect());
   };
 
-  // 1. Rasterise the helmet off-screen at the sampling grid and Bayer-sample it.
+  // 1. Rasterise the helmet off-screen at the sampling grid and hard-threshold it. `cols`
+  //    pins the grid explicitly; otherwise it's derived from `size` at DEFAULT_CELL_PX.
   useEffect(() => {
     let cancelled = false;
     const { w, h } = HELMET_VIEWBOX;
-    const gCols = Math.round(cols ?? DEFAULT_COLS);
-    const gRows = Math.round(size * (h / w));
+    const gCols = Math.max(6, Math.round(cols ?? size / DEFAULT_CELL_PX));
+    const gRows = Math.max(1, Math.round(gCols * (h / w)));
     const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(helmetSvgMarkup(g, false))}`;
 
     const img = new Image();
@@ -68,7 +69,7 @@ export function AsciiGlyph({
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, c.width, c.height);
         const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        setCells(bayerCells(data, gCols, gRows));
+        setCells(thresholdCells(data, gCols, gRows));
         setGridDims({ cols: gCols, rows: gRows });
       } catch {
         /* tainted/unsupported canvas → keep the vector fallback */
@@ -81,7 +82,7 @@ export function AsciiGlyph({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, team, size, cols]);
 
-  // 2. Paint the Bayer field to the visible canvas, with a dither-resolve reveal.
+  // 2. Paint the quantized field to the visible canvas, with a dither-resolve reveal.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!cells || !grid || !canvas) return;

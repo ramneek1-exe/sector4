@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { bayerCells, type BayerCell } from "@/app/lib/bayer";
+import { thresholdCells, type BayerCell } from "@/app/lib/bayer";
 import { emblemViewBox, emblemSvgMarkup, type EmblemKind, type SvgEmblem } from "@/app/lib/emblems";
 import { CAR_SILHOUETTE } from "@/app/lib/car-silhouette";
 
 const REVEAL_MS = 450; // dither-resolve reveal duration
 const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette rendered monochrome
-// Default sampling grid width when the caller doesn't pin `cols` (pre-dither-swap value,
-// restored: a since-regressed refactor derived the grid from `size` at 1px/cell instead,
-// which samples at native resolution -- the only visible "dither" then is antialiasing
-// noise at the edge, reading as flecks/specks rather than deliberate pixel art).
-const DEFAULT_COLS = 28;
+// Target CSS px per grid cell when the caller doesn't pin `cols` (owner-reviewed against
+// rendered candidates, 2026-07-22: threshold quantization at 2px/cell read as clean 8-bit
+// pixel art on all of tyre/car/flag/helmet, without losing shape detail). An earlier
+// ordered-Bayer-dither approach at a similarly chunky cell size scattered partial-alpha
+// edge cells OUTSIDE the true silhouette (ragged, "irregular" per owner feedback) --
+// thresholdCells' hard majority-coverage cutoff has no such scatter, so a uniform cell
+// target works across shapes where Bayer needed fragile per-kind tuning.
+const DEFAULT_CELL_PX = 2;
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);
@@ -58,12 +61,12 @@ function carImageData(gCols: number, gRows: number, color: string): ImageData | 
 
 /**
  * An abstract brand emblem (tyre / car / airflow / flag / battery) rendered as a
- * BAYER-DITHERED field (PRD §8) — the same rasterise → grid-sample → ordered-threshold
- * technique as the driver helmets (app/lib/bayer.ts). SVG emblems are rasterised
- * off-screen at a 1 CSS px per cell grid; the car is drawn from its traced coverage
- * bitmap (app/lib/car-silhouette.ts), scaled onto a second offscreen canvas at the
- * target grid so coverage becomes alpha before the Bayer pass. `animate` resolves the
- * field in Bayer order on mount (dither-resolve reveal, used for the small index
+ * hard-threshold pixel-art field (PRD §8) — the same rasterise → grid-sample →
+ * majority-coverage-threshold technique as the driver helmets (app/lib/bayer.ts). SVG
+ * emblems are rasterised off-screen at the sampling grid; the car is drawn from its traced
+ * coverage bitmap (app/lib/car-silhouette.ts), scaled onto a second offscreen canvas at
+ * the target grid so coverage becomes alpha before quantizing. `animate` resolves the
+ * field in reading order on mount (dither-resolve reveal, used for the small index
  * markers); instant otherwise (used for the large faded watermark behind a concept
  * page). Opacity/size are controlled by the caller's className. Decorative +
  * aria-hidden; the surrounding text carries the meaning.
@@ -88,19 +91,18 @@ export function AsciiEmblem({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const emblemColor = color ?? CAR_COLOR;
 
-  // 1. Rasterise the emblem off-screen at the sampling grid and Bayer-sample it. `cols`
-  //    pins the grid explicitly (e.g. a thin car silhouette needs more columns to read);
-  //    otherwise it's derived from `size` at DEFAULT_CELL_PX per cell.
+  // 1. Rasterise the emblem off-screen at the sampling grid and hard-threshold it. `cols`
+  //    pins the grid explicitly; otherwise it's derived from `size` at DEFAULT_CELL_PX.
   useEffect(() => {
     let cancelled = false;
-    const gCols = Math.round(cols ?? DEFAULT_COLS);
+    const gCols = Math.max(6, Math.round(cols ?? size / DEFAULT_CELL_PX));
 
     if (kind === "car") {
       const gRows = Math.max(1, Math.round(gCols * (CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols)));
       try {
         const imageData = carImageData(gCols, gRows, emblemColor);
         if (!cancelled && imageData) {
-          setCells(bayerCells(imageData.data, gCols, gRows));
+          setCells(thresholdCells(imageData.data, gCols, gRows));
           setGridDims({ cols: gCols, rows: gRows });
         }
       } catch {
@@ -125,7 +127,7 @@ export function AsciiEmblem({
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, c.width, c.height);
         const { data } = ctx.getImageData(0, 0, c.width, c.height);
-        setCells(bayerCells(data, gCols, gRows));
+        setCells(thresholdCells(data, gCols, gRows));
         setGridDims({ cols: gCols, rows: gRows });
       } catch {
         /* tainted/unsupported canvas → leave the (empty) placeholder */
@@ -137,7 +139,7 @@ export function AsciiEmblem({
     };
   }, [kind, size, emblemColor, cols]);
 
-  // 2. Paint the Bayer field to the visible canvas, optionally with a dither-resolve reveal.
+  // 2. Paint the quantized field to the visible canvas, optionally with a resolve reveal.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!cells || !grid || !canvas) return;
