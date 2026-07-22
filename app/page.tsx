@@ -181,8 +181,12 @@ function AskAnything() {
 
 function LearnTheSport() {
   return (
-    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
-      <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
+    <section className="relative">
+      {/* Same tint-offset fix as S4 (HonestByDesign): the numeral pokes -top-6/-top-10
+          above the section's own top edge, so the tint must start there too, not at the
+          section box, or its flat top edge slices across the glyph. */}
+      <div aria-hidden className="absolute inset-x-0 -top-6 bottom-0 bg-ink/[0.02] sm:-top-10" />
+      <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
         <div className="absolute -top-6 left-0 sm:-top-10">
           <SectorNumeral n={2} />
         </div>
