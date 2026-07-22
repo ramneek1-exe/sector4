@@ -243,7 +243,11 @@ function ThisWeekend() {
 
 function HonestByDesign({ liveScored }: { liveScored: number }) {
   return (
-    <section className="relative bg-ink/[0.02]">
+    <section className="relative">
+      {/* The S4 numeral pokes -top-6/-top-10 above this section's own top edge (same as
+          S1-S3); extend the tint to match that offset so its flat top edge doesn't slice
+          across the glyph. */}
+      <div aria-hidden className="absolute inset-x-0 -top-6 bottom-0 bg-ink/[0.02] sm:-top-10" />
       <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
         <div className="absolute -top-6 left-0 sm:-top-10">
           <SectorNumeral n={4} />
