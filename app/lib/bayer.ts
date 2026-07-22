@@ -89,3 +89,42 @@ export function bayerCells(
 
   return cells;
 }
+
+/** Hard-threshold quantization: a cell paints iff its sampled alpha covers at least `cutoff`
+ *  of the cell (majority-coverage rounding), no ordered-dither scatter. This is the classic
+ *  nearest-neighbor pixel-art downsample -- unlike bayerCells, a partial-alpha edge cell is
+ *  either fully in or fully out based on its own coverage, never toggled by an unrelated
+ *  per-cell dither pattern, so the edge stays a clean staircase instead of scattering cells
+ *  outside the true silhouette. `t` is a reading-order fraction (for the same progressive
+ *  dither-resolve reveal bayerCells' callers use), not a dither weight. */
+export function thresholdCells(
+  data: Uint8ClampedArray,
+  cols: number,
+  rows: number,
+  cutoff = 0.5
+): BayerCell[] {
+  const cells: BayerCell[] = [];
+  const total = cols * rows;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
+
+      const alpha = a / 255;
+      if (alpha >= cutoff) {
+        cells.push({
+          x,
+          y,
+          color: `rgb(${r},${g},${b})`,
+          t: (y * cols + x) / total,
+        });
+      }
+    }
+  }
+
+  return cells;
+}

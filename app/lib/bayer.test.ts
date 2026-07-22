@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { BAYER4, BAYER8, bayerThreshold, bayerThreshold8, bayerCells, bayerLuminancePasses } from "./bayer";
+import {
+  BAYER4,
+  BAYER8,
+  bayerThreshold,
+  bayerThreshold8,
+  bayerCells,
+  bayerLuminancePasses,
+  thresholdCells,
+} from "./bayer";
 
 function px(cols: number, rows: number, fill: (x: number, y: number) => number[]): Uint8ClampedArray {
   const d = new Uint8ClampedArray(cols * rows * 4);
@@ -66,5 +74,33 @@ describe("bayer", () => {
   it("bayerLuminancePasses works with 8x8 matrix", () => {
     const passes = bayerLuminancePasses(px(8, 8, () => [255, 255, 255, 255]), 8, 8, "8x8");
     expect(passes).toEqual(Array(64).fill(true));
+  });
+
+  describe("thresholdCells", () => {
+    it("solid interior always passes; fully transparent never does", () => {
+      const solid = thresholdCells(px(4, 4, () => [10, 20, 30, 255]), 4, 4);
+      expect(solid).toHaveLength(16);
+      expect(solid[0].color).toBe("rgb(10,20,30)");
+      expect(thresholdCells(px(4, 4, () => [0, 0, 0, 0]), 4, 4)).toHaveLength(0);
+    });
+    it("no scatter: every cell in a checkerboard alpha pattern resolves the SAME way (round, not dithered)", () => {
+      // Half the cells at alpha 0.6 (>= cutoff, all in), half at 0.4 (< cutoff, all out) --
+      // unlike bayerCells, position never flips a cell's own coverage-based decision.
+      const data = px(4, 4, (x) => [0, 0, 0, (x + 1) % 2 === 0 ? 153 : 102]); // 0.6 / 0.4
+      const cells = thresholdCells(data, 4, 4);
+      expect(cells).toHaveLength(8);
+      expect(cells.every((c) => c.x % 2 === 1)).toBe(true);
+    });
+    it("respects a custom cutoff", () => {
+      const data = px(2, 1, () => [0, 0, 0, 128]); // alpha ~0.502
+      expect(thresholdCells(data, 2, 1, 0.4)).toHaveLength(2);
+      expect(thresholdCells(data, 2, 1, 0.6)).toHaveLength(0);
+    });
+    it("t is a reading-order fraction, monotonic across the grid", () => {
+      const cells = thresholdCells(px(4, 4, () => [0, 0, 0, 255]), 4, 4);
+      const ts = cells.map((c) => c.t);
+      expect(ts).toEqual([...ts].sort((a, b) => a - b));
+      expect(new Set(ts).size).toBe(16);
+    });
   });
 });
