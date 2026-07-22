@@ -21,7 +21,14 @@ const NUMERAL_TEXT_CLASS =
 
 export function SectorNumeral({ n, className = "" }: { n: number; className?: string }) {
   const [hovered, setHovered] = useState(false);
-  const maskId = `sector-numeral-mask-${useId()}`;
+  // React's useId() emits ids containing colons (e.g. ":r4:") - valid as a raw HTML
+  // `id` attribute, but a CSS fragment reference (`url(#id)`) requires them escaped
+  // as CSS identifiers. Chrome resolves the unescaped colon leniently; Safari's CSS
+  // url()/fragment parser does not, and silently fails to match the mask - the
+  // bloom then renders unclipped with no error, exactly the Chrome-vs-Safari split
+  // reported. Strip to CSS-identifier-safe characters instead of trusting url()
+  // escaping to handle it.
+  const maskId = `sector-numeral-mask-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   // SVG <text> layout (dominant-baseline) and the HTML span's own line-box don't
