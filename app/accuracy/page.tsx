@@ -65,7 +65,7 @@ export default async function AccuracyPage() {
           No completed rounds scored yet this season. Predictions are issued each weekend and
           scored here after the race.{" "}
           <Link href="/weekend" className="cta-grow text-accent">
-            See this weekend&rsquo;s predictions
+            See next race&rsquo;s predictions
           </Link>
           .
         </p>

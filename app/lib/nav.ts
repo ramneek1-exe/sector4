@@ -10,7 +10,7 @@ export const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/ask", label: "Ask" },
   { href: "/learn", label: "Learn" },
   { href: "/accuracy", label: "Accuracy" },
-  { href: "/weekend", label: "Upcoming weekend" },
+  { href: "/weekend", label: "Next race" },
 ];
 
 // Root matches only on exact "/"; every other href matches by path prefix.
