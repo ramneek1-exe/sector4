@@ -93,7 +93,10 @@ export function SectorNumeral({ n, className = "" }: { n: number; className?: st
         className="pointer-events-none absolute inset-0"
         style={{ clipPath: `url(#${clipId})`, WebkitClipPath: `url(#${clipId})` }}
       >
-        <CardFog active={hovered} intensity={0.5} />
+        {/* No intensity override: default (1, full opacity/colour) matches /learn's
+            ConceptCard usage. The old intensity={0.5} here washed the bloom out to
+            half strength for no reason tied to this component's own design. */}
+        <CardFog active={hovered} />
       </div>
       <span
         ref={textRef}
