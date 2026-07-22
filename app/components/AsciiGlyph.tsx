@@ -9,6 +9,10 @@ import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { getEntityWhat, entityKey } from "@/app/lib/entity-whats";
 
 const REVEAL_MS = 450; // dither-resolve reveal duration
+// Default sampling grid width when the caller doesn't pin `cols` (pre-dither-swap value,
+// restored: see AsciiEmblem's DEFAULT_COLS for why the size-derived 1px/cell default
+// regressed to reading as specks instead of legible pixel art).
+const DEFAULT_COLS = 32;
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);
@@ -33,7 +37,6 @@ export function AsciiGlyph({
   size?: number;
   cols?: number;
 }) {
-  void cols; // accepted for call-site compat; sampling grid is now derived from `size`
   const [cells, setCells] = useState<BayerCell[] | null>(null);
   const [grid, setGridDims] = useState<{ cols: number; rows: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -46,11 +49,11 @@ export function AsciiGlyph({
     open(entityKey("driver", code), e.currentTarget.getBoundingClientRect());
   };
 
-  // 1. Rasterise the helmet off-screen at a 1 CSS px per cell grid and Bayer-sample it.
+  // 1. Rasterise the helmet off-screen at the sampling grid and Bayer-sample it.
   useEffect(() => {
     let cancelled = false;
     const { w, h } = HELMET_VIEWBOX;
-    const gCols = Math.round(size);
+    const gCols = Math.round(cols ?? DEFAULT_COLS);
     const gRows = Math.round(size * (h / w));
     const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(helmetSvgMarkup(g, false))}`;
 
@@ -76,7 +79,7 @@ export function AsciiGlyph({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, team, size]);
+  }, [code, team, size, cols]);
 
   // 2. Paint the Bayer field to the visible canvas, with a dither-resolve reveal.
   useEffect(() => {

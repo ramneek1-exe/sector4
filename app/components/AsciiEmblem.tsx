@@ -7,6 +7,11 @@ import { CAR_SILHOUETTE } from "@/app/lib/car-silhouette";
 
 const REVEAL_MS = 450; // dither-resolve reveal duration
 const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette rendered monochrome
+// Default sampling grid width when the caller doesn't pin `cols` (pre-dither-swap value,
+// restored: a since-regressed refactor derived the grid from `size` at 1px/cell instead,
+// which samples at native resolution -- the only visible "dither" then is antialiasing
+// noise at the edge, reading as flecks/specks rather than deliberate pixel art).
+const DEFAULT_COLS = 28;
 
 function easeOut(t: number) {
   return 1 - (1 - t) * (1 - t) * (1 - t);
@@ -78,16 +83,17 @@ export function AsciiEmblem({
   className?: string;
   color?: string;
 }) {
-  void cols; // accepted for call-site compat; sampling grid is now derived from `size`
   const [cells, setCells] = useState<BayerCell[] | null>(null);
   const [grid, setGridDims] = useState<{ cols: number; rows: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const emblemColor = color ?? CAR_COLOR;
 
-  // 1. Rasterise the emblem off-screen at a 1 CSS px per cell grid and Bayer-sample it.
+  // 1. Rasterise the emblem off-screen at the sampling grid and Bayer-sample it. `cols`
+  //    pins the grid explicitly (e.g. a thin car silhouette needs more columns to read);
+  //    otherwise it's derived from `size` at DEFAULT_CELL_PX per cell.
   useEffect(() => {
     let cancelled = false;
-    const gCols = Math.round(size);
+    const gCols = Math.round(cols ?? DEFAULT_COLS);
 
     if (kind === "car") {
       const gRows = Math.max(1, Math.round(gCols * (CAR_SILHOUETTE.rows / CAR_SILHOUETTE.cols)));
@@ -129,7 +135,7 @@ export function AsciiEmblem({
     return () => {
       cancelled = true;
     };
-  }, [kind, size, emblemColor]);
+  }, [kind, size, emblemColor, cols]);
 
   // 2. Paint the Bayer field to the visible canvas, optionally with a dither-resolve reveal.
   useEffect(() => {
