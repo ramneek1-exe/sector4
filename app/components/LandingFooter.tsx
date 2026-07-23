@@ -3,30 +3,50 @@
 // The landing page's closing statement: a giant SECTOR4 wordmark spanning most of the
 // section's width, with the legal disclaimer beneath it -- this page's OWN styled copy of
 // app/lib/legal.ts's DISCLAIMER (the site-wide SiteFooter renders nothing on "/", see
-// SiteFooter.tsx, so this is the only copy of the text rendered here). This revision adds
-// the scroll-scrubbed parallax reveal; the cursor-magnet letters (Task 6) land as a
-// follow-up commit on this same file.
-import { useEffect, useRef } from "react";
+// SiteFooter.tsx, so this is the only copy of the text rendered here). Two motion layers:
+// a scroll-scrubbed parallax reveal (wordmark + legal line travel different distances),
+// and a cursor-magnet nudge on the individual wordmark letters, gated to only run while
+// the footer is in the viewport (IntersectionObserver, matching the codebase's discipline
+// of not running per-frame work off-screen -- see CardFog, the /lab/dither InView helper).
+import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
+import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
 
 const LETTERS = ["S", "E", "C", "T", "O", "R", "4"];
 
-// Parallax travel distances (px) for the scroll-scrubbed reveal: the wordmark travels a
-// SMALLER distance (reads as slower, matching its visual weight) than the legal line
-// (travels further, reads as faster) -- the classic layered-depth parallax cue. A starting
-// point, tuned against the real page in the plan's final visual-QA task, not sacred.
+// Parallax travel distances (px) -- see Task 5's commit for the rationale. Starting point,
+// tuned in the plan's final visual-QA task.
 const WORDMARK_TRAVEL_PX = 32;
 const LEGAL_TRAVEL_PX = 72;
+
+// Cursor-magnet tuning: a letter within MAGNET_RADIUS_PX of the pointer nudges toward it,
+// up to MAGNET_MAX_OFFSET_PX at zero distance. Same rAF-lerp smoothing factor as the
+// hero's cursor-trailing dither blob (DitherFog). Starting point, tuned in Task 7.
+const MAGNET_RADIUS_PX = 140;
+const MAGNET_MAX_OFFSET_PX = 10;
+const MAGNET_LERP = 0.12;
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return reduced;
+}
 
 export function LandingFooter() {
   const rootRef = useRef<HTMLDivElement>(null);
   const wordmarkRef = useRef<HTMLParagraphElement>(null);
   const legalRef = useRef<HTMLParagraphElement>(null);
+  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const reduced = useReducedMotion();
 
-  // Scroll parallax: wordmark and legal line travel different distances as the footer
-  // scrolls into view, sharing one scrubbed timeline (ScrollTrigger, the same tool
-  // TrackSpine already uses for its scroll-scrubbed track draw).
+  // Scroll parallax (unchanged from Task 5).
   useEffect(() => {
     const root = rootRef.current;
     const wordmark = wordmarkRef.current;
@@ -47,6 +67,89 @@ export function LandingFooter() {
     return () => mm.revert();
   }, []);
 
+  // Cursor-magnet letters: only tracks the pointer while the footer is in the viewport,
+  // and under reduced motion does nothing at all -- no listener, no rAF loop, not just
+  // visually inert.
+  useEffect(() => {
+    if (reduced) return;
+    const root = rootRef.current;
+    if (!root) return;
+
+    let active = false;
+    // Index-aligned with letterRefs.current/targets/pos (NOT built by pushing only the
+    // non-null refs -- a skipped index there would desync every array's indexing from
+    // this point on). A ref that's momentarily null measures as far off-screen, which
+    // magnetOffset naturally resolves to a zero offset (outside any real radius).
+    const centers: Point[] = LETTERS.map(() => ({ x: -9999, y: -9999 }));
+    const targets: Point[] = LETTERS.map(() => ({ x: 0, y: 0 }));
+    const pos: Point[] = LETTERS.map(() => ({ x: 0, y: 0 }));
+
+    const measure = () => {
+      letterRefs.current.forEach((el, i) => {
+        if (!el) {
+          centers[i] = { x: -9999, y: -9999 };
+          return;
+        }
+        const r = el.getBoundingClientRect();
+        centers[i] = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      });
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        active = entry.isIntersecting;
+        // Re-measure whenever the footer enters view: the parallax's own transform may
+        // have shifted letter positions since the last measurement (e.g. first mount, or
+        // scroll-in still mid-scrub), so a stale center would nudge letters in a slightly
+        // wrong direction until the next measure.
+        if (active) measure();
+      },
+      { rootMargin: "100px" },
+    );
+    io.observe(root);
+    measure();
+    window.addEventListener("resize", measure);
+
+    const onMove = (e: PointerEvent) => {
+      if (!active) return;
+      const pointer = { x: e.clientX, y: e.clientY };
+      centers.forEach((c, i) => {
+        targets[i] = magnetOffset(c, pointer, {
+          radius: MAGNET_RADIUS_PX,
+          maxOffset: MAGNET_MAX_OFFSET_PX,
+        });
+      });
+    };
+    const onLeave = () => {
+      targets.forEach((t) => {
+        t.x = 0;
+        t.y = 0;
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
+
+    let raf = 0;
+    const tick = () => {
+      pos.forEach((p, i) => {
+        p.x = lerp(p.x, targets[i]?.x ?? 0, MAGNET_LERP);
+        p.y = lerp(p.y, targets[i]?.y ?? 0, MAGNET_LERP);
+        const el = letterRefs.current[i];
+        if (el) el.style.transform = `translate(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px)`;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      io.disconnect();
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+    };
+  }, [reduced]);
+
   return (
     <div
       ref={rootRef}
@@ -60,7 +163,13 @@ export function LandingFooter() {
           style={{ fontSize: "clamp(4rem, 18vw, 16rem)" }}
         >
           {LETTERS.map((ch, i) => (
-            <span key={i} className="inline-block">
+            <span
+              key={i}
+              ref={(el) => {
+                letterRefs.current[i] = el;
+              }}
+              className="inline-block will-change-transform"
+            >
               {ch}
             </span>
           ))}
