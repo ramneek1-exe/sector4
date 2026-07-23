@@ -4,21 +4,74 @@
 > `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-22.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), M3 FRONTEND
-> (ASCII/dither glyph + UI system), AND the LANDING PAGE (v1+v2, full race-track spine)
-> are all MERGED to `main` and LIVE on PRODUCTION (`sector4.net`).**
+> (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), AND
+> the LANDING FOOTER REDESIGN are all MERGED to `main` and LIVE on PRODUCTION
+> (`sector4.net`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — LANDING FOOTER REDESIGN (not started)
-> Landing is fully shipped and stable (see below); the footer is explicitly the last
-> deferred piece from the original landing-v2 ordering (owner: "hero first, then
-> sections working downwards... finally coming back to the preloader + hero reveal
-> followed by the footer"). **Preloader + hero reveal is STILL ALSO deferred** — owner
-> jumped straight to footer this time; confirm with them whether preloader comes first
-> or footer now leads. Current footer is the ORIGINAL v1 one, untouched by any v2/v2b
-> work: `LandingFooter()` in `app/page.tsx` (bottom of file) — wordmark + `NAV_LINKS`
-> row, plain `border-t`, no motion, no sector conceit. Brainstorm fresh (new spec/plan
-> under `docs/superpowers/{specs,plans}/`) — the sector-numbered/race-track visual
-> language from the rest of the page is the obvious throughline to consider, but that's
-> a design call, not a given.
+> ## 🔴 PICK UP HERE NEXT SESSION — PRELOADER + HERO REVEAL (not started)
+> The only piece still deferred from the original landing-v2 ordering (owner: "hero
+> first, then sections working downwards... finally coming back to the preloader + hero
+> reveal followed by the footer") — footer is now done (see below), this is the last
+> item. `data-hero` attrs (`video`/`thesis`/`cta`/`cue`) on the Hero's four layers in
+> `app/page.tsx` are stable hooks already in place specifically for this pass (see the
+> Hero section's own comment). Brainstorm fresh (new spec/plan under
+> `docs/superpowers/{specs,plans}/`) — no design direction locked yet, this is a design
+> call from scratch.
+>
+> ## 2026-07-22 session — LANDING FOOTER REDESIGN: PR #47 MERGED + LIVE
+> Subagent-driven, 7 tasks (spec/plan `docs/superpowers/{specs,plans}/2026-07-22-landing-footer-redesign*`).
+> **Base scope (Tasks 1-6, plan followed closely):** shared `DISCLAIMER` text
+> (`app/lib/legal.ts`, single source for both footers, no copy drift); site-wide legal
+> footer now suppressed on `/` via a route-gated `SiteFooter` component (`usePathname`,
+> same pattern `SiteNav` uses) — landing shows its own styled copy instead; giant
+> `SECTOR4` wordmark replacing the old v1 footer (nav links dropped — header nav already
+> covers navigation); scroll-scrubbed parallax reveal; cursor-magnet letters (pure math
+> in `app/lib/wordmark-magnet.ts`, fully unit tested).
+> **Owner visual-QA pass (Task 7) pushed scope well beyond constant-tuning** across
+> several live iteration rounds: dark `bg-ink` background + light-on-dark text (a real
+> visual break marking the page's end, not just another light section); new
+> `app/components/WordmarkFog.tsx` — a cursor-following dither bloom clipped precisely to
+> the wordmark's letter shapes, KEPT alongside the letter-magnet (owner: "both", not a
+> replacement) — fuses `SectorNumeral`'s Safari-safe clip-path-to-live-text technique
+> with `DitherFog`'s cursor-tracking radial mask, screen-blended (not multiply, since
+> it's now on a dark panel); parallax travel ~2.5x stronger; wordmark bigger + whole
+> footer centered.
+> **Three real bugs found and fixed live during the QA pass (not just tuning), all
+> hard-won lessons worth not relearning:** (1) **hydration mismatch** — `WordmarkFog`'s
+> `<div>`/`<svg>` markup was nested inside the wordmark `<p>`, which HTML's content model
+> forbids (`<p>` only permits phrasing content); the browser's parser auto-closes `<p>`
+> before a nested `<div>`, producing a different DOM tree server vs client. Fixed by
+> making them siblings inside a shared wrapper `<div>` (which also now carries the
+> parallax transform, moved off the `<p>` itself). (2) **dither bloom rendered visibly
+> offset from the letters** — root cause was `getBoundingClientRect()` on an element
+> living inside an SVG `<clipPath>` ALWAYS returning a zero rect (`<clipPath>` content is
+> never "rendered" per the SVG spec — confirmed empirically on the real page, not
+> theoretical; an earlier attempted fix assumed a wrapper/text-span offset that doesn't
+> exist in this component's structure and was measuring something already ~0). Fixed with
+> a measurable proxy: an identical `<text>` rendered as a real (`opacity:0`, not
+> `display:none`) SVG sibling OUTSIDE the `<clipPath>`, whose genuine rect is diffed
+> against the visible wordmark and the correction applied to both via shared state — one
+> correction pass, not a layout loop (`offset` deliberately excluded from the measuring
+> effect's own dependency array). (3) **final whole-branch review (Opus) finding** — both
+> new rAF loops (letter-magnet, dither cursor blob) only gated pointer-*input* via
+> IntersectionObserver, not the loop itself; it kept spinning every frame for the whole
+> mounted lifetime regardless of scroll position, contradicting the code's own "gated to
+> viewport" comments and the codebase's per-frame-work-off-screen discipline (`CardFog`,
+> `/lab/dither`'s `InView` helper). Fixed to start/stop directly from the IO callback;
+> verified via planted sentinel style values that survive untouched while scrolled off
+> the visible footer (confirms the loop is genuinely stopped, not just producing an inert
+> result) and correctly resume/reset to rest on re-entry — this incidentally also closed
+> a previously-logged "stale offset on scroll-out" minor from Task 6's own review.
+> **Process note:** Task 7 (the visual-QA/owner-sign-off pass) was controller-led, not
+> subagent-dispatched, deliberately — it needed live iterative browser verification and
+> the owner's own aesthetic judgment at each round, consistent with this project's
+> standing feedback that visual/design changes need real rendered candidates shown before
+> committing, not committed-then-iterated.
+> **VERIFIED:** vitest 243/2skip, tsc+build clean; per-task subagent review (6 tasks) +
+> final whole-branch review (Opus) both clean after one fix cycle; Chrome DevTools checks
+> (no hydration/console errors, dither bloom pixel-aligned to letters confirmed
+> numerically, reduced motion renders zero fog DOM not just inert, desktop 1440px +
+> mobile ~500px no horizontal overflow).
 >
 > ## LANDING PAGE — full status (v1 → v2 → v2b → 4 post-merge fix PRs, ALL LIVE)
 > Built across two sessions (2026-07-19, 2026-07-20/21/22). Spec/plan trail:
