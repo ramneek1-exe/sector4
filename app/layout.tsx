@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { fontVars } from "@/app/lib/fonts";
 import { SiteNav } from "@/app/components/SiteNav";
+import { SiteFooter } from "@/app/components/SiteFooter";
 import { SmoothScroll } from "@/app/components/SmoothScroll";
 
 const TAGLINE = "Honest podium odds, strategy, and the numbers behind them.";
@@ -34,11 +35,6 @@ export const metadata: Metadata = {
   },
 };
 
-const DISCLAIMER =
-  "Sector 4 is an independent project, not affiliated with or endorsed by Formula 1, " +
-  "FOM, the FIA, or any team. All driver and team names are used for editorial reference. " +
-  "Data sourced from publicly available timing.";
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={fontVars}>
@@ -49,9 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             padding (matching SiteNav NAV_H) keeps page content clear of it. */}
         <SiteNav />
         {children}
-        <footer className="relative z-10 flex flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3 font-grotesk text-[10px] leading-snug text-muted/80">
-          <span className="max-w-3xl">{DISCLAIMER}</span>
-        </footer>
+        <SiteFooter />
       </body>
     </html>
   );
