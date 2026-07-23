@@ -12,7 +12,8 @@ import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { SectionReveal } from "@/app/components/SectionReveal";
 import { TrackSpine } from "@/app/components/TrackSpine";
 import { SectorNumeral } from "@/app/components/SectorNumeral";
-import { NAV_H, NAV_LINKS } from "@/app/lib/nav";
+import { NAV_H } from "@/app/lib/nav";
+import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
@@ -282,26 +283,5 @@ function HonestByDesign({ liveScored }: { liveScored: number }) {
         </div>
       </SectionReveal>
     </section>
-  );
-}
-
-function LandingFooter() {
-  return (
-    <div className="border-t border-ink/10 px-6 py-10 sm:px-8">
-      <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-4">
-        <span className="font-bebas text-2xl tracking-wide text-ink">SECTOR4</span>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          {NAV_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="font-grotesk text-sm text-muted transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    </div>
   );
 }
