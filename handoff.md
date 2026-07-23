@@ -72,6 +72,21 @@
 > (no hydration/console errors, dither bloom pixel-aligned to letters confirmed
 > numerically, reduced motion renders zero fog DOM not just inert, desktop 1440px +
 > mobile ~500px no horizontal overflow).
+> **CORRECTION (same day, PR #48 MERGED + LIVE):** "owner: both" above was a genuine
+> misread, not an owner decision — the owner's actual Task 7 sign-off ("just keep
+> magnetic effect") meant magnet-only, remove the dither bloom entirely, not "keep both
+> effects." Caught and fixed same-day once the owner flagged it live on prod.
+> `app/components/WordmarkFog.tsx` deleted outright (no other usages); `LandingFooter.tsx`
+> collapsed the `wordmarkWrapRef`/`wordmarkRef` split back to a single ref on the `<p>`
+> (that split existed only to keep `WordmarkFog`'s markup from nesting inside `<p>`, moot
+> once it's gone). **Everything else from Task 7 stays as owner-approved:** dark `bg-ink`
+> background, bigger/centered wordmark, stronger parallax, the rAF-gating fix (which
+> applies to the magnet loop regardless of the dither bloom's presence). Current live
+> footer: dark background, big centered wordmark, letter-magnet only, no dither texture.
+> **Lesson:** a terse correction like "just keep magnetic effect" needs to be read as
+> narrowing scope (magnet-only), not confirming everything built so far — when a sign-off
+> message is short and could be read either way, restate the interpretation back before
+> committing rather than assuming the more-built option is what was meant.
 >
 > ## LANDING PAGE — full status (v1 → v2 → v2b → 4 post-merge fix PRs, ALL LIVE)
 > Built across two sessions (2026-07-19, 2026-07-20/21/22). Spec/plan trail:
