@@ -105,29 +105,6 @@ export function WordmarkFog({
     const root = rootRef.current;
     if (!root) return;
 
-    let ioActive = false;
-    const io = new IntersectionObserver(([entry]) => { ioActive = entry.isIntersecting; }, {
-      rootMargin: "100px",
-    });
-    io.observe(root);
-
-    const onMove = (e: PointerEvent) => {
-      if (!ioActive) {
-        target.current.active = false;
-        return;
-      }
-      const r = root.getBoundingClientRect();
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
-      const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height;
-      target.current = inside ? { x, y, active: true } : { ...target.current, active: false };
-    };
-    const onLeave = () => {
-      target.current.active = false;
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerleave", onLeave);
-
     let raf = 0;
     const tick = () => {
       const t = target.current;
@@ -146,7 +123,46 @@ export function WordmarkFog({
       }
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+
+    // rAF only runs while the footer is actually in view -- an IntersectionObserver
+    // gating just the pointer-target updates (as a first pass had it) still left the loop
+    // itself spinning continuously for the component's whole mounted lifetime, contrary to
+    // this file's own "gated to only run while in the viewport" claim (whole-branch review
+    // finding). Leaving view also resets to rest immediately, so nothing carries a stale
+    // offset into the next entry.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (!raf) raf = requestAnimationFrame(tick);
+        } else {
+          cancelAnimationFrame(raf);
+          raf = 0;
+          target.current = { x: -9999, y: -9999, active: false };
+          pos.current = { x: -9999, y: -9999 };
+          const el = blobRef.current;
+          if (el) el.style.opacity = "0";
+        }
+      },
+      { rootMargin: "100px" },
+    );
+    io.observe(root);
+
+    const onMove = (e: PointerEvent) => {
+      if (!raf) {
+        target.current.active = false;
+        return;
+      }
+      const r = root.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height;
+      target.current = inside ? { x, y, active: true } : { ...target.current, active: false };
+    };
+    const onLeave = () => {
+      target.current.active = false;
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerleave", onLeave);
 
     return () => {
       cancelAnimationFrame(raf);

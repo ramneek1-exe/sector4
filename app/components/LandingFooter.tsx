@@ -9,7 +9,7 @@
 // the footer is in the viewport (IntersectionObserver, matching the codebase's discipline
 // of not running per-frame work off-screen -- see CardFog, the /lab/dither InView helper).
 import { useEffect, useRef, useState } from "react";
-import { gsap, ScrollTrigger } from "@/app/lib/gsap";
+import { gsap } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
 import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
 import { WordmarkFog } from "@/app/components/WordmarkFog";
@@ -106,14 +106,48 @@ export function LandingFooter() {
       });
     };
 
+    let raf = 0;
+    const tick = () => {
+      pos.forEach((p, i) => {
+        p.x = lerp(p.x, targets[i]?.x ?? 0, MAGNET_LERP);
+        p.y = lerp(p.y, targets[i]?.y ?? 0, MAGNET_LERP);
+        const el = letterRefs.current[i];
+        if (el) el.style.transform = `translate(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px)`;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+
+    // rAF only runs while the footer is actually in view -- gating just the pointer-target
+    // updates (as a first pass had it) still left the loop itself spinning continuously for
+    // the component's whole mounted lifetime, contrary to this file's own "gated to only
+    // run while in the viewport" claim (whole-branch review finding). Leaving view also
+    // resets every letter to rest immediately, so nothing carries a stale offset into the
+    // next entry (this also closes the "stale offset on scroll-out" minor from Task 6's
+    // review -- a letter can no longer freeze mid-nudge while off-screen).
     const io = new IntersectionObserver(
       ([entry]) => {
         active = entry.isIntersecting;
-        // Re-measure whenever the footer enters view: the parallax's own transform may
-        // have shifted letter positions since the last measurement (e.g. first mount, or
-        // scroll-in still mid-scrub), so a stale center would nudge letters in a slightly
-        // wrong direction until the next measure.
-        if (active) measure();
+        if (active) {
+          // Re-measure on entry: the parallax's own transform may have shifted letter
+          // positions since the last measurement (e.g. first mount, or scroll-in still
+          // mid-scrub), so a stale center would nudge letters in a slightly wrong
+          // direction until the next measure.
+          measure();
+          if (!raf) raf = requestAnimationFrame(tick);
+        } else {
+          cancelAnimationFrame(raf);
+          raf = 0;
+          targets.forEach((t) => {
+            t.x = 0;
+            t.y = 0;
+          });
+          pos.forEach((p, i) => {
+            p.x = 0;
+            p.y = 0;
+            const el = letterRefs.current[i];
+            if (el) el.style.transform = "translate(0px, 0px)";
+          });
+        }
       },
       { rootMargin: "100px" },
     );
@@ -139,18 +173,6 @@ export function LandingFooter() {
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerleave", onLeave);
-
-    let raf = 0;
-    const tick = () => {
-      pos.forEach((p, i) => {
-        p.x = lerp(p.x, targets[i]?.x ?? 0, MAGNET_LERP);
-        p.y = lerp(p.y, targets[i]?.y ?? 0, MAGNET_LERP);
-        const el = letterRefs.current[i];
-        if (el) el.style.transform = `translate(${p.x.toFixed(2)}px, ${p.y.toFixed(2)}px)`;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
 
     return () => {
       cancelAnimationFrame(raf);
