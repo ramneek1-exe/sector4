@@ -12,13 +12,16 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, ScrollTrigger } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
 import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
+import { WordmarkFog } from "@/app/components/WordmarkFog";
 
 const LETTERS = ["S", "E", "C", "T", "O", "R", "4"];
+const WORDMARK_FONT_CLASS = "font-bebas leading-none tracking-wide";
+const WORDMARK_FONT_SIZE = "clamp(5rem, 24vw, 22rem)";
 
-// Parallax travel distances (px) -- see Task 5's commit for the rationale. Starting point,
-// tuned in the plan's final visual-QA task.
-const WORDMARK_TRAVEL_PX = 32;
-const LEGAL_TRAVEL_PX = 72;
+// Parallax travel distances (px) -- owner review (Task 7): the original 32/72 starting
+// point read as too subtle on the real page; bumped up for a more pronounced reveal.
+const WORDMARK_TRAVEL_PX = 80;
+const LEGAL_TRAVEL_PX = 160;
 
 // Cursor-magnet tuning: a letter within MAGNET_RADIUS_PX of the pointer nudges toward it,
 // up to MAGNET_MAX_OFFSET_PX at zero distance. Same rAF-lerp smoothing factor as the
@@ -41,15 +44,23 @@ function useReducedMotion(): boolean {
 
 export function LandingFooter() {
   const rootRef = useRef<HTMLDivElement>(null);
+  // wordmarkWrapRef carries the parallax transform (a <div>, so WordmarkFog's sibling
+  // <div>/<svg> markup never nests inside the <p> -- HTML's content model forbids flow
+  // content like <div> inside <p>; nesting it caused a real hydration mismatch (the
+  // browser's HTML parser auto-closes <p> before a nested <div>, producing a different DOM
+  // tree than React's). wordmarkRef still points at the <p> itself, used only for
+  // WordmarkFog's text-position measurement.
+  const wordmarkWrapRef = useRef<HTMLDivElement>(null);
   const wordmarkRef = useRef<HTMLParagraphElement>(null);
   const legalRef = useRef<HTMLParagraphElement>(null);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const reduced = useReducedMotion();
 
-  // Scroll parallax (unchanged from Task 5).
+  // Scroll parallax (unchanged from Task 5, except the wordmark's transform target moved
+  // from the <p> to its wrapper div -- see wordmarkWrapRef above).
   useEffect(() => {
     const root = rootRef.current;
-    const wordmark = wordmarkRef.current;
+    const wordmark = wordmarkWrapRef.current;
     const legal = legalRef.current;
     if (!root || !wordmark || !legal) return;
 
@@ -153,28 +164,36 @@ export function LandingFooter() {
   return (
     <div
       ref={rootRef}
-      className="relative flex min-h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden border-t border-ink/10 px-6 py-16 sm:px-8"
+      className="relative flex min-h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden bg-ink px-6 py-16 sm:px-8"
     >
-      <div className="mx-auto flex w-full max-w-[1800px] flex-col gap-6">
-        <p
-          ref={wordmarkRef}
-          aria-label="Sector 4"
-          className="font-bebas leading-none tracking-wide text-ink"
-          style={{ fontSize: "clamp(4rem, 18vw, 16rem)" }}
-        >
-          {LETTERS.map((ch, i) => (
-            <span
-              key={i}
-              ref={(el) => {
-                letterRefs.current[i] = el;
-              }}
-              className="inline-block will-change-transform"
-            >
-              {ch}
-            </span>
-          ))}
-        </p>
-        <p ref={legalRef} className="max-w-3xl font-grotesk text-xs leading-snug text-muted/80">
+      <div className="mx-auto flex w-full max-w-[1800px] flex-col items-center gap-6 text-center">
+        <div ref={wordmarkWrapRef} className="relative">
+          <p
+            ref={wordmarkRef}
+            aria-label="Sector 4"
+            className={`${WORDMARK_FONT_CLASS} text-bg`}
+            style={{ fontSize: WORDMARK_FONT_SIZE }}
+          >
+            {LETTERS.map((ch, i) => (
+              <span
+                key={i}
+                ref={(el) => {
+                  letterRefs.current[i] = el;
+                }}
+                className="inline-block will-change-transform"
+              >
+                {ch}
+              </span>
+            ))}
+          </p>
+          <WordmarkFog
+            text={LETTERS.join("")}
+            fontClassName={WORDMARK_FONT_CLASS}
+            fontSize={WORDMARK_FONT_SIZE}
+            targetRef={wordmarkRef}
+          />
+        </div>
+        <p ref={legalRef} className="max-w-3xl font-grotesk text-xs leading-snug text-bg/60">
           {DISCLAIMER}
         </p>
       </div>
