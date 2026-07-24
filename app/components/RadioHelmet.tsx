@@ -15,7 +15,7 @@ const WORDS_DELAY_MS = 560;
 // roughly 2.1s of stepping after the 560ms lead-in) plus a comfortable hold.
 const PIN_MS = 5200;
 
-export function RadioHelmet({ size = 220 }: { size?: number }) {
+export function RadioHelmet({ size = 300 }: { size?: number }) {
   const [hovering, setHovering] = useState(false);
   const [pinned, setPinned] = useState(false);
   const [steps, setSteps] = useState<RadioStep[]>([]);

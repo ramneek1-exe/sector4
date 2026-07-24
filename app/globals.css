@@ -320,9 +320,14 @@ body {
   transform: translateY(-14px) scale(1.045);
 }
 /* The helmet is a hard-thresholded pixel-art canvas; a scaled canvas would otherwise be
-   smoothly interpolated and go soft. Pixelated keeps the upscale blocky and on-brand. */
+   smoothly interpolated and go soft. Pixelated keeps the upscale blocky and on-brand.
+   useRevealCanvas pins width/height inline in px, so the narrow-screen guard has to
+   outrank that -- without it a 300px helmet overflows a 320px viewport and the page
+   scrolls sideways. height:auto keeps the aspect from the canvas's own attributes. */
 .radio-lift canvas {
   image-rendering: pixelated;
+  max-width: 100%;
+  height: auto !important;
 }
 
 /* Bubble opens after the lift has most of the way settled, closes fast. */
