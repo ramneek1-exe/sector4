@@ -20,6 +20,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
   const [pinned, setPinned] = useState(false);
   const [steps, setSteps] = useState<RadioStep[]>([]);
   const [message, setMessage] = useState<string>("");
+  const [announced, setAnnounced] = useState<string>("");
   const [stepIndex, setStepIndex] = useState(-1);
   const reduced = useReducedMotion();
 
@@ -41,6 +42,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
 
     if (!active) {
       clearWordTimers();
+      setAnnounced("");
       return;
     }
 
@@ -48,6 +50,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
     lastMessage.current = next;
     const nextSteps = radioSteps(next);
     setMessage(next);
+    setAnnounced(next);
     setSteps(nextSteps);
 
     if (reduced) {
@@ -89,8 +92,10 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
     setHovering(false);
     // A mouse click also pins for PIN_MS. Leaving the helmet should end that rather than
     // leave the bubble hanging with the pointer gone — unless the button holds keyboard
-    // focus, whose pin the mouse has no business cancelling.
-    if (document.activeElement !== e.currentTarget && pinTimer.current) {
+    // focus (:focus-visible), whose pin the mouse has no business cancelling. A mouse click
+    // does focus the button in Chrome/Firefox, but does not match :focus-visible, so this
+    // still only cancels a click-pin.
+    if (!e.currentTarget.matches(":focus-visible") && pinTimer.current) {
       clearTimeout(pinTimer.current);
       pinTimer.current = null;
       setPinned(false);
@@ -125,7 +130,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
         className="radio-bubble pointer-events-none absolute bottom-full left-0 z-20 mb-4 max-w-[17rem] rounded-2xl bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(37,31,68,0.12)] ring-1 ring-ink/10"
       >
         <span className="invisible block font-grotesk text-sm leading-snug text-ink">
-          {message || " "}
+          {message || " "}
         </span>
         <span className="absolute inset-0 px-4 py-2.5 font-grotesk text-sm leading-snug text-ink">
           {visibleText}
@@ -135,7 +140,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
       {/* The full line, for screen readers: the animated copy above is aria-hidden so a
           reader never stutters through partial words. */}
       <span className="sr-only" aria-live="polite">
-        {active ? message : ""}
+        {announced}
       </span>
 
       {/* The shadow pool is anchored to the helmet's base and wider than it, so it reads as
