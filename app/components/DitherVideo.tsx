@@ -25,6 +25,7 @@
 // destination.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bayerLuminancePasses } from "@/app/lib/bayer";
+import { useReducedMotion } from "@/app/lib/use-reduced-motion";
 
 type Matrix = "4x4" | "8x8";
 
@@ -43,18 +44,6 @@ interface DitherVideoProps {
   className?: string;
   children?: React.ReactNode;
   "data-hero"?: string;
-}
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return reduced;
 }
 
 /** Matches Tailwind's `md` breakpoint (768px) — the same desktop/mobile split the

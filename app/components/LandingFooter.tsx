@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
 import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
+import { useReducedMotion } from "@/app/lib/use-reduced-motion";
 
 const LETTERS = ["S", "E", "C", "T", "O", "R", "4"];
 const WORDMARK_FONT_CLASS = "font-bebas leading-none tracking-wide";
@@ -28,18 +29,6 @@ const LEGAL_TRAVEL_PX = 160;
 const MAGNET_RADIUS_PX = 140;
 const MAGNET_MAX_OFFSET_PX = 10;
 const MAGNET_LERP = 0.12;
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return reduced;
-}
 
 export function LandingFooter() {
   const rootRef = useRef<HTMLDivElement>(null);
