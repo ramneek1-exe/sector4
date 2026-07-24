@@ -33,7 +33,7 @@
 | File | Responsibility |
 |---|---|
 | `app/lib/dither-recipe.ts` | The one definition of the warp shader colours + layers. |
-| `app/lib/use-reduced-motion.ts` | The one definition of the reduced-motion media-query hook. |
+|  `app/lib/use-reduced-motion.ts` | The one definition of the reduced-motion media-query hook. |
 | `app/lib/use-reveal-canvas.ts` | The one definition of the DPR canvas sizing + cell paint + reveal loop. |
 | `app/lib/race-radio.ts` | Radio messages, no-repeat picker, per-word timings. Pure. |
 | `app/lib/race-radio.test.ts` | Unit tests for the above. |
@@ -56,13 +56,15 @@
 
 ### Task 1: Extract the shared dither recipe and reduced-motion hook
 
-Both `DitherFog.tsx` and `CardFog.tsx` currently carry byte-identical copies of the warp layer recipe and of `useReducedMotion`. `DitherShadow` (Task 5) would be the third copy of each. This task creates one definition of each and points both existing components at it. **Nothing renders differently after this task.**
+`DitherFog.tsx` and `CardFog.tsx` carry byte-identical copies of the warp layer recipe. `useReducedMotion` is worse: **four** byte-identical copies, in `DitherFog.tsx`, `CardFog.tsx`, `DitherVideo.tsx`, and `LandingFooter.tsx` (verified 2026-07-23; the landing-footer review already logged this as a follow-up). `DitherShadow` (Task 5) would add one more of each. This task creates one definition of each and points every existing copy at it. **Nothing renders differently after this task.**
 
 **Files:**
 - Create: `app/lib/dither-recipe.ts`
 - Create: `app/lib/use-reduced-motion.ts`
 - Modify: `app/components/DitherFog.tsx`
 - Modify: `app/components/CardFog.tsx`
+- Modify: `app/components/DitherVideo.tsx`
+- Modify: `app/components/LandingFooter.tsx`
 
 **Interfaces:**
 - Consumes: nothing from earlier tasks.
@@ -174,6 +176,22 @@ Then rename the one usage near the bottom of the file:
       {WARP_LAYERS.map((l, i) => (
 ```
 
+- [ ] **Step 4b: Point `DitherVideo` and `LandingFooter` at the shared hook**
+
+Both carry the same byte-identical `useReducedMotion`. Neither uses the warp recipe, so this is the hook only.
+
+In each of `app/components/DitherVideo.tsx` and `app/components/LandingFooter.tsx`:
+
+1. Delete the local `function useReducedMotion(): boolean { … }` definition.
+2. Add the import alongside the other `@/app/lib` imports:
+
+```tsx
+import { useReducedMotion } from "@/app/lib/use-reduced-motion";
+```
+
+3. Leave the `const reduced = useReducedMotion();` call sites exactly as they are.
+4. Check whether `useState` is still used elsewhere in the file before removing it from the React import — **both files DO still use `useState` for other state**, so keep it in both.
+
 - [ ] **Step 5: Verify nothing broke**
 
 Run:
@@ -190,14 +208,14 @@ Expected: tsc clean, vitest 243 pass / 2 skip (unchanged — this refactor adds 
 npm run build && npm start
 ```
 
-Open `http://localhost:3000/ask` and confirm the fog behind the action zone still animates and the cursor blob still trails the pointer. Open `http://localhost:3000/learn` and hover a concept card; the bottom-right dither bloom must still fade in and out.
+Open `http://localhost:3000/ask` and confirm the fog behind the action zone still animates and the cursor blob still trails the pointer. Open `http://localhost:3000/learn` and hover a concept card; the bottom-right dither bloom must still fade in and out. Open `http://localhost:3000/` and confirm the hero's dithered b-roll still plays (`DitherVideo`) and the footer wordmark's cursor-magnet still responds (`LandingFooter`) — both had their reduced-motion hook swapped.
 
 Kill the server with `kill $(lsof -ti tcp:3000 -sTCP:LISTEN)` when done — `pkill -f "next start"` does not work here.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add app/lib/dither-recipe.ts app/lib/use-reduced-motion.ts app/components/DitherFog.tsx app/components/CardFog.tsx
+git add app/lib/dither-recipe.ts app/lib/use-reduced-motion.ts app/components/DitherFog.tsx app/components/CardFog.tsx app/components/DitherVideo.tsx app/components/LandingFooter.tsx
 git commit -m "refactor: extract shared dither recipe and reduced-motion hook"
 ```
 
@@ -1335,7 +1353,7 @@ Adds an "About Sector 4" intro section between the landing hero and the race-tra
 
 ## Refactors (behaviour-preserving, no test changes)
 - `app/lib/dither-recipe.ts` — the warp shader recipe, previously duplicated in `DitherFog` and `CardFog`.
-- `app/lib/use-reduced-motion.ts` — the media-query hook, previously duplicated in the same two files.
+-  `app/lib/use-reduced-motion.ts` — the media-query hook, previously duplicated in the same two files.
 - `app/lib/use-reveal-canvas.ts` — the DPR sizing and cell reveal loop, previously duplicated in `AsciiGlyph` and `AsciiEmblem`.
 
 ## Feature
