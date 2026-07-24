@@ -12,6 +12,7 @@ import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { SectionReveal } from "@/app/components/SectionReveal";
 import { TrackSpine } from "@/app/components/TrackSpine";
 import { SectorNumeral } from "@/app/components/SectorNumeral";
+import { RadioHelmet } from "@/app/components/RadioHelmet";
 import { NAV_H } from "@/app/lib/nav";
 import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
@@ -63,6 +64,7 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
+      <AboutSector4 />
       {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
           section box, and the grid box + parked car sit at that same anchor - simply
           cancelling the numeral's own negative offset (the previous pt-6/pt-10) still
@@ -143,6 +145,39 @@ function Hero() {
           <path d="M12 5v14M5 12l7 7 7-7" />
         </svg>
       </div>
+    </section>
+  );
+}
+
+/** The plain "what this is" beat between the hero's thesis and the S1-S4 feature sections.
+ *  Deliberately outside the spine wrapper: no SectorNumeral, no data-sector-anchor, so
+ *  TrackSpine's measured geometry is unaffected and the track still starts at S1.
+ *  No CTA — the hero and each of S1-S4 already carry one, and a fifth dilutes them. */
+function AboutSector4() {
+  return (
+    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+      <SectionReveal className="flex flex-col items-center gap-12 sm:flex-row sm:items-center sm:justify-between sm:gap-10">
+        <div className="sm:max-w-md">
+          <p data-reveal className={SECTION_LABEL}>
+            About Sector 4
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            An F1 companion that shows its working.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Ask anything about the weekend and get a straight answer with the reasoning
+            attached: podium odds as honest probabilities, real strategy calls, and the
+            concepts behind both. Where the data is thin, it says so instead of sounding
+            sure.
+          </p>
+        </div>
+        {/* data-reveal goes on this WRAPPER; the lift transform lives on .radio-lift inside
+            RadioHelmet. GSAP sets `y` on [data-reveal] elements, so the two must never
+            share an element. */}
+        <div data-reveal className="shrink-0">
+          <RadioHelmet />
+        </div>
+      </SectionReveal>
     </section>
   );
 }
