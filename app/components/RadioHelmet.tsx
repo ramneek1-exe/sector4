@@ -119,21 +119,23 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
     setPinned(false);
   };
 
-  const visibleText = stepIndex >= 0 ? (steps[stepIndex]?.text ?? "") : "";
+  const words = message ? message.trim().split(/\s+/) : [];
 
   return (
     <div className="relative inline-block" data-radio-active={active ? "" : undefined}>
-      {/* Bubble sits above the helmet. Its box is reserved by an invisible copy of the full
-          message so words landing one at a time never reflow it. */}
+      {/* Bubble sits above the helmet. Every word renders from the start as its own span,
+          `opacity: 0` until its step lands, so it occupies layout the whole time — the box
+          is reserved naturally and no invisible reserve copy is needed. */}
       <div
         aria-hidden
         className="radio-bubble pointer-events-none absolute bottom-full left-0 z-20 mb-4 max-w-[17rem] rounded-2xl bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(37,31,68,0.12)] ring-1 ring-ink/10"
       >
-        <span className="invisible block font-grotesk text-sm leading-snug text-ink">
-          {message || " "}
-        </span>
-        <span className="absolute inset-0 px-4 py-2.5 font-grotesk text-sm leading-snug text-ink">
-          {visibleText}
+        <span className="block font-grotesk text-sm leading-snug text-ink">
+          {words.map((word, i) => (
+            <span key={i} className="radio-word" data-shown={i <= stepIndex ? "" : undefined}>
+              {word}
+            </span>
+          ))}
         </span>
       </div>
 

@@ -358,3 +358,26 @@ body {
     transition: none;
   }
 }
+
+/* Each radio word rises and fades as it lands, mimicking a broadcast team-radio caption. */
+.radio-word {
+  display: inline-block;
+  margin-right: 0.28em;
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 260ms ease,
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.radio-word[data-shown] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-word,
+  .radio-word[data-shown] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
