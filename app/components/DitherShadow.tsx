@@ -13,11 +13,15 @@ import { useReducedMotion } from "@/app/lib/use-reduced-motion";
 // (farthest-corner) ellipse only reaches transparent at the box CORNERS, so the box edge
 // slices the gradient mid-alpha and a hard rectangle appears over the warp. closest-side
 // inscribes the ellipse, so alpha is exactly 0 at every side and no edge can exist.
+// Tight falloff (owner-reviewed against rendered candidates, 2026-07-23): a wider hold
+// let the warp's diagonal streaking read through, so the pool looked like water or a
+// reflection rather than shade. Dropping the hold to 8% and the reach to 68% leaves only
+// the soft core, which reads as ground shadow.
 const SHADOW_MASK =
-  "radial-gradient(ellipse closest-side at 50% 50%, black 0%, black 18%, transparent 78%)";
+  "radial-gradient(ellipse closest-side at 50% 50%, black 0%, black 8%, transparent 68%)";
 const FADE_MS = 500;
 
-export function DitherShadow({ active, intensity = 0.55 }: { active: boolean; intensity?: number }) {
+export function DitherShadow({ active, intensity = 0.38 }: { active: boolean; intensity?: number }) {
   const [mounted, setMounted] = useState(active);
   // `shown` starts false so the browser paints an opacity-0 frame before the flip — without
   // it the wrapper mounts already at full opacity and the fade-IN never runs (pops in).

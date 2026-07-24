@@ -154,7 +154,7 @@ export function RadioHelmet({ size = 220 }: { size?: number }) {
           landing footer's WordmarkFog hit by nesting a <div> inside a <p>. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-4 left-1/2 z-0 h-16 w-[130%] -translate-x-1/2"
+        className="pointer-events-none absolute -bottom-2 left-1/2 z-0 h-12 w-[115%] -translate-x-1/2"
       >
         <DitherShadow active={active} />
       </div>
