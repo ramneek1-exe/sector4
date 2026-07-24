@@ -8,7 +8,7 @@
 // and a cursor-magnet nudge on the individual wordmark letters, gated to only run while
 // the footer is in the viewport (IntersectionObserver, matching the codebase's discipline
 // of not running per-frame work off-screen -- see CardFog, the /lab/dither InView helper).
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { gsap } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
 import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
