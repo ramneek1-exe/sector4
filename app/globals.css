@@ -335,16 +335,22 @@ body {
 }
 
 /* Tail: a small triangle pointing down toward the helmet. Sits below the bubble body. */
+/* Tail: a rotated square, not a border triangle. A triangle cannot carry the bubble's
+   hairline outline, so the ring-1 ring-ink/10 stopped dead at the spike. Rotated 45deg,
+   the square's right + bottom borders become its two outward-facing edges, so the outline
+   runs continuously around the tail, and its upper half covers the seam where the bubble's
+   own bottom ring would otherwise cross the tail's base. */
 .radio-bubble::after {
   content: "";
   position: absolute;
   left: 28px;
-  bottom: -9px;
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 10px solid #ffffff;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-right: 1px solid rgba(37, 31, 68, 0.1);
+  border-bottom: 1px solid rgba(37, 31, 68, 0.1);
+  transform: rotate(45deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
