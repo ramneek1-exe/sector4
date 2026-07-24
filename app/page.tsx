@@ -159,7 +159,10 @@ function Hero() {
 function AboutSector4() {
   return (
     <section className="relative mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 sm:py-28">
-      <SectionReveal className="flex flex-col items-center gap-12 sm:flex-row sm:items-center sm:justify-between sm:gap-10">
+      {/* Two-column only from lg. The helmet is shrink-0 at 300px, so going side-by-side at
+          sm left the copy just 256px at a 660px viewport and the heading broke to four
+          lines. S1-S4 can go two-column at sm because their emblems are 120px, not 300. */}
+      <SectionReveal className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         <div className="sm:max-w-xl lg:max-w-2xl">
           <p data-reveal className={SECTION_LABEL}>
             About Sector 4

@@ -347,7 +347,6 @@ body {
     transform 220ms cubic-bezier(0.22, 1, 0.36, 1) 380ms;
 }
 
-/* Tail: a small triangle pointing down toward the helmet. Sits below the bubble body. */
 /* Tail: a rotated square, not a border triangle. A triangle cannot carry the bubble's
    hairline outline, so the ring-1 ring-ink/10 stopped dead at the spike. Rotated 45deg,
    the square's right + bottom borders become its two outward-facing edges, so the outline

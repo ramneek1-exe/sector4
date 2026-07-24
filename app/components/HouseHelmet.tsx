@@ -73,6 +73,10 @@ export function HouseHelmet({ size = 220, className = "" }: { size?: number; cla
 
   const height = Math.round((size * HELMET_VIEWBOX.h) / HELMET_VIEWBOX.w);
 
+  // max-w-full matches the guard the canvas gets in globals.css: this vector fallback is
+  // what renders server-side and before hydration, so without it a large helmet overflows a
+  // narrow viewport for that window. An SVG with width + height + viewBox scales its height
+  // from the intrinsic ratio, so no height rule is needed here.
   if (!cells || !grid) {
     return (
       <svg
@@ -80,7 +84,7 @@ export function HouseHelmet({ size = 220, className = "" }: { size?: number; cla
         height={height}
         viewBox={`0 0 ${HELMET_VIEWBOX.w} ${HELMET_VIEWBOX.h}`}
         aria-hidden
-        className={className}
+        className={`max-w-full ${className}`}
       >
         <path d={SHELL} fill={SHELL_FILL} />
         <path d={VISOR} fill={VISOR_FILL} />

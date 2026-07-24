@@ -1,13 +1,14 @@
 "use client";
 
 // The landing intro microinteraction: the house helmet lifts, a dither pool appears beneath
-// it, and a speech bubble plays one random team-radio line word by word. A different line
-// every activation. Hover (mouse), tap (touch), and keyboard focus all drive the same path.
+// it, and a speech bubble plays one random team-radio line word by word, never the line
+// just shown. Hover (mouse), tap (touch), and keyboard focus all drive the same path. A
+// repeat trigger while already active is a no-op: one activation plays one line.
 import { useEffect, useRef, useState } from "react";
 import { HouseHelmet } from "@/app/components/HouseHelmet";
 import { DitherShadow } from "@/app/components/DitherShadow";
 import { useReducedMotion } from "@/app/lib/use-reduced-motion";
-import { pickRadioMessage, radioSteps, type RadioStep } from "@/app/lib/race-radio";
+import { pickRadioMessage, radioSteps } from "@/app/lib/race-radio";
 
 // The bubble opens at 380ms (see .radio-bubble in globals.css); words start once it's open.
 const WORDS_DELAY_MS = 560;
@@ -18,7 +19,6 @@ const PIN_MS = 5200;
 export function RadioHelmet({ size = 300 }: { size?: number }) {
   const [hovering, setHovering] = useState(false);
   const [pinned, setPinned] = useState(false);
-  const [steps, setSteps] = useState<RadioStep[]>([]);
   const [message, setMessage] = useState<string>("");
   const [announced, setAnnounced] = useState<string>("");
   const [stepIndex, setStepIndex] = useState(-1);
@@ -51,7 +51,6 @@ export function RadioHelmet({ size = 300 }: { size?: number }) {
     const nextSteps = radioSteps(next);
     setMessage(next);
     setAnnounced(next);
-    setSteps(nextSteps);
 
     if (reduced) {
       // Reduced motion: the whole line is present immediately, never stepped.
