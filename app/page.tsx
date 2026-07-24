@@ -12,6 +12,7 @@ import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { SectionReveal } from "@/app/components/SectionReveal";
 import { TrackSpine } from "@/app/components/TrackSpine";
 import { SectorNumeral } from "@/app/components/SectorNumeral";
+import { RadioHelmet } from "@/app/components/RadioHelmet";
 import { NAV_H } from "@/app/lib/nav";
 import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
@@ -41,8 +42,11 @@ const EXAMPLE_QUERIES = [
 
 const SECTION_LABEL =
   "mb-3 font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted";
-const SECTION_HEADING = "font-pixel-serif text-4xl text-ink sm:text-5xl";
-const SECTION_BODY = "mt-4 max-w-xl font-lastik text-lg leading-relaxed text-muted";
+const SECTION_HEADING = "font-pixel-serif text-4xl text-ink sm:text-5xl lg:text-6xl";
+// The measure cap rises with the container but never goes unbounded -- the section box is
+// max-w-7xl now, and body copy stretched that far would be unreadable.
+const SECTION_BODY =
+  "mt-4 max-w-xl font-lastik text-lg leading-relaxed text-muted lg:mt-5 lg:max-w-2xl lg:text-xl";
 const SECTION_LINK =
   "cta-grow relative mt-5 inline-block font-pixel text-xl leading-none tracking-wide text-accent transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 motion-reduce:transition-none";
 
@@ -63,6 +67,7 @@ export default async function LandingPage() {
   return (
     <>
       <Hero />
+      <AboutSector4 />
       {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
           section box, and the grid box + parked car sit at that same anchor - simply
           cancelling the numeral's own negative offset (the previous pt-6/pt-10) still
@@ -147,9 +152,45 @@ function Hero() {
   );
 }
 
+/** The plain "what this is" beat between the hero's thesis and the S1-S4 feature sections.
+ *  Deliberately outside the spine wrapper: no SectorNumeral, no data-sector-anchor, so
+ *  TrackSpine's measured geometry is unaffected and the track still starts at S1.
+ *  No CTA — the hero and each of S1-S4 already carry one, and a fifth dilutes them. */
+function AboutSector4() {
+  return (
+    <section className="relative mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 sm:py-28">
+      {/* Two-column only from lg. The helmet is shrink-0 at 300px, so going side-by-side at
+          sm left the copy just 256px at a 660px viewport and the heading broke to four
+          lines. S1-S4 can go two-column at sm because their emblems are 120px, not 300. */}
+      <SectionReveal className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+        <div className="sm:max-w-xl lg:max-w-2xl">
+          <p data-reveal className={SECTION_LABEL}>
+            About Sector 4
+          </p>
+          <h2 data-reveal className={SECTION_HEADING}>
+            An F1 companion that shows its working.
+          </h2>
+          <p data-reveal className={SECTION_BODY}>
+            Ask anything about the weekend and get a straight answer with the reasoning
+            attached: podium odds as honest probabilities, real strategy calls, and the
+            concepts behind both. Where the data is thin, it says so instead of sounding
+            sure.
+          </p>
+        </div>
+        {/* data-reveal goes on this WRAPPER; the lift transform lives on .radio-lift inside
+            RadioHelmet. GSAP sets `y` on [data-reveal] elements, so the two must never
+            share an element. */}
+        <div data-reveal className="shrink-0">
+          <RadioHelmet />
+        </div>
+      </SectionReveal>
+    </section>
+  );
+}
+
 function AskAnything() {
   return (
-    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+    <section className="relative mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 sm:py-28">
       <SectionReveal>
         <div className="absolute -top-6 right-0 sm:-top-10">
           <SectorNumeral n={1} />
@@ -187,12 +228,12 @@ function LearnTheSport() {
           above the section's own top edge, so the tint must start there too, not at the
           section box, or its flat top edge slices across the glyph. */}
       <div aria-hidden className="absolute inset-x-0 -top-6 bottom-0 bg-ink/[0.02] sm:-top-10" />
-      <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
+      <SectionReveal className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-20 lg:gap-10 sm:flex-row sm:items-start sm:px-8 sm:py-28">
         <div className="absolute -top-6 left-0 sm:-top-10">
           <SectorNumeral n={2} />
         </div>
         <div data-reveal>
-          <AsciiEmblem kind="tyre" size={64} className="shrink-0" />
+          <AsciiEmblem kind="tyre" size={120} className="shrink-0" />
         </div>
         <div>
           <p data-reveal className={SECTION_LABEL}>
@@ -218,13 +259,13 @@ function LearnTheSport() {
 function ThisWeekend() {
   const dateLabel = formatRaceDate(schedule.final);
   return (
-    <section className="relative mx-auto w-full max-w-3xl px-6 py-20 sm:px-8 sm:py-28">
+    <section className="relative mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 sm:py-28">
       <SectionReveal className="flex flex-col gap-6 sm:flex-row sm:items-start">
         <div className="absolute -top-6 right-0 sm:-top-10">
           <SectorNumeral n={3} />
         </div>
         <div data-reveal>
-          <AsciiEmblem kind="car" size={64} className="shrink-0" />
+          <AsciiEmblem kind="car" size={120} className="shrink-0" />
         </div>
         <div>
           <p data-reveal className={SECTION_LABEL}>
@@ -253,12 +294,12 @@ function HonestByDesign({ liveScored }: { liveScored: number }) {
           S1-S3); extend the tint to match that offset so its flat top edge doesn't slice
           across the glyph. */}
       <div aria-hidden className="absolute inset-x-0 -top-6 bottom-0 bg-ink/[0.02] sm:-top-10" />
-      <SectionReveal className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-20 sm:flex-row sm:items-start sm:px-8 sm:py-28">
+      <SectionReveal className="relative mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-20 lg:gap-10 sm:flex-row sm:items-start sm:px-8 sm:py-28">
         <div className="absolute -top-6 left-0 sm:-top-10">
           <SectorNumeral n={4} />
         </div>
         <div data-reveal>
-          <AsciiEmblem kind="flag" size={64} className="shrink-0" />
+          <AsciiEmblem kind="flag" size={120} className="shrink-0" />
         </div>
         <div>
           <p data-reveal className={SECTION_LABEL}>

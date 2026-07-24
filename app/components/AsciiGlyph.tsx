@@ -1,22 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { DriverGlyph } from "@/app/components/DriverGlyph";
 import { useConceptPopover } from "@/app/components/ConceptPopover";
 import { thresholdCells, type BayerCell } from "@/app/lib/bayer";
 import { resolveGlyph, driverName } from "@/app/lib/glyph";
 import { HELMET_VIEWBOX, NUMBER_POS, helmetSvgMarkup } from "@/app/lib/helmet";
 import { getEntityWhat, entityKey } from "@/app/lib/entity-whats";
+import { useRevealCanvas } from "@/app/lib/use-reveal-canvas";
 
-const REVEAL_MS = 450; // dither-resolve reveal duration
 // Target CSS px per grid cell when the caller doesn't pin `cols` -- see AsciiEmblem's
 // DEFAULT_CELL_PX for the owner-reviewed rationale (threshold quantization at 2px/cell,
 // no ordered-dither scatter).
 const DEFAULT_CELL_PX = 2;
-
-function easeOut(t: number) {
-  return 1 - (1 - t) * (1 - t) * (1 - t);
-}
 
 /**
  * The driver helmet rendered as a hard-threshold pixel-art field (PRD §8). The helmet is
@@ -39,7 +35,6 @@ export function AsciiGlyph({
 }) {
   const [cells, setCells] = useState<BayerCell[] | null>(null);
   const [grid, setGridDims] = useState<{ cols: number; rows: number } | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const g = resolveGlyph(code, team);
   const open = useConceptPopover();
   const what = getEntityWhat("driver", code);
@@ -82,59 +77,25 @@ export function AsciiGlyph({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, team, size, cols]);
 
-  // 2. Paint the quantized field to the visible canvas, with a dither-resolve reveal.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!cells || !grid || !canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const cellPx = size / grid.cols;
-    const heightPx = grid.rows * cellPx;
-    canvas.width = Math.round(size * dpr);
-    canvas.height = Math.round(heightPx * dpr);
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${heightPx}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const paint = (progress: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const cell of cells) {
-        if (cell.t > progress) continue;
-        ctx.fillStyle = cell.color;
-        ctx.fillRect(cell.x * cellPx, cell.y * cellPx, cellPx, cellPx);
-      }
-
-      // Crisp numeral overlay (legible where the dither field can't be), fades in
-      // over the final 30% of the reveal.
-      if (g.number !== null) {
-        ctx.globalAlpha = Math.max(0, Math.min(1, (progress - 0.7) / 0.3));
-        ctx.fillStyle = g.numberColor;
-        ctx.font = `800 ${Math.round(NUMBER_POS.size * heightPx)}px Arial, Helvetica, sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(String(g.number), NUMBER_POS.x * size, NUMBER_POS.y * heightPx);
-        ctx.globalAlpha = 1;
-      }
-    };
-
-    if (reduce) {
-      paint(1);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / REVEAL_MS);
-      paint(easeOut(t));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cells, grid, size]);
+  const canvasRef = useRevealCanvas({
+    cells,
+    grid,
+    size,
+    // Crisp numeral overlay (legible where the dither field can't be), fades in over the
+    // final 30% of the reveal.
+    drawOverlay:
+      g.number === null
+        ? undefined
+        : (ctx, progress, dims) => {
+            ctx.globalAlpha = Math.max(0, Math.min(1, (progress - 0.7) / 0.3));
+            ctx.fillStyle = g.numberColor;
+            ctx.font = `800 ${Math.round(NUMBER_POS.size * dims.height)}px Arial, Helvetica, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(String(g.number), NUMBER_POS.x * dims.width, NUMBER_POS.y * dims.height);
+            ctx.globalAlpha = 1;
+          },
+  });
 
   // Vector fallback: server render, while sampling, or if canvas is unavailable.
   // Pass click props only when a driver entity-what exists (no dead affordance otherwise).

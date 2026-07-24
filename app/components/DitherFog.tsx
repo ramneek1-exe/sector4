@@ -5,36 +5,16 @@
 // DitherHeroPanel). Two white-backed Dithering layers stacked with multiply so the palette
 // warp accumulates over the page (the AsciiFog fog-on-white treatment), plus a soft accent
 // blob that trails the cursor. Params are exact — do not retune without re-running the lab.
-import { useEffect, useRef, useState } from "react";
-import { Dithering, type DitheringProps } from "@paper-design/shaders-react";
-
-const WHITE = "#fafafa"; // page surface; multiply-blended layers pass it through
-const BLUE = "#406cd6";
-const SKY = "#459ae4";
-const ACCENT = "#2f2e89";
-
-const HERO_LAYERS: Partial<DitheringProps>[] = [
-  { colorBack: WHITE, colorFront: BLUE, shape: "warp", type: "4x4", size: 2, speed: 0.5, scale: 0.8 },
-  { colorBack: WHITE, colorFront: SKY, shape: "warp", type: "4x4", size: 2, speed: 0.35, scale: 0.55 },
-];
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const on = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
-  }, []);
-  return reduced;
-}
+import { useEffect, useRef } from "react";
+import { Dithering } from "@paper-design/shaders-react";
+import { WHITE, ACCENT, WARP_LAYERS } from "@/app/lib/dither-recipe";
+import { useReducedMotion } from "@/app/lib/use-reduced-motion";
 
 /** White-backed Dithering layers, multiply-stacked so the palette accumulates over white. */
 function DitherLayers({ speedFactor }: { speedFactor: number }) {
   return (
     <>
-      {HERO_LAYERS.map((l, i) => (
+      {WARP_LAYERS.map((l, i) => (
         <Dithering
           key={i}
           {...l}

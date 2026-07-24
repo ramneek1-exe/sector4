@@ -20,14 +20,24 @@ const CAR_W = 56;
 const TRACK = "#251F44"; // ink
 const KERB_RED = "#d2504a";
 // Each curve connector is an S-curve (ogee) with a VERTICAL tangent at both ends
-// (see track-path.ts): curvature is HIGHEST near each end, where the path peels
-// away from straight, and crosses zero at the middle (the inflection point, where
-// the S reverses bend direction) - the middle is the straightest part, not the
-// bendiest. So kerbs stripe TWO zones per connector, near the exit of one sector
-// and the entry of the next, leaving the near-straight middle third bare.
+// (see track-path.ts): curvature is HIGHEST right AT each end, where the path peels
+// away from the anchor straight, and crosses zero at the middle (the inflection
+// point, where the S reverses bend direction) - the middle is the straightest part,
+// not the bendiest. So kerbs stripe TWO zones per connector, hard against the exit
+// of one sector and the entry of the next, leaving the long straightening run bare.
+//
+// The zones are derived, not eyeballed. Normalising the connector (vertical span 1,
+// horizontal offset D) gives x(t) = D(3t^2 - 2t^3), y(t) = 1.5t - 1.5t^2 + t^3, and
+// curvature k = (x'y'' - y'x'') / (x'^2 + y'^2)^1.5 falls away fast from the ends:
+// at D=1.5, k is 4.00 at t=0, 3.38 at t=0.1, 1.47 at t=0.2, 0.38 at t=0.35, 0 at t=0.5.
+// Half-max sits near t=0.16, so a real corner is roughly the first and last fifth.
+// The previous [0.05,0.35]/[0.65,0.95] both skipped the tightest point at t=0 AND ran
+// out to where curvature was down to ~9% of peak, so the stripes read as painted along
+// a straight rather than around an apex. Widening the layout raises D, which sharpens
+// the ends further and makes tight zones more correct, not less.
 const KERB_ZONES: [number, number][] = [
-  [0.05, 0.35],
-  [0.65, 0.95],
+  [0.0, 0.2],
+  [0.8, 1.0],
 ];
 
 interface Measured {

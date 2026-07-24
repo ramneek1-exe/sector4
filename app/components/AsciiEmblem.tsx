@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { thresholdCells, type BayerCell } from "@/app/lib/bayer";
 import { emblemViewBox, emblemSvgMarkup, type EmblemKind, type SvgEmblem } from "@/app/lib/emblems";
 import { CAR_SILHOUETTE } from "@/app/lib/car-silhouette";
+import { useRevealCanvas } from "@/app/lib/use-reveal-canvas";
 
-const REVEAL_MS = 450; // dither-resolve reveal duration
 const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette rendered monochrome
 // Target CSS px per grid cell when the caller doesn't pin `cols` (owner-reviewed against
 // rendered candidates, 2026-07-22: threshold quantization at 2px/cell read as clean 8-bit
@@ -15,10 +15,6 @@ const CAR_COLOR = "#406CD6"; // brand blue (palette --ramp-2) — silhouette ren
 // thresholdCells' hard majority-coverage cutoff has no such scatter, so a uniform cell
 // target works across shapes where Bayer needed fragile per-kind tuning.
 const DEFAULT_CELL_PX = 2;
-
-function easeOut(t: number) {
-  return 1 - (1 - t) * (1 - t) * (1 - t);
-}
 
 // Aspect ratio (h/w) for the placeholder box reserved while the grid samples.
 function emblemAspect(kind: EmblemKind): number {
@@ -88,7 +84,6 @@ export function AsciiEmblem({
 }) {
   const [cells, setCells] = useState<BayerCell[] | null>(null);
   const [grid, setGridDims] = useState<{ cols: number; rows: number } | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const emblemColor = color ?? CAR_COLOR;
 
   // 1. Rasterise the emblem off-screen at the sampling grid and hard-threshold it. `cols`
@@ -139,46 +134,7 @@ export function AsciiEmblem({
     };
   }, [kind, size, emblemColor, cols]);
 
-  // 2. Paint the quantized field to the visible canvas, optionally with a resolve reveal.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!cells || !grid || !canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const cellPx = size / grid.cols;
-    const heightPx = grid.rows * cellPx;
-    canvas.width = Math.round(size * dpr);
-    canvas.height = Math.round(heightPx * dpr);
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${heightPx}px`;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const paint = (progress: number) => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (const cell of cells) {
-        if (cell.t > progress) continue;
-        ctx.fillStyle = cell.color;
-        ctx.fillRect(cell.x * cellPx, cell.y * cellPx, cellPx, cellPx);
-      }
-    };
-
-    if (reduce || !animate) {
-      paint(1);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / REVEAL_MS);
-      paint(easeOut(t));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [cells, grid, size, animate]);
+  const canvasRef = useRevealCanvas({ cells, grid, size, animate });
 
   if (!cells || !grid) {
     // Reserve the eventual height so the canvas doesn't pop in (square SVG emblems render
