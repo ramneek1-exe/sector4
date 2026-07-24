@@ -304,3 +304,57 @@ body {
     opacity: 1;
   }
 }
+
+/* Landing intro radio helmet (app/components/RadioHelmet.tsx). The lift transform lives on
+   its own inner element, NEVER on the [data-reveal] wrapper — SectionReveal sets `y` on
+   those via GSAP and the two transforms would overwrite each other (the same bug the
+   landing footer's parallax hit). */
+.radio-lift {
+  transform: translateY(0);
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-radio-active] .radio-lift {
+  transform: translateY(-14px);
+}
+
+/* Bubble opens after the lift has most of the way settled, closes fast. */
+.radio-bubble {
+  opacity: 0;
+  transform: scale(0.94);
+  transform-origin: bottom left;
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+[data-radio-active] .radio-bubble {
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 220ms ease 380ms,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1) 380ms;
+}
+
+/* Tail: a small triangle pointing down toward the helmet. Sits below the bubble body. */
+.radio-bubble::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  bottom: -9px;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 10px solid #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio-lift,
+  [data-radio-active] .radio-lift {
+    transform: none;
+    transition: none;
+  }
+  .radio-bubble,
+  [data-radio-active] .radio-bubble {
+    transition: none;
+  }
+}
