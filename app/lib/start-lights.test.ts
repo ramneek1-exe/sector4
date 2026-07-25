@@ -3,6 +3,7 @@ import {
   ARM_DONE_MS,
   ARM_INTERVAL_MS,
   CURTAIN_MS,
+  FAILSAFE_SLACK_MS,
   HARD_CAP_MS,
   HERO_FAILSAFE_MS,
   HOLD_MAX_MS,
@@ -13,6 +14,7 @@ import {
   armSchedule,
   overlayTeardownMs,
   pickHold,
+  postHydrationFailsafeMs,
   resolveLightsOut,
   textReleaseDelayMs,
 } from "@/app/lib/start-lights";
@@ -75,11 +77,18 @@ describe("overlayTeardownMs", () => {
   });
 });
 
-describe("failsafe invariant", () => {
-  // app/page.tsx's inline gate force-reveals the hero at HERO_FAILSAFE_MS in case React
-  // never hydrates. If the sequence ever outgrew that, the failsafe would fire DURING the
-  // curtain and reveal the hero mid-lift. Nothing else guards this.
-  it("finishes the worst-case sequence before the inline failsafe fires", () => {
-    expect(HARD_CAP_MS + overlayTeardownMs()).toBeLessThan(HERO_FAILSAFE_MS);
+describe("postHydrationFailsafeMs", () => {
+  // HERO_FAILSAFE_MS (inline, measured from HTML parse) covers only "React never
+  // hydrated". Once the island mounts it clears that timer and backstops the release on
+  // its OWN t0 — the same clock as HARD_CAP_MS — so the two are deliberately NOT compared
+  // any more. An assertion across those clocks silently measured a hydration budget.
+  it("clears the worst-case sequence, with slack", () => {
+    expect(postHydrationFailsafeMs()).toBe(HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS);
+    expect(postHydrationFailsafeMs()).toBeGreaterThan(HARD_CAP_MS + overlayTeardownMs());
+  });
+  it("leaves the hero no worse off than the inline failsafe it replaces", () => {
+    // A hydrated page must not wait longer for its guaranteed release than a page that
+    // never hydrates at all.
+    expect(postHydrationFailsafeMs()).toBeLessThan(HERO_FAILSAFE_MS);
   });
 });

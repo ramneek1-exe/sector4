@@ -24,6 +24,7 @@ import {
   armSchedule,
   overlayTeardownMs,
   pickHold,
+  postHydrationFailsafeMs,
   resolveLightsOut,
   textReleaseDelayMs,
 } from "@/app/lib/start-lights";
@@ -190,6 +191,25 @@ export function StartLights() {
 
     // Hard-cap backstop: fires release even if canplay never comes.
     timers.push(window.setTimeout(release, HARD_CAP_MS));
+
+    // The inline gate's failsafe is measured from HTML PARSE while everything above is
+    // measured from this effect's t0 (post-hydration), so comparing them coupled the
+    // sequence length to how long hydration took: a slow hydration could let that timer
+    // fire mid-curtain and release the hero behind the still-opaque field. React is
+    // demonstrably alive here, so that timer's only job ("never hydrated") is done —
+    // clear it and take over on our own clock.
+    const w = window as Window & { __s4HeroFailsafe?: number };
+    if (w.__s4HeroFailsafe !== undefined) {
+      clearTimeout(w.__s4HeroFailsafe);
+      delete w.__s4HeroFailsafe;
+    }
+    // Deliberately NOT pushed onto timers[]: on a client-side navigation away mid-sequence
+    // the cleanup clears every other timer, and this is then the only thing left that can
+    // remove the attribute. removeAttribute is idempotent, so after a normal release this
+    // is a no-op. (Removing the attribute in the cleanup instead would break dev: React
+    // StrictMode double-invokes the effect, so the cleanup would strip the attribute
+    // between the two runs and the second run would bail out — no preloader in dev.)
+    window.setTimeout(() => root.removeAttribute("data-preloader-active"), postHydrationFailsafeMs());
 
     return () => {
       timers.forEach(clearTimeout);

@@ -97,8 +97,12 @@ t+705ms    [data-preloader-active] dropped  (120 + 900 × 0.65)
 t+1020ms   overlay unmounts (phase -> "done")
 ```
 
-Worst case from `t0`: `HARD_CAP_MS` (5500) + 1020 = **6520ms**, inside the 8000ms pure-JS
-failsafe in `app/page.tsx`. Margin ~1.5s.
+Worst case from `t0`: `HARD_CAP_MS` (5500) + 1020 = **6520ms**, backstopped at
+`postHydrationFailsafeMs()` = 7020ms (6520 + 500 slack) — on that SAME `t0` clock. The inline
+`HERO_FAILSAFE_MS` (8000ms, measured from HTML parse in `app/page.tsx`) now covers only the
+"React never hydrates" case: once `StartLights` mounts, it clears that inline timer and owns
+the release from its own `t0`. The two are deliberately no longer compared, so hydration time
+can't eat into the sequence's headroom the way it previously did.
 
 ## Implementation
 

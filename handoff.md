@@ -83,16 +83,14 @@
 > explicit `cta.focus()` fails while the overlay is up and succeeds after. Repeat-visit and
 > reduced-motion clean, and reduced-motion correctly does NOT write the sessionStorage key.
 > vitest 269 pass/2 skip, tsc + build clean.
-> **⚠️ OPEN — FAILSAFE TIME-BASE (owner decision, not a blocker):** the invariant test asserts
-> `HARD_CAP_MS + overlayTeardownMs() < HERO_FAILSAFE_MS` (6520 < 8000), but `HARD_CAP_MS` runs from
-> the effect's `t0` (POST-hydration) while `HERO_FAILSAFE_MS` runs from HTML parse. So the 1480ms
-> isn't margin — it's the **hydration budget**, cut from 2200ms by lengthening the curtain. If
-> hydration exceeds it on a mid-range phone the inline gate drops mid-arming and the hero's fog-in
-> plays out behind the still-opaque field: graceful (no stranding, no mid-lift pop) but the whole
-> point of the change silently doesn't happen on exactly the slow devices where a 900ms curtain is
-> most conspicuous. Fix options: export a `HYDRATION_BUDGET_MS` and assert it (raising
-> `HERO_FAILSAFE_MS`), or decouple the clocks so StartLights clears the inline timer on mount and owns
-> the backstop from its own `t0`.
+> **✅ FIXED — FAILSAFE TIME-BASE:** was `HARD_CAP_MS + overlayTeardownMs() < HERO_FAILSAFE_MS`
+> (6520 < 8000) comparing two different clocks — `HARD_CAP_MS` from the effect's `t0`
+> (post-hydration), `HERO_FAILSAFE_MS` from HTML parse — so the 1480ms was a hydration budget, not
+> margin, and a slow hydration could let the inline failsafe fire mid-curtain. Fixed by decoupling:
+> `StartLights` now clears `window.__s4HeroFailsafe` on mount and backstops the release itself at
+> `postHydrationFailsafeMs()` (= `HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS` = 7020ms) on
+> its own `t0`. `HERO_FAILSAFE_MS` now covers only "React never hydrates"; the two clocks are no
+> longer compared. See `app/lib/start-lights.ts`, `app/page.tsx`, `app/components/StartLights.tsx`.
 > **⚠️ OPEN — iOS SAFARI EYEBALL:** lamps are `border-radius:50%` + `overflow:hidden` inside a subtree
 > that now takes a composited transform AND an animated blur. WebKit has historically dropped
 > rounded-corner clipping on promoted layers mid-transform — the failure mode is **square lamps during

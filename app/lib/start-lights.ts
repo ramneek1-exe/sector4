@@ -73,3 +73,20 @@ export function textReleaseDelayMs(): number {
 export function overlayTeardownMs(): number {
   return LIGHTS_OUT_HOLD_MS + CURTAIN_MS;
 }
+
+/** Gap between the worst-case sequence finishing and the post-hydration backstop firing. */
+export const FAILSAFE_SLACK_MS = 500;
+
+/**
+ * Backstop for releasing the hero, measured from the ISLAND'S t0 — the same clock as
+ * HARD_CAP_MS and the curtain — rather than from HTML parse like HERO_FAILSAFE_MS.
+ *
+ * The inline gate's failsafe covers only "React never hydrated". Once the island has
+ * mounted that case is disproven, so it clears the inline timer and owns release from
+ * here. Keeping both on one clock is what stops the sequence's length from eating into
+ * an invisible hydration budget: previously a slow hydration could let the inline
+ * failsafe fire mid-curtain and reveal the hero behind the still-opaque field.
+ */
+export function postHydrationFailsafeMs(): number {
+  return HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS;
+}
