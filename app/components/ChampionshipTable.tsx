@@ -121,10 +121,16 @@ export function ChampionshipTable({ file }: { file: StandingsFile }) {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
+                    {/* 96, not the 40 used by the driver helmet beside it. AsciiEmblem derives
+                        its sampling grid as size / DEFAULT_CELL_PX (2), and the car silhouette
+                        is 144x31 — so size 40 sampled it at 20x4 cells, a four-pixel-tall blob
+                        with no readable nose, cockpit or wing. 96 samples at 48x10, which reads
+                        as an F1 car while still standing only ~21px tall, so the row height is
+                        essentially unchanged. A helmet is square and survives 40; a car is not. */}
                     <AsciiEmblem
                       kind="car"
                       color={(teams as Record<string, TeamInfo>)[r.key]?.primary}
-                      size={40}
+                      size={96}
                     />
                     <span className="font-bold tracking-wide">{r.key}</span>
                   </div>

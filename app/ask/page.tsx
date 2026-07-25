@@ -250,8 +250,12 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
  * Championship answer: the deterministic lede, the grounded narrative, and a compact
  * standings table. Season-scoped (no circuit context, unlike every other answer here).
  * Reuses the /weekend table's pure cell-text helpers (`gapCellText`, `rateCellText`,
- * `RATE_HEADER_LABEL`, `visibleDriverRows`) so the load-bearing "out-score the leader by"
- * wording can never drift between the two surfaces; the markup itself is duplicated to a
+ * `RATE_HEADER_LABEL`) so the load-bearing "out-score the leader by" wording can never
+ * drift between the two surfaces. `visibleDriverRows` comes from `app/lib/championship.ts`,
+ * and note the rows arriving here are ALREADY filtered in orchestrate.ts — that is the
+ * load-bearing pass, because it is what keeps a hidden driver's name out of the Haiku
+ * prompt. Re-filtering here is belt-and-braces for the table only; it cannot un-leak a name
+ * from prose. The markup itself is duplicated to a
  * minimum because `ChampionshipTable` expects a full `StandingsFile` (points maps + a
  * drivers/constructors toggle) that this compact answer doesn't carry.
  */
