@@ -1,24 +1,34 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-24.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-25.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), M3 FRONTEND
 > (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), the
 > LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
-> PR #49), AND the intro/landing TWEAKS (PR #50) are all MERGED to `main` and LIVE on
-> PRODUCTION (`sector4.net`).**
+> PR #49), the intro/landing TWEAKS (PR #50), AND the LANDING PRELOADER (start-lights
+> gantry) + a batch of site tweaks/fixes (branch `landing-preloader`, merged to `main`
+> 2026-07-25) are all on `main` / deploying to PRODUCTION (`sector4.net`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — PRELOADER + HERO REVEAL (still not started)
-> The last piece deferred from the original landing-v2 ordering (owner: "hero first, then
-> sections working downwards... finally coming back to the preloader + hero reveal
-> followed by the footer"). Footer AND the intro section are now done (see the two newest
-> session entries below); this is the remaining item. `data-hero` attrs
-> (`video`/`thesis`/`cta`/`cue`) on the Hero's four layers in `app/page.tsx` are stable
-> hooks already in place specifically for this pass (see the Hero section's own comment) —
-> left UNTOUCHED through both intervening sessions. Brainstorm fresh (new spec/plan under
-> `docs/superpowers/{specs,plans}/`) — no design direction locked yet, this is a design
-> call from scratch.
+> ## 🟢 PRELOADER — DONE (2026-07-25, branch `landing-preloader` → merged to `main`)
+> The last deferred landing-v2 piece shipped. See the newest session entry below for full
+> detail. Start-lights gantry preloader (once/session, ~4-5s real-F1 cadence, gated on
+> hero-ready + hard cap, pure-JS failsafe), plus 8 owner tweaks/fixes batched onto the same
+> branch (bigger lamps, energy-harvesting query, site-wide footer, chips-in-viewport, Lenis
+> modal scroll, footer-parallax-on-nav). `data-hero` attrs on the Hero are now consumed by
+> the preloader's inline gate. NO specific next-up item locked — await owner direction.
+>
+> **OPEN / VERIFY ON PROD (this session's deferrals):**
+> - **`/weekend` past-predictions modal scroll** — the `data-lenis-prevent` fix could not be
+>   eyeballed locally (the modal needs Blob data; `/weekend` sits in its pre-predictions
+>   state under `next start`, so the CTA doesn't render). Confirm the table actually scrolls
+>   on the deploy.
+> - **Driver-helmet glyphs on `/ask` + `/weekend`** (still open from PR #49) — same local
+>   data gap; eyeball on prod.
+> - **Preloader a11y Minor (logged, not fixed):** the hero CTA is opacity-0-but-focusable
+>   under the opaque overlay for the ~4-5s sequence; a keyboard user tabbing early hits an
+>   invisible target (reduced-motion users skip the overlay, so low-risk). Decide whether to
+>   make the hero `inert` while the preloader is active.
 >
 > **ALSO OPEN (deferred from PR #49, low priority): live eyeball of driver-helmet glyphs
 > on prod.** The shared-canvas-reveal refactor (`app/lib/use-reveal-canvas.ts`) touches
@@ -27,6 +37,59 @@
 > local `next dev`/`start`, so that path was verified byte-for-byte in review but never
 > eyeballed live. Confirm a real `/ask` answer's helmets + the `/weekend` podium helmets
 > look right on the deploy.
+>
+> ## 2026-07-24/25 session — LANDING PRELOADER (start-lights) + site tweaks/fixes (branch `landing-preloader`, merged to `main`)
+> **Brainstormed → spec → plan → subagent-driven build, then an owner-led visual pass, then
+> two rounds of owner tweaks/fixes.** Spec/plan `docs/superpowers/{specs,plans}/2026-07-24-landing-preloader-start-lights*`;
+> ledger `.superpowers/sdd/progress.md` (new section at bottom).
+> **PRELOADER — what shipped:** an F1 **start-lights** preloader on `/`, once per session
+> (`sessionStorage["s4-preloaded"]`). Pure timing in `app/lib/start-lights.ts` (node-tested:
+> `armSchedule`/`pickHold`/`resolveLightsOut` — lights-out = `max(arm+hold, heroReady)` hard-
+> capped). Client island `app/components/StartLights.tsx` overlays the hero (`fixed inset-0
+> z-50`), drives a state machine `arming→out→done`, gates lights-out on the hero `<video>`
+> `canplay` with a hard-cap backstop, then removes `[data-preloader-active]` to release the
+> hero's `fog-in`. **Reveal handoff:** an inline no-flash `<script>` in `app/page.tsx` sets
+> `[data-preloader-active]` on `<html>` PRE-PAINT (only first-visit + motion-allowed); CSS
+> `[data-preloader-active] .fog-in{animation-play-state:paused}` holds the hero; the island
+> un-pauses at lights-out. No-JS/reduced-motion/repeat-visit never set the attr → hero shows
+> instantly, zero added delay. A pure-JS **8s failsafe** in the inline script guarantees the
+> hero reveals even if React never hydrates (final-review Important).
+> **VISUAL (owner-directed, superseded the spec's "abstract dots"):** a row of 5 abstract
+> **dark light housings**, each 2 circular lamps filled with a red **LED-halftone dot-matrix**
+> (CSS `radial-gradient` dot grid — the "dither"), glow, per-lamp opacity light-up. **64px**
+> lamps, 4px housing corners, warm `#f3eee6` field. Unbranded — no FOM gantry likeness / no
+> F1/FIA/FOM marks (PRD §8). **Cadence:** real-F1 ~1 light/sec (`ARM_INTERVAL_MS=800`,
+> `HARD_CAP_MS=5500`) → ~4-5s total. Live-verified (prod build, fresh isolated contexts):
+> sequential arm ~800ms apart, lights-out+dissolve ~4.8s, then hero reveals; repeat-visit +
+> reduced-motion both skip.
+> **PROCESS:** Tasks 1-4 subagent-implemented + per-task reviewed; Task 3 review caught a real
+> React-18-StrictMode bug (a `started` run-once ref that made the effect a permanent no-op on
+> dev double-invoke — removed); opus whole-branch review READY TO MERGE after the failsafe fix.
+> Then owner visual pass (3 rounds) controller-led + live-eyeballed.
+> **SITE TWEAKS/FIXES batched on the same branch (owner, controller-led):**
+> 1. **Bigger start-lights lamps** (48→64px).
+> 2. **`/ask` chips in-viewport, unstuck, clear of heading** — the drift overlay was briefly
+>    `position:fixed`/portalled (to escape an ancestor transform), which pinned chips to the
+>    viewport (sticky on scroll; its `backdrop-blur` repainting every frame = scroll STUTTER)
+>    and dropped a chip on the top-left "Ask" `h1`. Final: `absolute` within the idle section,
+>    POOL an 8-52% edge-anchored band (`QueryChips.tsx`).
+> 3. **Site-wide footer** — the big `SECTOR4` `LandingFooter` moved to the root layout (every
+>    page); the legal-line `SiteFooter` DELETED (LandingFooter carries the DISCLAIMER, so no
+>    legal regression). **Gotcha fixed same session:** the footer is now in the PERSISTENT
+>    layout, so its ScrollTrigger kept the first page's geometry across client nav → parallax
+>    frozen + legal line clipped on subpages. Fix: `usePathname` + a deferred
+>    `ScrollTrigger.refresh()` on route change (`LandingFooter.tsx`).
+> 4. **DRS→2026:** replaced the dated "What is DRS?" example query with **"What is energy
+>    harvesting?"** on landing + `/ask` (the DRS *concept* was already 2026-updated).
+> 5. **Modal scroll under Lenis:** site-wide Lenis hijacks wheel/touch, so in-modal
+>    `overflow-y-auto` never scrolled — added `data-lenis-prevent` to the `/weekend`
+>    past-predictions modal + the `/ask` examples modal. (weekend one unverifiable locally.)
+> **VERIFIED:** tsc + `npm run build` clean; vitest 264 pass/2 skip; chips/footer/lights all
+> eyeballed in-browser on the prod build. Merged to `main` this session (owner: "push to prod")
+> → Vercel deploying. **Commits on `main`:** the `landing-preloader` branch (Tasks 1-4 +
+> StrictMode fix + failsafe + visual pass + 5 tweaks + docs). **Ops note:** builds ran slow
+> this session (2-4min) under the load of many open chrome-devtools contexts — kill stale
+> contexts / use longer timeouts.
 >
 > ## 2026-07-23/24 session — LANDING INTRO SECTION (PR #49) + TWEAKS (PR #50), both MERGED + LIVE
 > **Owner asked for an "About Sector 4" intro section under the hero, above the race-track
