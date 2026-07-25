@@ -110,15 +110,15 @@ Four files changed. No new files.
 
 ```ts
 export const LIGHTS_OUT_HOLD_MS = 120;   // dark-gantry beat before the lift
-export const CURTAIN_MS = 700;
+export const CURTAIN_MS = 900;
 export const TEXT_RELEASE_FRAC = 0.65;
 export const HERO_FAILSAFE_MS = 8000;    // the inline gate's failsafe in page.tsx
 
 /** ms after lights-out at which [data-preloader-active] is dropped. */
-export function textReleaseDelayMs(): number;   // 575
+export function textReleaseDelayMs(): number;   // 705
 
 /** ms after lights-out at which the overlay unmounts. */
-export function overlayTeardownMs(): number;    // 820
+export function overlayTeardownMs(): number;    // 1020
 ```
 
 `HERO_FAILSAFE_MS` lives here so `app/page.tsx` can interpolate it into the inline gate
@@ -152,8 +152,18 @@ gating and the hard cap all stay exactly as tuned.
 
 ```css
 @keyframes preloaderCurtain       { to { transform: translateY(-100%); } }
-@keyframes preloaderCurtainGantry { to { transform: translateY(-30vh); } }
+@keyframes preloaderCurtainGantry {
+  0% { transform: translateY(0); filter: blur(0px); }
+  30% { filter: blur(1.7px); }
+  100% { transform: translateY(-30vh); filter: blur(14px); }
+}
 ```
+
+The gantry's blur-out was added during the visual pass (see §Visual pass) — it is held
+sharp through the easing's slow start, then smears over the fast exit so it reads as
+speed rather than soft focus. Blur is on the gantry only; the field behind it stays clean.
+Because of it the gantry row carries `willChange: "transform, filter"` while the overlay
+keeps plain `willChange: "transform"`.
 
 The existing reduced-motion `animation: none !important` block extends to
 `.start-lights-gantry` alongside `.start-lights-overlay` (defense-in-depth; the overlay is
