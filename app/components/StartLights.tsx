@@ -28,8 +28,8 @@ const SESSION_KEY = "s4-preloaded";
 
 // Visual constants — tuned live against rendered candidates during the visual pass.
 const LAMPS_PER_HOUSING = 2; // stacked lamps per housing
-const LAMP_D = 48; // lamp diameter (css px)
-const DOT_CELL = 4; // LED-halftone grid cell (css px) — the dither texture
+const LAMP_D = 64; // lamp diameter (css px)
+const DOT_CELL = 5; // LED-halftone grid cell (css px) — the dither texture
 const HOUSING_BG = "#0b0b0d"; // dark housing body
 const LAMP_BASE = "#141417"; // unlit lamp disc
 const OFF_DOT = "#2c2c30"; // grey halftone dots when unlit
