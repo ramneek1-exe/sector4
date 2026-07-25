@@ -3,11 +3,14 @@ import {
   generateNarrative,
   generatePaceNarrative,
   generateStrategyNarrative,
+  generateChampionshipNarrative,
   strategyLede,
   compoundLede,
+  championshipLede,
   type PaceFacts,
   type StrategyFacts,
   type CompoundFacts,
+  type ChampionshipFacts,
 } from "./narrative";
 
 const fakeClient = (text: string) => ({
@@ -89,5 +92,58 @@ describe("compoundLede", () => {
   it("degrades honestly when there is no history", () => {
     const s = compoundLede({ ...base, compound: null, basis_year: null });
     expect(s.toLowerCase()).toContain("enough history");
+  });
+});
+
+const CHAMPIONSHIP: ChampionshipFacts = {
+  kind: "championship",
+  year: 2026,
+  throughGp: "Great Britain",
+  remainingRounds: 12,
+  totalRounds: 24,
+  rows: [
+    { key: "VER", points: 255, rank: 1, gap: 0, requiredRate: null },
+    { key: "NOR", points: 230, rank: 2, gap: 25, requiredRate: 2.1 },
+  ],
+};
+
+describe("championshipLede", () => {
+  it("names the leader and the gap to second", () => {
+    const s = championshipLede(CHAMPIONSHIP);
+    expect(s).toContain("VER");
+    expect(s).toContain("255");
+    expect(s).toContain("25 clear of NOR");
+    expect(s).not.toContain("—"); // no em-dash
+  });
+
+  it("degrades honestly when standings are empty", () => {
+    const s = championshipLede({ ...CHAMPIONSHIP, rows: [] });
+    expect(s.toLowerCase()).toContain("not available");
+  });
+
+  it("handles a single-row table (no second place) without a gap clause", () => {
+    const s = championshipLede({ ...CHAMPIONSHIP, rows: [CHAMPIONSHIP.rows[0]] });
+    expect(s).toBe("VER leads the 2026 championship on 255 points.");
+  });
+});
+
+describe("generateChampionshipNarrative", () => {
+  it("returns the model's text and grounds the user message in the lede + facts", async () => {
+    let seen: any;
+    const client = {
+      messages: {
+        create: async (args: any) => {
+          seen = args;
+          return { content: [{ type: "text", text: "VER leads on 255 points, 25 clear of NOR." }] };
+        },
+      },
+    };
+    const out = await generateChampionshipNarrative(client, CHAMPIONSHIP);
+    expect(out).toBe("VER leads on 255 points, 25 clear of NOR.");
+    const userMsg = seen.messages.find((m: any) => m.role === "user");
+    expect(userMsg.content).toContain("25 clear of NOR");
+    expect(userMsg.content).toContain("requiredRate");
+    // The out-scoring wording constraint must be present in the system prompt.
+    expect(seen.system).toMatch(/OUT-SCORE THE LEADER BY/);
   });
 });

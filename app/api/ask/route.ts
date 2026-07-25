@@ -7,6 +7,7 @@ import {
   generatePaceNarrative,
   generateStrategyNarrative,
   generateCompoundNarrative,
+  generateChampionshipNarrative,
   type StatFacts,
   type PodiumFacts,
   type PaceFacts,
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
         predictCompound: (year, gp) =>
           postJson<CompoundFacts>(origin, "/api/strategy", { kind: "compound", year, gp }),
         narrateCompound: (facts) => generateCompoundNarrative(client, facts),
+        narrateChampionship: (facts) => generateChampionshipNarrative(client, facts),
       },
       query,
     );

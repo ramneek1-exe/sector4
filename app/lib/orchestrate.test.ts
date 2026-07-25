@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { answerQuery, type AnswerDeps } from "./orchestrate";
 import type { PodiumFacts, PaceFacts, StrategyFacts, CompoundFacts } from "./narrative";
+import type { StandingsFile } from "./championship";
 
 const FACTS = { stat: "pit_loss", gp: "Monaco", value: 19.5, units: "s", source: "curated track features" };
 
@@ -33,6 +34,29 @@ const COMPOUND: CompoundFacts = {
   year: 2024, gp: "Bahrain", compound: "MEDIUM", basis_year: 2023,
 };
 
+const STANDINGS: StandingsFile = {
+  year: 2026,
+  throughGp: "Great Britain",
+  throughRound: 12,
+  totalRounds: 24,
+  remainingRounds: 12,
+  drivers: { VER: 255, NOR: 230 },
+  teams: { "Red Bull Racing": 300, McLaren: 410 },
+  driverTeams: { VER: "Red Bull Racing", NOR: "McLaren" },
+};
+
+// A well-formed file from an older emitter that hasn't picked up driverTeams yet -- the
+// normal degrade-to-grey case, not a malformed payload.
+const STANDINGS_NO_DRIVER_TEAMS: StandingsFile = {
+  year: 2026,
+  throughGp: "Great Britain",
+  throughRound: 12,
+  totalRounds: 24,
+  remainingRounds: 12,
+  drivers: { VER: 255, NOR: 230 },
+  teams: { "Red Bull Racing": 300, McLaren: 410 },
+};
+
 function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
   return {
     parse: async () => ({ intent: "lookup_stat", stat: "pit_loss", gp: "Monaco" }),
@@ -48,6 +72,8 @@ function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
     narrateStrategy: async () => "Bahrain leans two-stop.",
     predictCompound: async () => COMPOUND,
     narrateCompound: async () => "Bahrain has historically favored the medium.",
+    narrateChampionship: async () => "VER leads on 255 points, 25 clear of NOR.",
+    loadStandings: () => STANDINGS,
     ...over,
   };
 }
@@ -321,6 +347,98 @@ describe("answerQuery", () => {
     expect(out.supported).toBe(true);
     if (out.supported && "podium" in out) {
       expect(out.podium.grid_context).toContain("front-row start counts for more");
+    }
+  });
+
+  it("returns an honest unavailable message when standings are absent", async () => {
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }),
+        loadStandings: () => null,
+      }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(false);
+    if (!out.supported) expect(out.message).toBe("I don't have the current championship standings yet.");
+  });
+
+  it("routes a championship question to the computed facts and narrative", async () => {
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "championship_picture" }) }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "championship" in out) {
+      expect(out.championship.year).toBe(2026);
+      expect(out.championship.throughGp).toBe("Great Britain");
+      expect(out.championship.remainingRounds).toBe(12);
+      expect(out.championship.totalRounds).toBe(24);
+      expect(out.championship.rows[0]).toEqual({ key: "VER", points: 255, rank: 1, gap: 0, requiredRate: null });
+      expect(out.narrative).toBe("VER leads on 255 points, 25 clear of NOR.");
+    }
+  });
+
+  it("threads driverTeams through from the loaded standings file into the facts", async () => {
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "championship_picture" }) }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "championship" in out) {
+      expect(out.championship.driverTeams).toEqual({ VER: "Red Bull Racing", NOR: "McLaren" });
+    }
+  });
+
+  it("still produces rows when the standings file has no driverTeams map (degrades to grey, drops nothing)", async () => {
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }),
+        loadStandings: () => STANDINGS_NO_DRIVER_TEAMS,
+      }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "championship" in out) {
+      expect(out.championship.driverTeams).toBeUndefined();
+      expect(out.championship.rows.map((r) => r.key)).toEqual(["VER", "NOR"]);
+    }
+  });
+
+  it("is season-scoped: does not resolve a gp or call the upcoming-race resolver", async () => {
+    let upcomingCalled = false;
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }), // no gp, unlike every other intent
+        upcomingRace: () => {
+          upcomingCalled = true;
+          return { year: 2026, gp: "Austria" };
+        },
+      }),
+      "how far back is NOR in the championship?",
+    );
+    expect(upcomingCalled).toBe(false);
+    expect(out.supported).toBe(true);
+  });
+
+  it("excludes a driver absent from drivers.json, so the narrative cannot name a row the table hides", async () => {
+    // The facts feed BOTH the lede/narrative and the rendered table. Filtering only at render
+    // time let the prose mention a driver the table had dropped; the filter belongs here.
+    const withUnknown: StandingsFile = {
+      ...STANDINGS,
+      drivers: { VER: 255, NOR: 230, ZZZ: 40 },
+    };
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }),
+        loadStandings: () => withUnknown,
+      }),
+      "who leads the championship?",
+    );
+    if (out.supported && "championship" in out) {
+      expect(out.championship.rows.map((r) => r.key)).toEqual(["VER", "NOR"]);
+      expect(out.championship.rows.some((r) => r.key === "ZZZ")).toBe(false);
+    } else {
+      throw new Error("expected a supported championship answer");
     }
   });
 });
