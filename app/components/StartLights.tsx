@@ -35,8 +35,10 @@ const SESSION_KEY = "s4-preloaded";
 // The island's release backstop, deliberately OUTSIDE the component and outside the
 // effect's timers[] array: on a client-side navigation away mid-sequence the cleanup
 // clears every other timer, and this is then the only thing left that can remove the
-// attribute. Module scope (not window) so a later mount can supersede an earlier mount's
-// orphan — and so a re-executed inline script can't overwrite the id we need to clear.
+// attribute. Module scope (not per-mount state) so a later mount can supersede an earlier
+// mount's orphan: without an id that outlives the unmount, navigating away and back within
+// postHydrationFailsafeMs() would let the first mount's timer fire mid-way through the
+// second mount's sequence, dropping the attribute while the field is still opaque.
 let islandFailsafe: number | undefined;
 
 // Visual constants — tuned live against rendered candidates during the visual pass.
