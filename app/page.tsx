@@ -15,6 +15,7 @@ import { SectorNumeral } from "@/app/components/SectorNumeral";
 import { RadioHelmet } from "@/app/components/RadioHelmet";
 import { StartLights } from "@/app/components/StartLights";
 import { NAV_H } from "@/app/lib/nav";
+import { HERO_FAILSAFE_MS } from "@/app/lib/start-lights";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
@@ -72,11 +73,14 @@ export default async function LandingPage() {
           StartLights island removes it at "lights out". Key string must match
           SESSION_KEY in StartLights.tsx. The 8s failsafe is a pure-JS guarantee
           the hero reveals even if the React bundle never hydrates (so the paused
-          fog-in can't strand the hero invisible) — well past the ~5s sequence. */}
+          fog-in can't strand the hero invisible) — well past the worst-case ~6.3s
+          sequence (guarded by a test in start-lights.test.ts). */}
       <script
         dangerouslySetInnerHTML={{
           __html:
-            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.setAttribute('data-preloader-active','');setTimeout(function(){d.removeAttribute('data-preloader-active')},8000)}}catch(e){}})();",
+            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.setAttribute('data-preloader-active','');setTimeout(function(){d.removeAttribute('data-preloader-active')}," +
+            HERO_FAILSAFE_MS +
+            ")}}catch(e){}})();",
         }}
       />
       <StartLights />

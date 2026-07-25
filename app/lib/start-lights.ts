@@ -41,3 +41,36 @@ export function resolveLightsOut({
   const target = Math.max(ARM_DONE_MS + hold, ready);
   return Math.min(target, HARD_CAP_MS);
 }
+
+// --- Lights-out → hero curtain ------------------------------------------------
+// See docs/superpowers/specs/2026-07-25-hero-curtain-reveal-design.md.
+// Replaces the old flat opacity dissolve (OUT_MS): the warm field lifts straight up
+// out of frame while the gantry lifts further on top of it (parallax).
+
+/** A beat on the dark gantry after the lamps go out, before the lift starts — the "GO". */
+export const LIGHTS_OUT_HOLD_MS = 120;
+/** How long the curtain itself takes to clear the viewport. */
+export const CURTAIN_MS = 700;
+/** How far through the curtain the hero's paused .fog-in is released. */
+export const TEXT_RELEASE_FRAC = 0.65;
+/**
+ * The inline gate in app/page.tsx force-reveals the hero this long after parse, so a
+ * bundle that never hydrates can't strand it invisible behind a paused .fog-in. Exported
+ * from here (rather than hard-coded in that JS string) so the page interpolates one value
+ * and the invariant below stays testable.
+ */
+export const HERO_FAILSAFE_MS = 8000;
+
+/**
+ * Delay after lights-out at which [data-preloader-active] is dropped, releasing the hero's
+ * .fog-in. Deliberately mid-curtain, not at its start: fog-in runs 0.7s, so releasing it
+ * with the lift would spend most of that reveal hidden behind an opaque overlay.
+ */
+export function textReleaseDelayMs(): number {
+  return LIGHTS_OUT_HOLD_MS + CURTAIN_MS * TEXT_RELEASE_FRAC;
+}
+
+/** Delay after lights-out at which the overlay unmounts (the curtain has fully cleared). */
+export function overlayTeardownMs(): number {
+  return LIGHTS_OUT_HOLD_MS + CURTAIN_MS;
+}
