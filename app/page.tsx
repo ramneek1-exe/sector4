@@ -134,10 +134,15 @@ function Hero() {
         data-hero="thesis"
         className="legible relative z-10 flex flex-col items-center gap-7 px-10 py-14 text-center sm:px-16 sm:py-20"
       >
-        <h1 className="fog-in preload-gated max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
-          A lap has three sectors.
+        {/* Caps at text-6xl (60px), deliberately — NOT text-7xl. "Everything happens in
+            three sectors." measures 1021px at 72px, which overflows this max-w-4xl (896px)
+            box and wraps, orphaning "sectors." onto its own centred line and destroying the
+            two-beat rhythm the <br /> exists to create. At 60px it measures 851px and holds
+            one line. Restoring md:text-7xl silently breaks the headline. */}
+        <h1 className="fog-in preload-gated max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl">
+          Everything happens in three sectors.
           <br />
-          This is the one where you find out why.
+          The fourth tells you why.
         </h1>
         <Link
           data-hero="cta"

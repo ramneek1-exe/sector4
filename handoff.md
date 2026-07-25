@@ -346,9 +346,15 @@
 > `.superpowers/sdd/progress.md` has full per-task detail; this is the compressed
 > current-state summary.
 >
-> **Hero:** type-led, NO wordmark (nav carries brand) — thesis IS the hero, verbatim "A
-> lap has three sectors. / This is the one where you find out why." + CTA "Ask your
-> first question" → `/ask`. Full-bleed `DitherVideo` over the real licensed b-roll
+> **Hero:** type-led, NO wordmark (nav carries brand) — thesis IS the hero, verbatim
+> "Everything happens in three sectors. / The fourth tells you why." + CTA "Ask your
+> first question" → `/ask`. **(Thesis reworded 2026-07-25, owner-authored; was "A lap has
+> three sectors. / This is the one where you find out why." The sector conceit is
+> load-bearing — it sets up S4's "The fourth sector is the truth." and the Sector 1-4
+> eyebrows, so any future rewrite that drops it has to rework those too, and leaves the
+> product name unexplained.) The h1 caps at `sm:text-6xl` — NOT `md:text-7xl` — because
+> the longer line measures 1021px at 72px against a 896px `max-w-4xl` box and wraps,
+> orphaning "sectors." onto its own centred line; at 60px it measures 851px and holds.** Full-bleed `DitherVideo` over the real licensed b-roll
 > (`public/hero.mp4`, 0.85MB 960x540, committed), light recipe `#fafafa`/`#406cd6`,
 > `cols={240}` mobile / `colsDesktop={420}` from `md` up. **`gain={4}`** on `DitherVideo`
 > (new prop, `bayerLuminancePasses`'s 5th arg) — the footage's mean luma (~32/255) was
