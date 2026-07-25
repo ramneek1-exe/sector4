@@ -1,10 +1,18 @@
 import type { ParsedQuery } from "./parser";
-import type { StatFacts, PodiumFacts, PaceFacts, StrategyFacts, CompoundFacts } from "./narrative";
+import type {
+  StatFacts,
+  PodiumFacts,
+  PaceFacts,
+  StrategyFacts,
+  CompoundFacts,
+  ChampionshipFacts,
+} from "./narrative";
 import { normalizeCircuit, normalizeLookupCircuit, DEFAULT_YEAR } from "./circuits";
 import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
 import { getCircuitFacts } from "./entity-whats";
 import { getGrid, type Grid } from "./grid";
 import { getConcept, matchConcept, type Concept } from "./concepts";
+import { loadStandings, driverStandings, type StandingsFile } from "./championship";
 
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
@@ -36,9 +44,13 @@ export type AnswerDeps = {
   narrateStrategy: (facts: StrategyFacts) => Promise<string>;
   predictCompound: (year: number, gp: string) => Promise<CompoundFacts>;
   narrateCompound: (facts: CompoundFacts) => Promise<string>;
+  narrateChampionship: (facts: ChampionshipFacts) => Promise<string>;
   // Resolves "the next race" / "this weekend" to a concrete upcoming GP. Injectable
   // for deterministic tests; defaults to the live weekend schedule.
   upcomingRace?: () => UpcomingRace;
+  // The committed season standings; injectable so tests can exercise both the present and
+  // the (normal, until the first weekend refresh) absent case without a real file.
+  loadStandings?: () => StandingsFile | null;
 };
 
 // Resolve a prediction's target (year + canonical circuit). A relative reference
@@ -63,6 +75,7 @@ export type Answer =
   | { supported: true; pace: PaceFacts; narrative: string }
   | { supported: true; strategy: StrategyFacts; narrative: string }
   | { supported: true; compound: CompoundFacts; narrative: string }
+  | { supported: true; championship: ChampionshipFacts; narrative: string }
   | { supported: true; concept: Concept }
   | { supported: false; message: string };
 
@@ -82,6 +95,8 @@ const unsupportedLookup = (raw: string) =>
 const conceptFallback =
   "I can explain F1 concepts like DRS, tyre compounds, safety cars, and pit strategy. " +
   "Try “what is DRS?”, or browse them all on the Learn page.";
+
+const standingsUnavailable = "I don't have the current championship standings yet.";
 
 export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answer> {
   const parsed = await deps.parse(query);
@@ -141,6 +156,23 @@ export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answ
     const compound = withContext(await deps.predictCompound(target.year, target.gp), target.gp);
     const narrative = await deps.narrateCompound(compound);
     return { supported: true, compound, narrative };
+  }
+
+  if (parsed.intent === "championship_picture") {
+    // Season-scoped, unlike every other intent: no circuit, and deliberately NOT run
+    // through resolveTarget / the "next race" gp-resolution.
+    const file = deps.loadStandings ? deps.loadStandings() : loadStandings();
+    if (!file) return { supported: false, message: standingsUnavailable };
+    const championship: ChampionshipFacts = {
+      kind: "championship",
+      year: file.year,
+      throughGp: file.throughGp,
+      remainingRounds: file.remainingRounds,
+      totalRounds: file.totalRounds,
+      rows: driverStandings(file),
+    };
+    const narrative = await deps.narrateChampionship(championship);
+    return { supported: true, championship, narrative };
   }
 
   return { supported: false, message: UNSUPPORTED };

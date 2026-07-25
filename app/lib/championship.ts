@@ -98,3 +98,31 @@ export function driverStandings(file: StandingsFile): Standing[] {
 export function teamStandings(file: StandingsFile): Standing[] {
   return buildStandings(file.teams, file.remainingRounds);
 }
+
+// Minimal shape championshipLede needs — structurally satisfied by narrative.ts's
+// ChampionshipFacts (which adds `kind` + `throughGp`), so both the narrative generator's
+// system prompt and the /ask UI can share this one implementation with no drift.
+type ChampionshipLedeInput = {
+  year: number;
+  remainingRounds: number;
+  totalRounds: number;
+  rows: Standing[];
+};
+
+/**
+ * Deterministic one-liner; the LLM narrative expands on it but may not contradict it.
+ * Lives here rather than in narrative.ts because this module has no dependency on the
+ * Anthropic SDK and is already safe to import from client components (ChampionshipTable.tsx
+ * does so today) -- narrative.ts pulls in the Anthropic client at module scope, which is
+ * server-only and cannot be bundled for the browser. narrative.ts re-exports this function
+ * so callers there see the same shape the task brief describes.
+ */
+export function championshipLede(f: ChampionshipLedeInput): string {
+  const [leader, second] = f.rows;
+  if (!leader) return "Championship standings are not available yet.";
+  if (!second) return `${leader.key} leads the ${f.year} championship on ${leader.points} points.`;
+  return (
+    `${leader.key} leads the ${f.year} championship on ${leader.points} points, ` +
+    `${second.gap} clear of ${second.key} with ${f.remainingRounds} of ${f.totalRounds} rounds left.`
+  );
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildStandings, isStandingsFile, loadStandings } from "@/app/lib/championship";
+import { buildStandings, isStandingsFile, loadStandings, championshipLede } from "@/app/lib/championship";
 
 describe("buildStandings", () => {
   it("ranks by points, leader first, with the gap to the leader", () => {
@@ -131,4 +131,26 @@ describe("loadStandings", () => {
   // (see next.config path aliasing via tsconfig "paths"), not by this test runtime, so it
   // isn't practical to simulate the present-file path from this file. Per the task brief's
   // own fallback: covering the null path only, and saying so explicitly here.
+});
+
+describe("championshipLede", () => {
+  // The championship_picture /ask intent's deterministic one-liner. Lives in this file (not
+  // narrative.ts, which pulls in the Anthropic SDK) so it's safe to share between the
+  // narrative generator's system prompt and the /ask client UI with no drift.
+  it("names the leader and the gap to second", () => {
+    const rows = buildStandings({ VER: 255, NOR: 230 }, 12);
+    const s = championshipLede({ year: 2026, remainingRounds: 12, totalRounds: 24, rows });
+    expect(s).toBe("VER leads the 2026 championship on 255 points, 25 clear of NOR with 12 of 24 rounds left.");
+  });
+
+  it("degrades honestly when standings are empty", () => {
+    const s = championshipLede({ year: 2026, remainingRounds: 12, totalRounds: 24, rows: [] });
+    expect(s).toBe("Championship standings are not available yet.");
+  });
+
+  it("handles a single-row table (no second place) without a gap clause", () => {
+    const rows = buildStandings({ VER: 255 }, 12);
+    const s = championshipLede({ year: 2026, remainingRounds: 12, totalRounds: 24, rows });
+    expect(s).toBe("VER leads the 2026 championship on 255 points.");
+  });
 });

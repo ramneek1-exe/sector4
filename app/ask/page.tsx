@@ -8,12 +8,21 @@ import { LOADING_LINES, pickLoadingLine } from "@/app/lib/loading-lines";
 import { TyreSpinner } from "@/app/components/TyreSpinner";
 import { QueryChips } from "@/app/components/QueryChips";
 import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
-import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts } from "@/app/lib/narrative";
+import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts, ChampionshipFacts } from "@/app/lib/narrative";
+// championshipLede's real implementation lives in championship.ts (no Anthropic SDK
+// dependency, unlike narrative.ts), which is what makes it safe to import here on the client.
+import { championshipLede } from "@/app/lib/championship";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";
 import { TrustBadge } from "@/app/components/TrustBadge";
 import { CompoundCard } from "@/app/components/CompoundCard";
+import {
+  gapCellText,
+  rateCellText,
+  visibleDriverRows,
+  RATE_HEADER_LABEL,
+} from "@/app/components/ChampionshipTable";
 import type { Concept } from "@/app/lib/concepts";
 import Link from "next/link";
 import { ASK_RESET_EVENT } from "@/app/components/SiteNav";
@@ -237,6 +246,70 @@ function StrategyCard({ strategy, narrative }: { strategy: StrategyFacts; narrat
   );
 }
 
+/**
+ * Championship answer: the deterministic lede, the grounded narrative, and a compact
+ * standings table. Season-scoped (no circuit context, unlike every other answer here).
+ * Reuses the /weekend table's pure cell-text helpers (`gapCellText`, `rateCellText`,
+ * `RATE_HEADER_LABEL`, `visibleDriverRows`) so the load-bearing "out-score the leader by"
+ * wording can never drift between the two surfaces; the markup itself is duplicated to a
+ * minimum because `ChampionshipTable` expects a full `StandingsFile` (points maps + a
+ * drivers/constructors toggle) that this compact answer doesn't carry.
+ */
+function ChampionshipAnswer({
+  championship,
+  narrative,
+}: {
+  championship: ChampionshipFacts;
+  narrative: string;
+}) {
+  const lede = championshipLede(championship);
+  const rows = visibleDriverRows(championship.rows);
+  return (
+    <div className="fog-in flex w-full max-w-xl flex-col items-center gap-6 text-center">
+      <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
+        {championship.year} championship · through the {championship.throughGp}
+      </div>
+      <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{lede}</p>
+      <NarrativeText
+        narrative={narrative}
+        className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}
+      />
+      {rows.length > 0 && (
+        <table className="legible w-full max-w-md border-collapse font-grotesk text-sm">
+          <thead>
+            <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-wide text-muted">
+              <th className="py-2 pr-3 font-medium">Driver</th>
+              <th className="py-2 pr-3 text-right font-medium">Points</th>
+              <th className="py-2 pr-3 text-right font-medium">Gap</th>
+              {/* Never "needs / round" -- the leader scores too, so that phrasing is false. */}
+              <th className="py-2 text-right font-medium">{RATE_HEADER_LABEL}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.key} className={i % 2 ? "bg-ink/[0.03]" : ""}>
+                <th scope="row" className="py-2 pr-3 align-middle font-normal">
+                  <div className="flex items-center gap-2">
+                    <AsciiGlyph code={r.key} team={null} size={32} />
+                    <span className="font-bold tracking-wide">{r.key}</span>
+                  </div>
+                </th>
+                <td className="py-2 pr-3 text-right align-middle tabular-nums">{r.points}</td>
+                <td className="py-2 pr-3 text-right align-middle tabular-nums">{gapCellText(r.gap)}</td>
+                <td className="py-2 text-right align-middle tabular-nums">{rateCellText(r)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className={`max-w-md font-grotesk text-[11px] text-muted ${LEGIBLE} px-3 py-1.5`}>
+        {championship.remainingRounds} of {championship.totalRounds} rounds remaining · arithmetic on the
+        current standings, not a prediction.
+      </p>
+    </div>
+  );
+}
+
 /** Computed-stat answer (e.g. pit-loss). No box. */
 /** Concept answer: the hand-authored summary + trust badge + a link to the full /learn page. */
 function ConceptCard({ concept }: { concept: Concept }) {
@@ -426,6 +499,9 @@ export default function Home() {
           )}
           {answer && "supported" in answer && answer.supported && "compound" in answer && (
             <CompoundCard compound={answer.compound} narrative={answer.narrative} />
+          )}
+          {answer && "supported" in answer && answer.supported && "championship" in answer && (
+            <ChampionshipAnswer championship={answer.championship} narrative={answer.narrative} />
           )}
           {answer && "supported" in answer && answer.supported && "concept" in answer && (
             <ConceptCard concept={answer.concept} />

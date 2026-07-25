@@ -6,7 +6,8 @@ export type Intent =
   | "predict_compound"
   | "predict_podium"
   | "lookup_stat"
-  | "explain_concept";
+  | "explain_concept"
+  | "championship_picture";
 
 export type ParsedQuery = { intent: Intent; stat?: string; gp?: string; year?: number };
 
@@ -25,13 +26,16 @@ export const ROUTE_TOOL = {
           "predict_podium",
           "lookup_stat",
           "explain_concept",
+          "championship_picture",
         ],
         description:
           "predict_podium for who-will-finish-on-the-podium / top-3 / who-will-win. " +
           "predict_pace for long-run / race-pace gap questions (who is fastest over a stint). " +
           "predict_strategy for how-many-pit-stops / one-stop-or-two questions. " +
           "predict_compound: which tyre compound is typically dominant at a circuit (historical). " +
-          "lookup_stat for a single computed circuit stat. explain_concept for 'what is …' questions.",
+          "lookup_stat for a single computed circuit stat. explain_concept for 'what is …' questions. " +
+          "championship_picture for season-standings questions — who leads the championship, how far " +
+          "back a driver is, whether someone can still win the title. Season-scoped: do NOT set gp.",
       },
       stat: {
         type: "string",

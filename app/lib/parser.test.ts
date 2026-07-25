@@ -36,6 +36,18 @@ describe("parseQuery", () => {
     expect(props.stat.description).toMatch(/tyre_deg/);
   });
 
+  it("extracts a championship_picture intent with no gp (season-scoped)", async () => {
+    const client = fakeClient({ intent: "championship_picture" });
+    const out = await parseQuery(client, "who leads the championship?");
+    expect(out).toEqual({ intent: "championship_picture" });
+  });
+
+  it("documents championship_picture routing in the tool schema", () => {
+    const props: any = ROUTE_TOOL.input_schema.properties;
+    expect(props.intent.enum).toContain("championship_picture");
+    expect(props.intent.description).toMatch(/championship_picture/);
+  });
+
   it("forces the route_query tool", async () => {
     let seen: any;
     const client = {

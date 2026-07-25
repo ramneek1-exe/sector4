@@ -1,4 +1,11 @@
 import { HAIKU, type LlmClient } from "./anthropic";
+import type { Standing } from "@/app/lib/championship";
+import { championshipLede } from "@/app/lib/championship";
+
+// Re-exported so callers of narrative.ts see the pair in the same place the strategy/compound
+// ledes live; the implementation itself lives in championship.ts (no Anthropic SDK dependency)
+// so it's also safe to import directly from client components -- see the comment there.
+export { championshipLede };
 
 // `context` (on every facts type) is a short array of allowlisted, cited circuit facts
 // (sentences from the entity what in app/data/entity-whats.json, via getCircuitFacts) —
@@ -237,6 +244,48 @@ export async function generateCompoundNarrative(
     model: HAIKU,
     max_tokens: 200,
     system: COMPOUND_SYSTEM,
+    messages: [{ role: "user", content: `${lede}\n\n${JSON.stringify(facts)}` }],
+  });
+  return msg.content
+    .filter((b: any) => b.type === "text")
+    .map((b: any) => b.text)
+    .join("")
+    .trim();
+}
+
+// Season-scoped (unlike every other intent above): no `gp` target, just the current
+// championship state. Pure arithmetic (app/lib/championship.ts), not a model output — the
+// narrative may only restate what's already in `rows`, never estimate title chances.
+export type ChampionshipFacts = {
+  kind: "championship";
+  year: number;
+  throughGp: string;
+  remainingRounds: number;
+  totalRounds: number;
+  rows: Standing[]; // reuse the type — do not restate the shape and let it drift
+};
+
+const CHAMPIONSHIP_SYSTEM = [
+  "You write a short, honest explanation (2-3 sentences) of the current Formula 1 DRIVERS' championship standings.",
+  "Use ONLY the facts in the JSON. `gap` is points behind the leader and `requiredRate` is how " +
+    "many points per remaining round that competitor must OUT-SCORE THE LEADER BY to catch them — " +
+    "never describe it as points they simply need to score, which would be false because the leader " +
+    "scores too. Do not estimate title chances, probabilities or odds; this is arithmetic, not a " +
+    "forecast.",
+  "The first line of the user message is a grounded lede; build naturally from it rather than repeating it verbatim.",
+  "You may mention a couple more names from `rows` beyond the leader and second place if it helps the picture, but never invent a driver, team, points total, or rank not present in the JSON.",
+  "Write in plain prose: never use em-dashes. Use commas, colons, or separate sentences instead.",
+].join(" ");
+
+export async function generateChampionshipNarrative(
+  client: LlmClient,
+  facts: ChampionshipFacts,
+): Promise<string> {
+  const lede = championshipLede(facts);
+  const msg = await client.messages.create({
+    model: HAIKU,
+    max_tokens: 220,
+    system: CHAMPIONSHIP_SYSTEM,
     messages: [{ role: "user", content: `${lede}\n\n${JSON.stringify(facts)}` }],
   });
   return msg.content
