@@ -7,14 +7,13 @@ import {
   HOLD_MIN_MS,
   LIGHT_COUNT,
   armSchedule,
-  discCells,
   pickHold,
   resolveLightsOut,
 } from "@/app/lib/start-lights";
 
 describe("armSchedule", () => {
   it("is one timestamp per light, evenly spaced from 0", () => {
-    expect(armSchedule()).toEqual([0, 240, 480, 720, 960]);
+    expect(armSchedule()).toEqual([0, 800, 1600, 2400, 3200]);
   });
   it("keeps ARM_DONE_MS derived from count * interval", () => {
     expect(ARM_DONE_MS).toBe(LIGHT_COUNT * ARM_INTERVAL_MS);
@@ -37,35 +36,15 @@ describe("pickHold", () => {
 
 describe("resolveLightsOut", () => {
   it("uses arm+hold when the hero is ready early", () => {
-    expect(resolveLightsOut({ hold: 200, heroReadyAt: 500 })).toBe(1400);
+    expect(resolveLightsOut({ hold: 200, heroReadyAt: 500 })).toBe(4200);
   });
   it("waits for a late hero-ready (still under the cap)", () => {
-    expect(resolveLightsOut({ hold: 200, heroReadyAt: 2000 })).toBe(2000);
+    expect(resolveLightsOut({ hold: 200, heroReadyAt: 5000 })).toBe(5000);
   });
   it("falls back to the hard cap when the hero never signals", () => {
     expect(resolveLightsOut({ hold: 800, heroReadyAt: null })).toBe(HARD_CAP_MS);
   });
   it("clamps anything past the cap", () => {
     expect(resolveLightsOut({ hold: 800, heroReadyAt: 9999 })).toBe(HARD_CAP_MS);
-  });
-});
-
-describe("discCells", () => {
-  const RED = { r: 216, g: 58, b: 52 };
-  it("produces a non-empty pixel disc", () => {
-    expect(discCells(12, RED).length).toBeGreaterThan(0);
-  });
-  it("is a circle, not a square (center present, corner absent)", () => {
-    const cells = discCells(12, RED);
-    const has = (x: number, y: number) => cells.some((c) => c.x === x && c.y === y);
-    expect(has(6, 6)).toBe(true); // near center
-    expect(has(0, 0)).toBe(false); // corner outside the circle
-  });
-  it("is left-right symmetric in cell count", () => {
-    const cols = 12;
-    const cells = discCells(cols, RED);
-    const left = cells.filter((c) => c.x < cols / 2).length;
-    const right = cells.filter((c) => c.x >= cols / 2).length;
-    expect(left).toBe(right);
   });
 });
