@@ -228,8 +228,8 @@ function AskAnything() {
           Formula 1, minus the false confidence.
         </h2>
         <p data-reveal className={SECTION_BODY}>
-          Podium odds, pit stops, tyre wear, the basics. Ask in plain English and get a
-          straight answer that says what the data shows, and what it can&apos;t.
+          Podium odds, pit stops, tyre wear, the basics. Ask it the way you&apos;d ask a
+          friend who watched practice so you didn&apos;t have to.
         </p>
         <div data-reveal className="mt-8 flex flex-wrap gap-3">
           {EXAMPLE_QUERIES.map((q) => (
