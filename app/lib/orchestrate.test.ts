@@ -42,6 +42,19 @@ const STANDINGS: StandingsFile = {
   remainingRounds: 12,
   drivers: { VER: 255, NOR: 230 },
   teams: { "Red Bull Racing": 300, McLaren: 410 },
+  driverTeams: { VER: "Red Bull Racing", NOR: "McLaren" },
+};
+
+// A well-formed file from an older emitter that hasn't picked up driverTeams yet -- the
+// normal degrade-to-grey case, not a malformed payload.
+const STANDINGS_NO_DRIVER_TEAMS: StandingsFile = {
+  year: 2026,
+  throughGp: "British Grand Prix",
+  throughRound: 12,
+  totalRounds: 24,
+  remainingRounds: 12,
+  drivers: { VER: 255, NOR: 230 },
+  teams: { "Red Bull Racing": 300, McLaren: 410 },
 };
 
 function deps(over: Partial<AnswerDeps> = {}): AnswerDeps {
@@ -362,6 +375,32 @@ describe("answerQuery", () => {
       expect(out.championship.totalRounds).toBe(24);
       expect(out.championship.rows[0]).toEqual({ key: "VER", points: 255, rank: 1, gap: 0, requiredRate: null });
       expect(out.narrative).toBe("VER leads on 255 points, 25 clear of NOR.");
+    }
+  });
+
+  it("threads driverTeams through from the loaded standings file into the facts", async () => {
+    const out = await answerQuery(
+      deps({ parse: async () => ({ intent: "championship_picture" }) }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "championship" in out) {
+      expect(out.championship.driverTeams).toEqual({ VER: "Red Bull Racing", NOR: "McLaren" });
+    }
+  });
+
+  it("still produces rows when the standings file has no driverTeams map (degrades to grey, drops nothing)", async () => {
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }),
+        loadStandings: () => STANDINGS_NO_DRIVER_TEAMS,
+      }),
+      "who leads the championship?",
+    );
+    expect(out.supported).toBe(true);
+    if (out.supported && "championship" in out) {
+      expect(out.championship.driverTeams).toBeUndefined();
+      expect(out.championship.rows.map((r) => r.key)).toEqual(["VER", "NOR"]);
     }
   });
 

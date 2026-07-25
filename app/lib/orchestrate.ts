@@ -170,6 +170,7 @@ export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answ
       remainingRounds: file.remainingRounds,
       totalRounds: file.totalRounds,
       rows: driverStandings(file),
+      driverTeams: file.driverTeams,
     };
     const narrative = await deps.narrateChampionship(championship);
     return { supported: true, championship, narrative };

@@ -263,6 +263,11 @@ export type ChampionshipFacts = {
   remainingRounds: number;
   totalRounds: number;
   rows: Standing[]; // reuse the type — do not restate the shape and let it drift
+  // Driver -> current team name, for the /ask helmet glyph's team colour (PRD §8), mirroring
+  // StandingsFile.driverTeams. Optional: an older standings.json, or a driver missing from
+  // the map, must still degrade to the glyph's neutral-grey "unknown team" fallback with
+  // identity (code, number, personal colour) intact -- never a missing or skipped row.
+  driverTeams?: Record<string, string>;
 };
 
 const CHAMPIONSHIP_SYSTEM = [

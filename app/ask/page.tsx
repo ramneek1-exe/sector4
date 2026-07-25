@@ -290,7 +290,7 @@ function ChampionshipAnswer({
               <tr key={r.key} className={i % 2 ? "bg-ink/[0.03]" : ""}>
                 <th scope="row" className="py-2 pr-3 align-middle font-normal">
                   <div className="flex items-center gap-2">
-                    <AsciiGlyph code={r.key} team={null} size={32} />
+                    <AsciiGlyph code={r.key} team={championship.driverTeams?.[r.key] ?? null} size={32} />
                     <span className="font-bold tracking-wide">{r.key}</span>
                   </div>
                 </th>
