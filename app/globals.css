@@ -40,17 +40,33 @@ body {
    runs exactly as it does today — zero added delay. */
 [data-preloader-active] .fog-in {
   animation-play-state: paused;
+  /* Not just invisible — unfocusable. opacity:0 leaves the hero CTA in the tab order and
+     the a11y tree beneath the opaque overlay; visibility:hidden removes it from both.
+     Reverts on its own when the attribute drops, and fogIn starts at opacity 0 so
+     becoming visible again shows nothing until the animation paints it. */
+  visibility: hidden;
 }
 
-@keyframes preloaderDissolve {
-  from { opacity: 1; }
-  to { opacity: 0; }
+/* Lights-out handoff: the warm field lifts straight up out of frame, and the gantry —
+   drawn ON the field, so the nearer object — lifts further on top of it. Child transforms
+   compose with the parent, so the gantry keyframe carries only the EXTRA travel, giving
+   130vh total against the field's 100vh.
+
+   The gantry travel MUST be vh, not %: a percentage translateY resolves against the
+   element's own height, and the gantry row is only ~150px tall, so -30% would be a ~45px
+   nudge rather than a parallax. */
+@keyframes preloaderCurtain {
+  to { transform: translateY(-100%); }
+}
+@keyframes preloaderCurtainGantry {
+  to { transform: translateY(-30vh); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The overlay is JS-gated off under reduced-motion; keep the dissolve inert
+  /* The overlay is JS-gated off under reduced-motion; keep the curtain inert
      as defense-in-depth. */
-  .start-lights-overlay {
+  .start-lights-overlay,
+  .start-lights-gantry {
     animation: none !important;
   }
 }
