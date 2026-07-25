@@ -56,6 +56,7 @@ export function isStandingsFile(x: unknown): x is StandingsFile {
   const isPointMap = (m: unknown) =>
     !!m &&
     typeof m === "object" &&
+    !Array.isArray(m) &&
     Object.values(m as Record<string, unknown>).every(
       (v) => typeof v === "number" && Number.isFinite(v),
     );
