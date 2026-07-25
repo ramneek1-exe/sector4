@@ -7,16 +7,26 @@
 > (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), the
 > LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
 > PR #49), the intro/landing TWEAKS (PR #50), AND the LANDING PRELOADER (start-lights
-> gantry) + a batch of site tweaks/fixes (branch `landing-preloader`, merged to `main`
-> 2026-07-25) are all on `main` / deploying to PRODUCTION (`sector4.net`).**
+> gantry) + a batch of site tweaks/fixes are all **LIVE on PRODUCTION (`sector4.net`)** —
+> current prod deploy `9fa15c1` (2026-07-25).**
 >
-> ## 🟢 PRELOADER — DONE (2026-07-25, branch `landing-preloader` → merged to `main`)
+> ## 🟢 PRELOADER — DONE + LIVE (2026-07-25, was branch `landing-preloader` → merged to `main`)
 > The last deferred landing-v2 piece shipped. See the newest session entry below for full
 > detail. Start-lights gantry preloader (once/session, ~4-5s real-F1 cadence, gated on
-> hero-ready + hard cap, pure-JS failsafe), plus 8 owner tweaks/fixes batched onto the same
-> branch (bigger lamps, energy-harvesting query, site-wide footer, chips-in-viewport, Lenis
-> modal scroll, footer-parallax-on-nav). `data-hero` attrs on the Hero are now consumed by
-> the preloader's inline gate. NO specific next-up item locked — await owner direction.
+> hero-ready + hard cap, pure-JS failsafe), plus owner tweaks/fixes batched onto `main`
+> (bigger + mobile-responsive lamps, energy-harvesting query, site-wide footer, chips
+> in-viewport/unstuck, Lenis modal scroll, footer-parallax-refresh-on-nav). `data-hero`
+> attrs on the Hero are now consumed by the preloader's inline gate. NO specific next-up
+> item locked — await owner direction.
+>
+> **PREDICTIONS OPS (resolved 2026-07-25 — see memory `vercel-hobby-cron-daily-cap`):** the
+> project is on **Vercel Hobby** (crons daily-only). A sub-daily cron in `vercel.json`
+> **silently blocks the whole prod deploy** (learned the hard way — an hourly-cron push
+> created NO deployment record, stranding an unrelated mobile-lights fix; reverting to
+> `0 6 * * *` unblocked it). The Vercel daily cron can't hit a weekend's **pre-quali** window,
+> so pre-quali is now auto-captured by an **external cron-job.org pinger** hitting
+> `GET /api/cron/snapshot` **hourly Fri/Sat/Sun** (`0 * * * 0,5-6`, Bearer `CRON_SECRET`) —
+> idempotent route, independent of repo activity. Manual admin `?force=` is now only a fallback.
 >
 > **OPEN / VERIFY ON PROD (this session's deferrals):**
 > - **`/weekend` past-predictions modal scroll** — the `data-lenis-prevent` fix could not be
@@ -85,11 +95,28 @@
 >    `overflow-y-auto` never scrolled — added `data-lenis-prevent` to the `/weekend`
 >    past-predictions modal + the `/ask` examples modal. (weekend one unverifiable locally.)
 > **VERIFIED:** tsc + `npm run build` clean; vitest 264 pass/2 skip; chips/footer/lights all
-> eyeballed in-browser on the prod build. Merged to `main` this session (owner: "push to prod")
-> → Vercel deploying. **Commits on `main`:** the `landing-preloader` branch (Tasks 1-4 +
-> StrictMode fix + failsafe + visual pass + 5 tweaks + docs). **Ops note:** builds ran slow
-> this session (2-4min) under the load of many open chrome-devtools contexts — kill stale
-> contexts / use longer timeouts.
+> eyeballed in-browser on the prod build. **Commits:** the `landing-preloader` branch (Tasks 1-4 +
+> StrictMode fix + failsafe + visual pass + tweaks + round-2 fixes + docs), merged to `main`.
+> **FOLLOW-UPS same session (all LIVE):**
+> - **Round-2 chips/footer fixes** (already folded into items 2-3 above): the chips' brief
+>   `fixed`/portal iteration covered the top-left "Ask" heading, stuck to the viewport on
+>   scroll, and its `backdrop-blur` repainting every frame caused scroll STUTTER — reverted to
+>   `absolute`. The site-wide footer's ScrollTrigger went stale across client nav (persistent
+>   layout) — fixed with `usePathname` + `ScrollTrigger.refresh()`.
+> - **Mobile lights overflow:** the fixed-px 5-housing gantry overflowed narrow phones; lamp
+>   diameter + housing padding/gaps are now `clamp()` (cap 64px desktop) + `max-w-full`/`px-3`.
+>   Verified responsive at narrow widths.
+> - **CRON SAGA (Hobby):** owner wanted hourly pre-quali capture; set `vercel.json` to
+>   `0 * * * *` → the deploy SILENTLY NEVER RAN (Hobby rejects sub-daily crons at validation,
+>   creates no deployment record) → the mobile-lights fix was stranded too. Diagnosed via Vercel
+>   MCP (`list_deployments` showed zero new deploys). Reverted to `0 6 * * *`; deploy went
+>   through, prod now `9fa15c1` READY on `sector4.net` (confirmed via MCP `get_deployment`).
+>   Pre-quali now handled by an external **cron-job.org** hourly-weekend pinger (see the
+>   PREDICTIONS OPS note in the top block + memory `vercel-hobby-cron-daily-cap`).
+> **Ops note:** builds ran slow this session (2-4min) under the load of many open
+> chrome-devtools contexts — kill stale contexts / use longer timeouts. Vercel plan = Hobby;
+> query deploy state via the Vercel MCP (project `prj_sfA9nTUbHCyaOruYDEVE4thI4tve`, team
+> `team_wVOMMCzXpoxswW3oLREOtsa2`).
 >
 > ## 2026-07-23/24 session — LANDING INTRO SECTION (PR #49) + TWEAKS (PR #50), both MERGED + LIVE
 > **Owner asked for an "About Sector 4" intro section under the hero, above the race-track
