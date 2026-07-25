@@ -13,7 +13,6 @@ export const HOLD_MAX_MS = 800;
 // Backstop ceiling from t0. Comfortably above the worst-case arm+hold (4800) so a
 // slow hero can still gate lights-out, but the sequence never drags past it.
 export const HARD_CAP_MS = 5500;
-export const OUT_MS = 300;
 
 /** Illuminate timestamp (ms from t0) for each dot, left to right. */
 export function armSchedule(): number[] {

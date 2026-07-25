@@ -3,8 +3,10 @@
 // Landing start-lights preloader (see the spec/plan dated 2026-07-24). Renders a
 // full-bleed overlay of a start-light gantry — a row of LIGHT_COUNT abstract light
 // housings whose red LED-halftone lamps illuminate left-to-right, hold a random
-// suspense beat (gated on hero readiness, hard-capped), then all extinguish and
-// the field dissolves to release the hero's fog-in reveal.
+// suspense beat (gated on hero readiness, hard-capped), then all extinguish, hold a
+// beat, and the field lifts up out of frame — the gantry lifting further on top of it
+// (parallax) — releasing the hero's fog-in partway through so its reveal plays in the
+// clear. See docs/superpowers/specs/2026-07-25-hero-curtain-reveal-design.md.
 //
 // Abstract + unbranded: generic dark housings + dithered red lamps only — no FOM
 // light-gantry likeness, no F1/FIA/FOM marks or liveries (PRD §8).
@@ -15,12 +17,15 @@
 // reduced-motion, or no-JS-then-hydrate.
 import { useEffect, useRef, useState } from "react";
 import {
+  CURTAIN_MS,
   HARD_CAP_MS,
+  LIGHTS_OUT_HOLD_MS,
   LIGHT_COUNT,
-  OUT_MS,
   armSchedule,
+  overlayTeardownMs,
   pickHold,
   resolveLightsOut,
+  textReleaseDelayMs,
 } from "@/app/lib/start-lights";
 
 // Keep in sync with the inline gate script in app/page.tsx.
@@ -43,6 +48,9 @@ const LIT_DOT = "#ff2a22"; // red halftone dots when lit
 const LIT_GLOW = "rgba(255,42,34,0.7)"; // halo cast by a lit lamp
 const LIGHT_UP_MS = 260; // per-housing ramp from off → lit
 const BACKDROP = "#f3eee6"; // warm paper field
+// Weighty ease-in-out for the curtain — it should feel like mass being lifted, not a
+// fade. Tuned with the owner against rendered candidates (see the plan's Task 4).
+const CURTAIN_EASE = "cubic-bezier(0.76, 0, 0.24, 1)";
 
 type Phase = "idle" | "arming" | "out" | "done";
 
@@ -141,14 +149,18 @@ export function StartLights() {
     const release = () => {
       if (released.current) return;
       released.current = true;
-      setPhase("out");
-      root.removeAttribute("data-preloader-active"); // un-pause hero fog-in
+      setPhase("out"); // lamps go dark; the curtain animation starts after its own delay
       try {
         sessionStorage.setItem(SESSION_KEY, "1");
       } catch {
         /* private mode / disabled storage: still reveal, just replay next visit */
       }
-      timers.push(window.setTimeout(() => setPhase("done"), OUT_MS));
+      // Hold the hero's paused fog-in until the curtain is mostly clear, so its 0.7s
+      // reveal plays in open air instead of behind an opaque overlay.
+      timers.push(
+        window.setTimeout(() => root.removeAttribute("data-preloader-active"), textReleaseDelayMs()),
+      );
+      timers.push(window.setTimeout(() => setPhase("done"), overlayTeardownMs()));
     };
 
     // Hero readiness: watch the hero <video> canplay; null until it fires.
@@ -193,10 +205,27 @@ export function StartLights() {
       aria-hidden
       style={{
         background: BACKDROP,
-        animation: phase === "out" ? `preloaderDissolve ${OUT_MS}ms ease forwards` : undefined,
+        willChange: "transform",
+        animation:
+          phase === "out"
+            ? `preloaderCurtain ${CURTAIN_MS}ms ${CURTAIN_EASE} ${LIGHTS_OUT_HOLD_MS}ms forwards`
+            : undefined,
       }}
     >
-      <div className="flex max-w-full items-center px-3" style={{ gap: ROW_GAP }}>
+      <div
+        className="start-lights-gantry flex max-w-full items-center px-3"
+        style={{
+          gap: ROW_GAP,
+          willChange: "transform",
+          // Child transforms compose with the parent's, so this carries only the EXTRA
+          // travel over the field — the gantry is the nearer object and clears the top
+          // edge first, with the field trailing it out.
+          animation:
+            phase === "out"
+              ? `preloaderCurtainGantry ${CURTAIN_MS}ms ${CURTAIN_EASE} ${LIGHTS_OUT_HOLD_MS}ms forwards`
+              : undefined,
+        }}
+      >
         {Array.from({ length: LIGHT_COUNT }, (_, i) => (
           // "out" clears every housing (all lamps dark) before the dissolve —
           // the classic lights-out beat.
