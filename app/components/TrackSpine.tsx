@@ -311,7 +311,7 @@ export function TrackSpine() {
       <div
         ref={rootRef}
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden sm:block"
+        className="pointer-events-none absolute inset-0 block"
       />
     );
   }
@@ -329,7 +329,10 @@ export function TrackSpine() {
     <div
       ref={rootRef}
       aria-hidden
-      className="pointer-events-none absolute inset-0 hidden overflow-hidden sm:block"
+      // On narrow screens the track shares the column with full-width body text, so the
+      // whole overlay is faded to a faint background trace (car + kerbs included) that the
+      // text reads clearly over; full strength from sm up, where it has the margin to itself.
+      className="pointer-events-none absolute inset-0 block overflow-hidden opacity-40 sm:opacity-100"
     >
       <svg
         ref={svgRef}
