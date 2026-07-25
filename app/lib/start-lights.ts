@@ -55,8 +55,10 @@ export const TEXT_RELEASE_FRAC = 0.65;
 /**
  * The inline gate in app/page.tsx force-reveals the hero this long after parse, so a
  * bundle that never hydrates can't strand it invisible behind a paused .fog-in. Exported
- * from here (rather than hard-coded in that JS string) so the page interpolates one value
- * and the invariant below stays testable.
+ * from here (rather than hard-coded in that JS string) so the page interpolates a single
+ * value. Deliberately NOT compared against postHydrationFailsafeMs() below — that backstop
+ * runs on the island's own post-hydration clock, a different clock than this one measured
+ * from HTML parse.
  */
 export const HERO_FAILSAFE_MS = 8000;
 

@@ -83,12 +83,13 @@ describe("postHydrationFailsafeMs", () => {
   // its OWN t0 — the same clock as HARD_CAP_MS — so the two are deliberately NOT compared
   // any more. An assertion across those clocks silently measured a hydration budget.
   it("clears the worst-case sequence, with slack", () => {
+    expect(postHydrationFailsafeMs()).toBe(7020);
     expect(postHydrationFailsafeMs()).toBe(HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS);
     expect(postHydrationFailsafeMs()).toBeGreaterThan(HARD_CAP_MS + overlayTeardownMs());
   });
-  it("leaves the hero no worse off than the inline failsafe it replaces", () => {
-    // A hydrated page must not wait longer for its guaranteed release than a page that
-    // never hydrates at all.
+  it("stays below the inline failsafe constant", () => {
+    // Bounds the CONSTANT only. These are different clocks, so this does NOT bound the
+    // user-perceived wait, which from HTML parse is hydrationDelay + postHydrationFailsafeMs().
     expect(postHydrationFailsafeMs()).toBeLessThan(HERO_FAILSAFE_MS);
   });
 });

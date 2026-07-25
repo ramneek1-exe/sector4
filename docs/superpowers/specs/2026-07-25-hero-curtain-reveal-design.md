@@ -104,6 +104,18 @@ Worst case from `t0`: `HARD_CAP_MS` (5500) + 1020 = **6520ms**, backstopped at
 the release from its own `t0`. The two are deliberately no longer compared, so hydration time
 can't eat into the sequence's headroom the way it previously did.
 
+One hydration-sensitive behaviour remains by design: if hydration takes longer than
+`HERO_FAILSAFE_MS`, the inline timer fires first and the attribute is already gone by the
+time the island mounts — the island's early-return bails straight to `phase: "done"`, so no
+preloader plays at all. That's correct (the alternative is the old bug: the overlay shows for
+just as long, and then botches the reveal) but it's now the only place hydration time changes
+what the user sees.
+
+The clear-the-inline-timer behaviour itself is not unit-tested: `vitest.config.ts` uses
+`environment: "node"` and `include: ["app/**/*.test.ts"]`, so covering it would need jsdom
+and a `.test.tsx` file. Not adding that infrastructure here — noting it so the gap isn't
+mistaken for covered.
+
 ## Implementation
 
 Four files changed. No new files.

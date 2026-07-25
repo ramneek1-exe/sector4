@@ -32,6 +32,13 @@ import {
 // Keep in sync with the inline gate script in app/page.tsx.
 const SESSION_KEY = "s4-preloaded";
 
+// The island's release backstop, deliberately OUTSIDE the component and outside the
+// effect's timers[] array: on a client-side navigation away mid-sequence the cleanup
+// clears every other timer, and this is then the only thing left that can remove the
+// attribute. Module scope (not window) so a later mount can supersede an earlier mount's
+// orphan — and so a re-executed inline script can't overwrite the id we need to clear.
+let islandFailsafe: number | undefined;
+
 // Visual constants — tuned live against rendered candidates during the visual pass.
 const LAMPS_PER_HOUSING = 2; // stacked lamps per housing
 // Responsive lamp diameter: shrinks with the viewport so the full 5-housing row never
@@ -203,13 +210,21 @@ export function StartLights() {
       clearTimeout(w.__s4HeroFailsafe);
       delete w.__s4HeroFailsafe;
     }
-    // Deliberately NOT pushed onto timers[]: on a client-side navigation away mid-sequence
-    // the cleanup clears every other timer, and this is then the only thing left that can
-    // remove the attribute. removeAttribute is idempotent, so after a normal release this
-    // is a no-op. (Removing the attribute in the cleanup instead would break dev: React
+    // removeAttribute is idempotent, so after a normal release this backstop firing is a
+    // no-op. (Removing the attribute in the cleanup instead would break dev: React
     // StrictMode double-invokes the effect, so the cleanup would strip the attribute
-    // between the two runs and the second run would bail out — no preloader in dev.)
-    window.setTimeout(() => root.removeAttribute("data-preloader-active"), postHydrationFailsafeMs());
+    // between the two runs and the second run would bail out — no preloader in dev.) Clear
+    // any prior mount's orphaned backstop before installing this mount's: without this, a
+    // client-side navigation away and back within postHydrationFailsafeMs() leaves mount
+    // #1's timer armed, and it can fire mid-sequence in mount #2, dropping the attribute
+    // while the field is still opaque — the same failure this commit removes, relocated
+    // from cross-clock to cross-mount. It also means StrictMode's double-invoke would
+    // otherwise install two of them.
+    if (islandFailsafe !== undefined) clearTimeout(islandFailsafe);
+    islandFailsafe = window.setTimeout(
+      () => root.removeAttribute("data-preloader-active"),
+      postHydrationFailsafeMs(),
+    );
 
     return () => {
       timers.forEach(clearTimeout);

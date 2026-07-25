@@ -42,8 +42,9 @@ body {
    The preloader holds ONLY the landing hero's reveal. The gate attribute lives on <html>
    and .fog-in is used site-wide, so this must not match every .fog-in on the site: a
    keyboard user can tab to the nav (focusable beneath the overlay) and navigate to /ask
-   mid-sequence, where the attribute survives until the inline failsafe. Without the
-   .preload-gated marker those pages would be held blank AND unfocusable. */
+   mid-sequence, where the attribute survives until the StartLights island's
+   postHydrationFailsafeMs() backstop removes it (the inline failsafe is cleared by then).
+   Without the .preload-gated marker those pages would be held blank AND unfocusable. */
 [data-preloader-active] .fog-in.preload-gated {
   animation-play-state: paused;
   /* Not just invisible — unfocusable. opacity:0 leaves the hero CTA in the tab order and

@@ -73,11 +73,12 @@ export default async function LandingPage() {
           StartLights island removes it at "lights out". Key string must match
           SESSION_KEY in StartLights.tsx. The 8s failsafe is a pure-JS guarantee
           the hero reveals even if the React bundle never hydrates (so the paused
-          fog-in can't strand the hero invisible) — its timer id is stashed on a
-          global so that once the island DOES mount, it can clear this timer and
-          take over the release on its own post-hydration clock (see
-          postHydrationFailsafeMs in start-lights.ts) instead of leaving the
-          sequence's headroom coupled to however long hydration happens to take. */}
+          fog-in can't strand the hero invisible) — its timer id is stashed on the
+          global window.__s4HeroFailsafe so that once the island DOES mount,
+          app/components/StartLights.tsx clears it on mount and takes over the
+          release on its own post-hydration clock (see postHydrationFailsafeMs in
+          start-lights.ts) instead of leaving the sequence's headroom coupled to
+          however long hydration happens to take. */}
       <script
         dangerouslySetInnerHTML={{
           __html:
