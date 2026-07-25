@@ -71,11 +71,13 @@ export default async function LandingPage() {
           paints, so pausing fog-in never flashes. Sets [data-preloader-active]
           only on this session's first landing visit with motion allowed; the
           StartLights island removes it at "lights out". Key string must match
-          SESSION_KEY in StartLights.tsx. */}
+          SESSION_KEY in StartLights.tsx. The 8s failsafe is a pure-JS guarantee
+          the hero reveals even if the React bundle never hydrates (so the paused
+          fog-in can't strand the hero invisible) — well past the ~5s sequence. */}
       <script
         dangerouslySetInnerHTML={{
           __html:
-            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-preloader-active','')}}catch(e){}})();",
+            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.setAttribute('data-preloader-active','');setTimeout(function(){d.removeAttribute('data-preloader-active')},8000)}}catch(e){}})();",
         }}
       />
       <StartLights />
