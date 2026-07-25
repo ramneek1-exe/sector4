@@ -7,7 +7,6 @@
 // docs/superpowers/specs/2026-07-25-championship-picture-design.md.
 
 import { useState } from "react";
-import drivers from "@/app/data/drivers.json";
 import teams from "@/app/data/teams.json";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
@@ -16,12 +15,12 @@ import { gpLabel } from "@/app/lib/circuits";
 import {
   driverStandings,
   teamStandings,
+  visibleDriverRows,
   type Standing,
   type StandingsFile,
 } from "@/app/lib/championship";
 
 type View = "drivers" | "constructors";
-type DriverInfo = { name: string; number: number; personalColor: string };
 type TeamInfo = { primary: string; secondary: string };
 
 const SECTION_LABEL =
@@ -47,15 +46,6 @@ export function rateCellText(r: Pick<Standing, "gap" | "requiredRate">): string 
   if (r.gap === 0) return "leader";
   if (r.requiredRate === null) return "—";
   return `+${r.requiredRate}`;
-}
-
-/**
- * drivers.json is the source of truth for hard facts (PRD learning-layer rule): a code
- * present in standings.json but absent from drivers.json is skipped here, never rendered
- * without identity. No-op for constructor rows (team names aren't checked against this).
- */
-export function visibleDriverRows(rows: Standing[]): Standing[] {
-  return rows.filter((r) => Boolean((drivers as Record<string, DriverInfo>)[r.key]));
 }
 
 /**

@@ -7,6 +7,10 @@
 // so "needs 3.3 a round" would be false where "must out-score the leader by 3.3 a round"
 // is true. Every label built from this value must use the second form.
 
+// Plain JSON import (not require()) — unlike loadStandings' optional standings.json, this
+// file is always committed, so there's no absent-file case to catch.
+import driversJson from "@/app/data/drivers.json";
+
 export type Standing = {
   key: string; // driver code ("VER") or team name ("McLaren")
   points: number;
@@ -99,6 +103,20 @@ export function teamStandings(file: StandingsFile): Standing[] {
   return buildStandings(file.teams, file.remainingRounds);
 }
 
+/**
+ * drivers.json is the source of truth for hard facts (PRD learning-layer rule): a code
+ * present in standings.json but absent from drivers.json is skipped here, never rendered
+ * (or narrated) without identity. No-op for constructor rows (team names aren't checked
+ * against this). Lives here rather than in ChampionshipTable.tsx (a "use client" component)
+ * so orchestrate.ts -- a server module -- can filter the rows it feeds the narrative/lede
+ * without dragging a client component into the server bundle; ChampionshipTable.tsx and
+ * app/ask/page.tsx both import this same implementation, so the table and the prose can
+ * never drift on which rows are visible.
+ */
+export function visibleDriverRows(rows: Standing[]): Standing[] {
+  return rows.filter((r) => Boolean((driversJson as Record<string, unknown>)[r.key]));
+}
+
 // Minimal shape championshipLede needs — structurally satisfied by narrative.ts's
 // ChampionshipFacts (which adds `kind` + `throughGp`), so both the narrative generator's
 // system prompt and the /ask UI can share this one implementation with no drift.
@@ -121,6 +139,12 @@ export function championshipLede(f: ChampionshipLedeInput): string {
   const [leader, second] = f.rows;
   if (!leader) return "Championship standings are not available yet.";
   if (!second) return `${leader.key} leads the ${f.year} championship on ${leader.points} points.`;
+  if (second.gap === 0) {
+    return (
+      `${leader.key} and ${second.key} are level at the top of the ${f.year} championship on ` +
+      `${leader.points} points, with ${f.remainingRounds} of ${f.totalRounds} rounds left.`
+    );
+  }
   return (
     `${leader.key} leads the ${f.year} championship on ${leader.points} points, ` +
     `${second.gap} clear of ${second.key} with ${f.remainingRounds} of ${f.totalRounds} rounds left.`

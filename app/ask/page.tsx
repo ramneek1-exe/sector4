@@ -11,7 +11,8 @@ import type { Answer as ApiAnswer } from "@/app/lib/orchestrate";
 import type { PodiumFacts, StatFacts, PaceFacts, StrategyFacts, ChampionshipFacts } from "@/app/lib/narrative";
 // championshipLede's real implementation lives in championship.ts (no Anthropic SDK
 // dependency, unlike narrative.ts), which is what makes it safe to import here on the client.
-import { championshipLede } from "@/app/lib/championship";
+import { championshipLede, visibleDriverRows } from "@/app/lib/championship";
+import { gpLabel } from "@/app/lib/circuits";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { ConceptPopoverProvider } from "@/app/components/ConceptPopover";
 import { NarrativeText } from "@/app/components/NarrativeText";
@@ -20,7 +21,6 @@ import { CompoundCard } from "@/app/components/CompoundCard";
 import {
   gapCellText,
   rateCellText,
-  visibleDriverRows,
   RATE_HEADER_LABEL,
 } from "@/app/components/ChampionshipTable";
 import type { Concept } from "@/app/lib/concepts";
@@ -267,7 +267,7 @@ function ChampionshipAnswer({
   return (
     <div className="fog-in flex w-full max-w-xl flex-col items-center gap-6 text-center">
       <div className={`font-pixel-serif text-sm tracking-[0.12em] text-muted ${LEGIBLE} px-3 py-1`}>
-        {championship.year} championship · through the {championship.throughGp}
+        {championship.year} championship · through the {gpLabel(championship.throughGp)} Grand Prix
       </div>
       <p className={`max-w-xl font-lastik text-lg leading-relaxed text-ink/90 ${LEGIBLE} px-4 py-2`}>{lede}</p>
       <NarrativeText

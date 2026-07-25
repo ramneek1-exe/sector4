@@ -131,7 +131,8 @@ def _event_info(rnd: int, event) -> EventInfo | None:
 
 
 def derive_live_calendar(year: int, now: pd.Timestamp | None = None) -> dict | None:
-    """Fetch the season schedule (fastf1) and derive {calendar, schedule}; None on failure.
+    """Fetch the season schedule (fastf1) and derive {calendar, schedule, totalRounds,
+    remainingRounds}; None on failure.
 
     Reads only get_event_schedule (dates), never lap data, so it is leak-safe and cheap.
     """

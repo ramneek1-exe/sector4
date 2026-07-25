@@ -36,7 +36,7 @@ const COMPOUND: CompoundFacts = {
 
 const STANDINGS: StandingsFile = {
   year: 2026,
-  throughGp: "British Grand Prix",
+  throughGp: "Great Britain",
   throughRound: 12,
   totalRounds: 24,
   remainingRounds: 12,
@@ -49,7 +49,7 @@ const STANDINGS: StandingsFile = {
 // normal degrade-to-grey case, not a malformed payload.
 const STANDINGS_NO_DRIVER_TEAMS: StandingsFile = {
   year: 2026,
-  throughGp: "British Grand Prix",
+  throughGp: "Great Britain",
   throughRound: 12,
   totalRounds: 24,
   remainingRounds: 12,
@@ -370,7 +370,7 @@ describe("answerQuery", () => {
     expect(out.supported).toBe(true);
     if (out.supported && "championship" in out) {
       expect(out.championship.year).toBe(2026);
-      expect(out.championship.throughGp).toBe("British Grand Prix");
+      expect(out.championship.throughGp).toBe("Great Britain");
       expect(out.championship.remainingRounds).toBe(12);
       expect(out.championship.totalRounds).toBe(24);
       expect(out.championship.rows[0]).toEqual({ key: "VER", points: 255, rank: 1, gap: 0, requiredRate: null });
@@ -418,5 +418,27 @@ describe("answerQuery", () => {
     );
     expect(upcomingCalled).toBe(false);
     expect(out.supported).toBe(true);
+  });
+
+  it("excludes a driver absent from drivers.json, so the narrative cannot name a row the table hides", async () => {
+    // The facts feed BOTH the lede/narrative and the rendered table. Filtering only at render
+    // time let the prose mention a driver the table had dropped; the filter belongs here.
+    const withUnknown: StandingsFile = {
+      ...STANDINGS,
+      drivers: { VER: 255, NOR: 230, ZZZ: 40 },
+    };
+    const out = await answerQuery(
+      deps({
+        parse: async () => ({ intent: "championship_picture" }),
+        loadStandings: () => withUnknown,
+      }),
+      "who leads the championship?",
+    );
+    if (out.supported && "championship" in out) {
+      expect(out.championship.rows.map((r) => r.key)).toEqual(["VER", "NOR"]);
+      expect(out.championship.rows.some((r) => r.key === "ZZZ")).toBe(false);
+    } else {
+      throw new Error("expected a supported championship answer");
+    }
   });
 });

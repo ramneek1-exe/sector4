@@ -12,7 +12,12 @@ import { isRelativeCircuit, nextRace, type UpcomingRace } from "./next-race";
 import { getCircuitFacts } from "./entity-whats";
 import { getGrid, type Grid } from "./grid";
 import { getConcept, matchConcept, type Concept } from "./concepts";
-import { loadStandings, driverStandings, type StandingsFile } from "./championship";
+import {
+  loadStandings,
+  driverStandings,
+  visibleDriverRows,
+  type StandingsFile,
+} from "./championship";
 
 // Year used when a prediction question names no season — the live beta season (2026).
 const LOOKUP_STATS = ["pit_loss", "tyre_deg", "stint_length"];
@@ -169,7 +174,11 @@ export async function answerQuery(deps: AnswerDeps, query: string): Promise<Answ
       throughGp: file.throughGp,
       remainingRounds: file.remainingRounds,
       totalRounds: file.totalRounds,
-      rows: driverStandings(file),
+      // Filtered HERE, once, so the lede, the Haiku narrative and both tables all draw from
+      // the same set. Filtering only at render time let the prose name a driver the table
+      // beneath it had dropped -- drivers.json is the source of truth for identity, so a code
+      // it does not know must not appear in either.
+      rows: visibleDriverRows(driverStandings(file)),
       driverTeams: file.driverTeams,
     };
     const narrative = await deps.narrateChampionship(championship);

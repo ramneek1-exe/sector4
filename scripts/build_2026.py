@@ -259,7 +259,14 @@ def main() -> None:
         shutil.copy(os.path.join(DATA_DIR, t), os.path.join(API_DIR, t))
 
     _refresh_grid()
-    _write_standings(results, rounds)
+    try:
+        _write_standings(results, rounds)
+    except Exception as exc:  # noqa: BLE001 - never let an optional extra cost the refresh
+        # standings.json is optional by design (the TS side degrades to "not rendered"), and
+        # this call sits after the api/ copies and the grid refresh — an exception here would
+        # fail the build step and skip the workflow's commit step, throwing away a whole
+        # weekend of otherwise-good data for a feature that is allowed to be absent.
+        logging.warning("standings — emit failed (%s); leaving standings.json untouched.", exc)
     print("DONE — feature tables refreshed and copied into api/.")
 
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildStandings } from "@/app/lib/championship";
-import { gapCellText, rateCellText, visibleDriverRows, RATE_HEADER_LABEL } from "./ChampionshipTable";
+import { gapCellText, rateCellText, RATE_HEADER_LABEL } from "./ChampionshipTable";
 
 describe("gapCellText", () => {
   it("reads an em dash for the leader", () => {
@@ -31,15 +31,6 @@ describe("rateCellText", () => {
     expect(pia.requiredRate).toBeNull();
     expect(rateCellText(pia)).toBe("—");
     expect(rateCellText(ver)).toBe("leader");
-  });
-});
-
-describe("visibleDriverRows", () => {
-  it("excludes a code absent from drivers.json and keeps a present one", () => {
-    // "VER" is a real drivers.json code; "ZZZ" is not any driver's code.
-    const rows = buildStandings({ VER: 241, ZZZ: 12 }, 13);
-    const visible = visibleDriverRows(rows);
-    expect(visible.map((r) => r.key)).toEqual(["VER"]);
   });
 });
 

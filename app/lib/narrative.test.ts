@@ -98,7 +98,7 @@ describe("compoundLede", () => {
 const CHAMPIONSHIP: ChampionshipFacts = {
   kind: "championship",
   year: 2026,
-  throughGp: "British Grand Prix",
+  throughGp: "Great Britain",
   remainingRounds: 12,
   totalRounds: 24,
   rows: [

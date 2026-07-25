@@ -86,4 +86,15 @@ describe("gpLabel", () => {
     expect(gpLabel("Qatar")).toBe("Qatar");
     expect(gpLabel("Narnia")).toBe("Narnia");
   });
+
+  it("a standings-style fixture's short calendar key never leaks through raw into 'through the X Grand Prix' copy", () => {
+    // build_2026.py's standings.json emitter only ever writes the short calendar key
+    // ("Great Britain"), never the fastf1 EventName ("British Grand Prix") -- any caller
+    // building "through the X Grand Prix" copy must run the key through gpLabel first,
+    // or it reads "through the Great Britain Grand Prix" instead of "...British Grand Prix".
+    const fixture = { throughGp: "Great Britain" };
+    const rendered = `through the ${gpLabel(fixture.throughGp)} Grand Prix`;
+    expect(rendered).toBe("through the British Grand Prix");
+    expect(rendered).not.toBe("through the Great Britain Grand Prix");
+  });
 });

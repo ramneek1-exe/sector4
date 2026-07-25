@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildStandings, isStandingsFile, loadStandings, championshipLede } from "@/app/lib/championship";
+import {
+  buildStandings,
+  isStandingsFile,
+  loadStandings,
+  championshipLede,
+  visibleDriverRows,
+} from "@/app/lib/championship";
 
 describe("buildStandings", () => {
   it("ranks by points, leader first, with the gap to the leader", () => {
@@ -152,5 +158,32 @@ describe("championshipLede", () => {
     const rows = buildStandings({ VER: 255 }, 12);
     const s = championshipLede({ year: 2026, remainingRounds: 12, totalRounds: 24, rows });
     expect(s).toBe("VER leads the 2026 championship on 255 points.");
+  });
+
+  it("states a level tie rather than asserting a leader when the top two are tied", () => {
+    // The table itself refuses to pick a leader on equal points (both rows read "leader" --
+    // ChampionshipTable.tsx's rateCellText branches on gap === 0). The lede must not
+    // contradict that by naming VER as if it were sole leader when PIA has identical points.
+    const rows = buildStandings({ VER: 200, PIA: 200, NOR: 150 }, 12);
+    const s = championshipLede({ year: 2026, remainingRounds: 12, totalRounds: 24, rows });
+    expect(s).toBe(
+      "VER and PIA are level at the top of the 2026 championship on 200 points, with 12 of 24 rounds left.",
+    );
+    expect(s).not.toContain("leads");
+  });
+});
+
+describe("visibleDriverRows", () => {
+  it("excludes a code absent from drivers.json and keeps a present one", () => {
+    // "VER" is a real drivers.json code; "ZZZ" is not any driver's code. drivers.json is the
+    // source of truth for identity, so an unknown code is dropped rather than rendered
+    // without a name or number.
+    const rows = buildStandings({ VER: 241, ZZZ: 12 }, 13);
+    expect(visibleDriverRows(rows).map((r) => r.key)).toEqual(["VER"]);
+  });
+
+  it("keeps every row when all codes are known", () => {
+    const rows = buildStandings({ VER: 241, NOR: 187 }, 13);
+    expect(visibleDriverRows(rows).map((r) => r.key)).toEqual(["VER", "NOR"]);
   });
 });
