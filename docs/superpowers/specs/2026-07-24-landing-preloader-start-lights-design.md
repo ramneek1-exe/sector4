@@ -62,7 +62,8 @@ Two units, clear boundary:
 
 ### `app/lib/start-lights.ts` (pure, tested)
 
-No React, no DOM. Timing math only. Exposes:
+No React, no DOM. Timing math + the pixel-disc cell generator. Exposes (plus `discCells`
+below for the dither dots):
 
 - `armSchedule(): number[]` — the illuminate timestamp for each of the 5 dots
   (`[0, 240, 480, 720, 960]` ms). Component uses these to stagger the "on" state.
@@ -71,6 +72,11 @@ No React, no DOM. Timing math only. Exposes:
 - `resolveLightsOut({ hold, heroReadyAt }): number` — returns
   `clamp(max(ARM_DONE_MS + hold, heroReadyAt ?? Infinity), 0, HARD_CAP_MS)`. When
   `heroReadyAt` is `null` (never ready), the `max` with `Infinity` collapses to the cap.
+- `discCells(cols, color, cutoff?): BayerCell[]` — builds an `cols×cols` RGBA coverage field
+  for a centered filled circle (distance-based anti-aliased edge) and runs it through
+  `thresholdCells` (`app/lib/bayer.ts`) to yield the hard-threshold pixel-disc cells. Pure
+  (builds a `Uint8ClampedArray` directly, no canvas), so it is node-testable. The component
+  feeds the result to `useRevealCanvas` for the actual paint.
 - Constants above re-exported for the component and tests.
 
 ### `app/components/StartLights.tsx` (client island)
@@ -120,21 +126,32 @@ Today the hero's thesis/CTA/cue carry `fog-in` (CSS animation, runs on mount) wi
   hero must animate/appear on load with NO added delay. The pause is applied ONLY when the
   overlay is actually going to play. Test both branches.
 
-## Visual treatment (structure locked, look chosen at build)
+## Visual treatment (dither/pixel direction locked, exact look chosen at build)
 
 Locked here:
 - Five abstract dots, horizontal row, centered on a full-bleed field overlaying the hero.
-- Dots arm L→R, hold, extinguish together, field dissolves to reveal hero.
-- Dissolve uses the site's dither vocabulary where feasible (ties the preloader to the
-  established Ascii/Dither system), but a plain opacity/blur dissolve is an acceptable
-  fallback if a shader dissolve risks a WebGL-context-at-unmount cost.
+- **Dither/pixel vibe (owner direction):** each dot is rendered as a hard-threshold
+  **pixel-art disc**, not a smooth CSS circle — the same rasterise → grid-sample →
+  `thresholdCells` (`app/lib/bayer.ts`) → canvas-paint vocabulary the site's
+  `AsciiEmblem`/`AsciiGlyph` already use, with `image-rendering: pixelated` for chunky
+  8-bit pixels. Hard-threshold quantization (NOT ordered-Bayer edge dither) at a chunky
+  cell size — per the emblem finding (`sector4_emblem_pixel_art_no_dither`).
+- **2D canvas, NOT WebGL/shader.** Five simultaneous shader canvases would risk the browser's
+  ~16 WebGL-context cap (the lab lesson); `thresholdCells` + 2D canvas is deterministic and
+  cheap. One canvas per dot (5 total) or a single canvas — implementation detail.
+- Dots arm L→R (each disc paints in on its cadence beat), hold, extinguish together, field
+  dissolves to reveal hero.
+- Dissolve = overlay opacity fade (`preloaderDissolve` keyframe). A dither dissolve is a
+  nice-to-have but must not hold a WebGL context at unmount — opacity fade is the safe
+  default.
 
 NOT locked (decided during the build's visual pass, per the project's standing rule that
 visual/design changes need 2–4 rendered candidates shown before commit —
 `feedback_visual_changes_show_candidates`):
-- Dot color when armed (warm "ready" red vs brand accent `#406cd6`) and when off.
+- Dot color when armed (warm "ready" red vs brand accent `#406cd6`) and when off; dot size,
+  spacing, cell chunkiness.
 - Backdrop: light `#fafafa` vs dark `ink`.
-- Dissolve style (dither dissolve vs opacity/blur) and dot geometry/spacing/glow.
+- Any glow/scanline flourish on the panel.
 
 **Constraint reminder:** abstract dots only. No FOM light gantry silhouette, no F1/FIA/FOM
 marks, no team liveries. Color coding is fine; brand/warm tones only.
@@ -151,17 +168,18 @@ marks, no team liveries. Color coding is fine; brand/warm tones only.
 
 ## Testing
 
+vitest runs in the **`node`** environment (no jsdom) — tests are pure, no DOM/component
+render. The component is verified via build + live eyeball, matching the repo's standing
+pattern (client visuals eyeballed on the deploy).
+
 `app/lib/start-lights.test.ts` (vitest, pure):
 - `armSchedule()` returns `[0, 240, 480, 720, 960]`; `ARM_DONE_MS === LIGHT_COUNT * ARM_INTERVAL_MS`.
-- `pickHold(() => 0) === HOLD_MIN_MS`; `pickHold(() => 0.999...) ≈ HOLD_MAX_MS`; bounds hold.
+- `pickHold(() => 0) === HOLD_MIN_MS`; `pickHold(() => 1) === HOLD_MAX_MS`; result within bounds.
 - `resolveLightsOut`: hold-dominates case (`heroReadyAt` small) → `ARM_DONE_MS + hold`;
   heroReady-dominates case → `heroReadyAt`; `heroReadyAt === null` → `HARD_CAP_MS`; any input
   over cap → clamped to `HARD_CAP_MS`.
-
-`StartLights` component behavior (where practical under jsdom):
-- session flag present → renders nothing.
-- reduced-motion → renders nothing.
-- neither → renders overlay; sets flag on completion.
+- `discCells(cols, color)`: non-empty for a small grid; a center cell is present and a corner
+  cell is absent (circle, not square); count is symmetric across the vertical axis.
 
 Full-branch: vitest all-green, `tsc` + `npm run build` clean. Live eyeball on the deploy
 (overlay only meaningfully runs against real hero assets): first visit plays; reload within
