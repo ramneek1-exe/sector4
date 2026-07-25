@@ -188,7 +188,7 @@ git commit -m "feat: emit season standings and round counts for the championship
 
 **Interfaces:**
 - Consumes: the Task 1 JSON shape.
-- Produces, for Tasks 3 and 4: `Standing`, `ChampionshipTable`, `buildStandings`, `driverStandings`, `teamStandings`.
+- Produces, for Tasks 3 and 4: types `Standing` and `StandingsFile`, and functions `buildStandings`, `isStandingsFile`, `loadStandings`, `driverStandings`, `teamStandings`. (`ChampionshipTable` is the Task 3 React component, not an export of this module.)
 
 - [ ] **Step 1: Write the failing tests**
 
