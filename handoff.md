@@ -8,7 +8,8 @@
 > LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
 > PR #49), the intro/landing TWEAKS (PR #50), AND the LANDING PRELOADER (start-lights
 > gantry) + a batch of site tweaks/fixes are all **LIVE on PRODUCTION (`sector4.net`)** —
-> current prod deploy `9fa15c1` (2026-07-25).**
+> plus the HERO CURTAIN REVEAL (the preloader's lights-out handoff, branch
+> `hero-curtain-reveal`) are all **LIVE on PRODUCTION (`sector4.net`)**.**
 >
 > ## 🟢 PRELOADER — DONE + LIVE (2026-07-25, was branch `landing-preloader` → merged to `main`)
 > The last deferred landing-v2 piece shipped. See the newest session entry below for full
@@ -28,17 +29,10 @@
 > `GET /api/cron/snapshot` **hourly Fri/Sat/Sun** (`0 * * * 0,5-6`, Bearer `CRON_SECRET`) —
 > idempotent route, independent of repo activity. Manual admin `?force=` is now only a fallback.
 >
-> **OPEN / VERIFY ON PROD (this session's deferrals):**
-> - **`/weekend` past-predictions modal scroll** — the `data-lenis-prevent` fix could not be
->   eyeballed locally (the modal needs Blob data; `/weekend` sits in its pre-predictions
->   state under `next start`, so the CTA doesn't render). Confirm the table actually scrolls
->   on the deploy.
-> - **Driver-helmet glyphs on `/ask` + `/weekend`** (still open from PR #49) — same local
->   data gap; eyeball on prod.
-> - **Preloader a11y Minor (logged, not fixed):** the hero CTA is opacity-0-but-focusable
->   under the opaque overlay for the ~4-5s sequence; a keyboard user tabbing early hits an
->   invisible target (reduced-motion users skip the overlay, so low-risk). Decide whether to
->   make the hero `inert` while the preloader is active.
+> **CLOSED 2026-07-25:** the `/weekend` modal scroll and the `/ask` + `/weekend` driver-helmet
+> glyphs were both confirmed working on prod by the owner. The **preloader a11y Minor is FIXED**
+> (see the curtain-reveal entry below) — `visibility: hidden` on the gated hero elements, which
+> removes them from the tab order and the a11y tree, not just from view.
 >
 > **ALSO OPEN (deferred from PR #49, low priority): live eyeball of driver-helmet glyphs
 > on prod.** The shared-canvas-reveal refactor (`app/lib/use-reveal-canvas.ts`) touches
@@ -47,6 +41,67 @@
 > local `next dev`/`start`, so that path was verified byte-for-byte in review but never
 > eyeballed live. Confirm a real `/ask` answer's helmets + the `/weekend` podium helmets
 > look right on the deploy.
+>
+> ## 2026-07-25 session — HERO CURTAIN REVEAL (branch `hero-curtain-reveal`, merged to `main`)
+> **The preloader's lights-out handoff, reworked.** Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-25-hero-curtain-reveal*`; ledger
+> `.superpowers/sdd/2026-07-25-hero-curtain-reveal/progress.md`. Subagent-driven, 3 code tasks +
+> per-task review, owner visual pass, opus whole-branch review + one fix wave.
+> **Problem:** lights-out ran a flat `opacity 1→0` dissolve over 300ms while the hero's `.fog-in`
+> un-paused at the SAME instant — so most of that 0.7s reveal played behind an opaque overlay and
+> was never seen. **What shipped:** a **vertical curtain lift with parallax**. The warm field lifts
+> `translateY(-100%)`; the gantry row, being a CHILD, composes an EXTRA `-30vh` on top (130vh total)
+> so the nearer object travels further and clears the top edge first, **blurring out to 14px** as it
+> goes. Hero `.fog-in` is now released at 65% of the lift, in open air. Owner-tuned: `CURTAIN_MS`
+> 900, blur 14px, `cubic-bezier(0.76, 0, 0.24, 1)`.
+> **Rejected first (recorded in the spec so it isn't re-litigated):** a Bayer dither disintegration.
+> `bayerThreshold8` already IS the ordering function and the field is a solid colour so no
+> `ImageData` sampling is needed — but making the GANTRY disintegrate with the field needs the DOM
+> rasterised into canvas via a measured twin (`getBoundingClientRect` per housing so `clamp()` lamp
+> sizing can't drift): ~3 modules + tests + a main-thread rAF loop, to buy a texture the site already
+> speaks elsewhere. Curtain is 2 keyframes on elements that already exist.
+> **UNIT TRAP (cost nothing only because it was caught in review):** the gantry differential MUST be
+> `vh`, never `%`. A percentage `translateY` resolves against the ELEMENT'S OWN height and the gantry
+> row is ~150px — `-30%` would be a ~45px nudge that still looks plausible in a screenshot.
+> **a11y minor CLOSED, and a REGRESSION this branch introduced then fixed:** `[data-preloader-active]
+> .fog-in { visibility: hidden }` correctly makes the held hero unfocusable — but `.fog-in` is used
+> SITE-WIDE (`/ask`, `CompoundCard`). `SiteNav` is `z-30`: covered by the `z-50` overlay but still
+> TABBABLE, so a keyboard user could nav to `/ask` mid-sequence, and since StartLights' cleanup clears
+> the removal timer the attribute survives to the 8s failsafe — leaving that page blank AND
+> unfocusable (before, it was blank but focusable). Now gated on a `.preload-gated` marker carried by
+> exactly the three hero elements.
+> **PERF LESSON — I was wrong, and the first measurement agreed with me for the wrong reason:** I
+> predicted animating `filter: blur()` would re-rasterise and cost frames, and an initial run seemed
+> to confirm it (p95 30ms). It was contaminated by SEVEN open devtools contexts each running the
+> landing page's WebGL dither video. Re-measured one page at a time, alternating arms: blur ON and
+> blur OFF are **identical** (median 16.7 / p95 17.3 / 0 frames >20ms), and blur ON at **6x CPU
+> throttle** is still 0 frames >20ms. Close stale contexts BEFORE measuring; a result that confirms
+> your hypothesis deserves the same suspicion as one that contradicts it.
+> **VERIFIED in-browser on a clean prod build** (listener PID confirmed changed, so not a stale
+> build): field final `-723.789` = exactly `-100%` of a 724px viewport, gantry `-217.137` = exactly
+> `30vh`, blur `13.99px`, gate dropped at +702ms, unmount at +1063ms. a11y checked BEHAVIOURALLY — an
+> explicit `cta.focus()` fails while the overlay is up and succeeds after. Repeat-visit and
+> reduced-motion clean, and reduced-motion correctly does NOT write the sessionStorage key.
+> vitest 269 pass/2 skip, tsc + build clean.
+> **⚠️ OPEN — FAILSAFE TIME-BASE (owner decision, not a blocker):** the invariant test asserts
+> `HARD_CAP_MS + overlayTeardownMs() < HERO_FAILSAFE_MS` (6520 < 8000), but `HARD_CAP_MS` runs from
+> the effect's `t0` (POST-hydration) while `HERO_FAILSAFE_MS` runs from HTML parse. So the 1480ms
+> isn't margin — it's the **hydration budget**, cut from 2200ms by lengthening the curtain. If
+> hydration exceeds it on a mid-range phone the inline gate drops mid-arming and the hero's fog-in
+> plays out behind the still-opaque field: graceful (no stranding, no mid-lift pop) but the whole
+> point of the change silently doesn't happen on exactly the slow devices where a 900ms curtain is
+> most conspicuous. Fix options: export a `HYDRATION_BUDGET_MS` and assert it (raising
+> `HERO_FAILSAFE_MS`), or decouple the clocks so StartLights clears the inline timer on mount and owns
+> the backstop from its own `t0`.
+> **⚠️ OPEN — iOS SAFARI EYEBALL:** lamps are `border-radius:50%` + `overflow:hidden` inside a subtree
+> that now takes a composited transform AND an animated blur. WebKit has historically dropped
+> rounded-corner clipping on promoted layers mid-transform — the failure mode is **square lamps during
+> the lift**. Untestable from this environment; check on a phone.
+> **Minor, deferred:** overlay teardown is wall-clock rather than `animationend`, so under heavy jank
+> it could unmount a frame before the field fully clears (observed +1063ms vs 1020ms nominal, i.e. the
+> animation finished first in practice). Also note `willChange` is now gated to `phase === "out"`,
+> which is only hitch-free because the animation carries a 120ms delay — revisit if
+> `LIGHTS_OUT_HOLD_MS` is ever tuned toward 0.
 >
 > ## 2026-07-24/25 session — LANDING PRELOADER (start-lights) + site tweaks/fixes (branch `landing-preloader`, merged to `main`)
 > **Brainstormed → spec → plan → subagent-driven build, then an owner-led visual pass, then
