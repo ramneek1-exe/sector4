@@ -25,5 +25,6 @@
   "DOO": { "name": "Jack Doohan", "number": 7, "personalColor": "#0093CC" },
   "BOR": { "name": "Gabriel Bortoleto", "number": 5, "personalColor": "#52E252" },
   "HAD": { "name": "Isack Hadjar", "number": 6, "personalColor": "#6692FF" },
-  "LAW": { "name": "Liam Lawson", "number": 30, "personalColor": "#6692FF" }
+  "LAW": { "name": "Liam Lawson", "number": 30, "personalColor": "#6692FF" },
+  "LIN": { "name": "Arvid Lindblad", "number": 41, "personalColor": "#B9BEC7" }
 }
