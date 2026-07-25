@@ -13,8 +13,10 @@ import { DitherFog } from "@/app/components/DitherFog";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { TrustBadge } from "@/app/components/TrustBadge";
 import { CorrectionForm } from "@/app/components/CorrectionForm";
+import { ChampionshipTable } from "@/app/components/ChampionshipTable";
 import { BAND_TEXT } from "@/app/lib/bands";
 import { driverName } from "@/app/lib/glyph";
+import { loadStandings } from "@/app/lib/championship";
 import { getCircuitFacts, getCircuitName, getEntityWhat } from "@/app/lib/entity-whats";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +76,9 @@ function SideFog() {
 
 export default async function WeekendPage() {
   const snap = await getJson<WeekendSnapshot>(latestKey(schedule.year, schedule.gp));
+  // Season-scoped, not race-scoped: renders in both branches below when present, absent
+  // otherwise (app/data/standings.json doesn't exist until the weekend refresh writes it).
+  const standings = loadStandings();
 
   // After the race (Monday onwards — ~18h past the Sunday `final`), stop showing the
   // finished weekend and look forward to the next round, even if its snapshot still
@@ -118,6 +123,12 @@ export default async function WeekendPage() {
                 data={pastData}
               />
             </p>
+          )}
+
+          {standings && (
+            <div className="mt-12">
+              <ChampionshipTable file={standings} />
+            </div>
           )}
 
           {upcomingFacts.length > 0 && (
@@ -246,6 +257,8 @@ export default async function WeekendPage() {
             </ol>
           </section>
         )}
+
+        {standings && <ChampionshipTable file={standings} />}
 
         {facts.length > 0 && (
           <section className="mb-10">
