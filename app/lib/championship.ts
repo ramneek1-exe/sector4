@@ -23,6 +23,11 @@ export type StandingsFile = {
   remainingRounds: number;
   drivers: Record<string, number>;
   teams: Record<string, number>;
+  // Driver -> current team name (teams.json key), for the helmet glyph's team colour
+  // (PRD §8). Optional: no standings.json exists yet, and an older emitter that hasn't
+  // picked up this field must still validate — absence degrades to today's neutral-grey
+  // helmet, never to the whole section vanishing.
+  driverTeams?: Record<string, string>;
 };
 
 /** Points table -> ranked standings. `remainingRounds` <= 0 means no rate is defined. */
@@ -60,7 +65,14 @@ export function isStandingsFile(x: unknown): x is StandingsFile {
     Object.values(m as Record<string, unknown>).every(
       (v) => typeof v === "number" && Number.isFinite(v),
     );
-  return isPointMap(s.drivers) && isPointMap(s.teams);
+  if (!isPointMap(s.drivers) || !isPointMap(s.teams)) return false;
+  // driverTeams is optional; when present it must be a non-array object of string values.
+  if (s.driverTeams !== undefined) {
+    const dt = s.driverTeams;
+    if (!dt || typeof dt !== "object" || Array.isArray(dt)) return false;
+    if (!Object.values(dt).every((v) => typeof v === "string")) return false;
+  }
+  return true;
 }
 
 /**

@@ -26,6 +26,12 @@ type TeamInfo = { primary: string; secondary: string };
 const SECTION_LABEL =
   "mb-3 font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted";
 
+// The single most important correctness detail in this feature: the leader keeps scoring
+// too, so "needs X a round" is a false statement about the world -- only the out-scoring
+// form is true. Exported (rather than inlined in JSX) so a test can pin the wording and
+// fail if a future edit drifts back to the false short form.
+export const RATE_HEADER_LABEL = "Must out-score leader by / round";
+
 /** Gap cell text: an em dash for the leader (0 gap), else the deficit. Pure, tested. */
 export function gapCellText(gap: number): string {
   return gap === 0 ? "—" : `-${gap}`;
@@ -43,24 +49,29 @@ export function rateCellText(r: Pick<Standing, "gap" | "requiredRate">): string 
 }
 
 /**
+ * drivers.json is the source of truth for hard facts (PRD learning-layer rule): a code
+ * present in standings.json but absent from drivers.json is skipped here, never rendered
+ * without identity. No-op for constructor rows (team names aren't checked against this).
+ */
+export function visibleDriverRows(rows: Standing[]): Standing[] {
+  return rows.filter((r) => Boolean((drivers as Record<string, DriverInfo>)[r.key]));
+}
+
+/**
  * The season standings table + drivers/constructors toggle — the only client state in this
  * section. Drivers render through the existing helmet glyph (AsciiGlyph) + personal number +
- * three-letter code; standings.json carries no per-driver team, so the glyph falls back to
- * its own neutral-grey "unknown team" treatment (app/lib/glyph.ts) rather than this section
- * inventing a second driver->team data source. Constructors render through the existing
- * generic car silhouette (AsciiEmblem) in team colour from teams.json. Both are the same
- * abstract glyph system used everywhere else on the page (PRD §8) -- no new glyph code.
+ * three-letter code, coloured by the driver's current team via `file.driverTeams` (each
+ * driver's most-recent team this season); a driver missing from that optional map (older
+ * emitter, or genuinely unknown) still renders with correct identity, just the glyph's own
+ * neutral-grey "unknown team" fallback (app/lib/glyph.ts) rather than being skipped.
+ * Constructors render through the existing generic car silhouette (AsciiEmblem) in team
+ * colour from teams.json. Both are the same abstract glyph system used everywhere else on
+ * the page (PRD §8) -- no new glyph code.
  */
 export function ChampionshipTable({ file }: { file: StandingsFile }) {
   const [view, setView] = useState<View>("drivers");
   const rows = view === "drivers" ? driverStandings(file) : teamStandings(file);
-  // drivers.json is the source of truth for hard facts (PRD learning-layer rule): a code
-  // present in standings.json but absent from drivers.json is skipped, never rendered
-  // without identity.
-  const visibleRows =
-    view === "drivers"
-      ? rows.filter((r) => Boolean((drivers as Record<string, DriverInfo>)[r.key]))
-      : rows;
+  const visibleRows = view === "drivers" ? visibleDriverRows(rows) : rows;
 
   return (
     <section className="mb-10" aria-labelledby="championship-heading">
@@ -98,7 +109,7 @@ export function ChampionshipTable({ file }: { file: StandingsFile }) {
             <th className="py-2 pr-3 text-right font-medium">Points</th>
             <th className="py-2 pr-3 text-right font-medium">Gap</th>
             {/* Never "needs / round" -- the leader scores too, so that phrasing is false. */}
-            <th className="py-2 text-right font-medium">Must out-score leader by / round</th>
+            <th className="py-2 text-right font-medium">{RATE_HEADER_LABEL}</th>
           </tr>
         </thead>
         <tbody>
@@ -107,7 +118,7 @@ export function ChampionshipTable({ file }: { file: StandingsFile }) {
               <th scope="row" className="py-2 pr-3 align-middle font-normal">
                 {view === "drivers" ? (
                   <div className="flex items-center gap-2">
-                    <AsciiGlyph code={r.key} team={null} size={40} />
+                    <AsciiGlyph code={r.key} team={file.driverTeams?.[r.key] ?? null} size={40} />
                     <span>
                       <span className="font-bold tracking-wide">{r.key}</span>{" "}
                       <span className="hidden text-muted sm:inline">{driverName(r.key)}</span>

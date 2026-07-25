@@ -90,6 +90,29 @@ describe("isStandingsFile", () => {
   it("rejects a payload whose teams map is an array, not a keyed object", () => {
     expect(isStandingsFile({ ...wellFormed, teams: [385, 300] })).toBe(false);
   });
+
+  it("accepts a payload with a present, well-formed driverTeams map", () => {
+    expect(
+      isStandingsFile({ ...wellFormed, driverTeams: { VER: "Red Bull Racing" } }),
+    ).toBe(true);
+  });
+
+  it("accepts a payload with no driverTeams map at all", () => {
+    // Optional field: an older emitter's payload (no driverTeams key) must still validate --
+    // absence degrades to grey helmets, not to the whole section vanishing.
+    expect(isStandingsFile(wellFormed)).toBe(true);
+    expect("driverTeams" in wellFormed).toBe(false);
+  });
+
+  it("rejects a payload whose driverTeams map is an array, not a keyed object", () => {
+    expect(
+      isStandingsFile({ ...wellFormed, driverTeams: ["Red Bull Racing", "McLaren"] }),
+    ).toBe(false);
+  });
+
+  it("rejects a payload whose driverTeams map holds a non-string value", () => {
+    expect(isStandingsFile({ ...wellFormed, driverTeams: { VER: 1 } })).toBe(false);
+  });
 });
 
 describe("loadStandings", () => {

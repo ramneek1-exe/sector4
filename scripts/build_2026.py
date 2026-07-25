@@ -192,6 +192,14 @@ def _write_standings(results: pd.DataFrame, rounds: dict | None) -> None:
                     for k, v in sorted(live.groupby("Driver")["points"].sum().items())},
         "teams": {k: round(float(v), 1)
                   for k, v in sorted(live.groupby("team")["points"].sum().items())},
+        # Glyph metadata for the championship table's driver rows (PRD §8: helmet in team
+        # colour). Each driver's MOST RECENT team this season, not an arbitrary one, so a
+        # mid-season team change (e.g. a seat swap) resolves to where they are now, not
+        # where they started.
+        "driverTeams": {
+            str(k): str(v)
+            for k, v in live.sort_values("date").groupby("Driver")["team"].last().items()
+        },
     }
     os.makedirs(os.path.dirname(STANDINGS_JSON), exist_ok=True)
     with open(STANDINGS_JSON, "w") as f:
