@@ -11,7 +11,6 @@
 // reduced-motion, or no-JS-then-hydrate.
 import { useEffect, useRef, useState } from "react";
 import {
-  ARM_DONE_MS,
   HARD_CAP_MS,
   LIGHT_COUNT,
   OUT_MS,
@@ -57,13 +56,9 @@ function Dot({ armed }: { armed: boolean }) {
 export function StartLights() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [lit, setLit] = useState(0); // how many dots have armed so far
-  const started = useRef(false);
   const released = useRef(false);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-
     const root = document.documentElement;
     // Trust the pre-paint gate as the single decision-maker (it already checked
     // sessionStorage + reduced-motion synchronously before the hero painted).
