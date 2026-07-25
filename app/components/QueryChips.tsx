@@ -1,27 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { nextIndex } from "@/app/lib/chips";
 
-// Peripheral spots down the left/right edges — clear of the centred intro copy. Positions
-// are percentages of the VIEWPORT-bounded container below (fixed, under the nav), NOT of the
-// idle section, whose 600px min-height runs well past the fold on a laptop viewport and used
-// to strand the bottom-band chips off-screen. Every spot is strictly EDGE-anchored (left OR
-// right ≤ 6%) so a wide (max-w-16rem) chip never overflows sideways on mobile, and the
-// vertical band stops at 78% so a two-line chip stays fully on-screen even on short viewports.
+// Peripheral spots down the left/right edges of the idle fog area (the `absolute inset-0`
+// container below, i.e. the empty-state section — the chips scroll WITH the page, never
+// pinned to the viewport). Positions are percentages of that container. Every spot is
+// strictly EDGE-anchored (left OR right ≤ 6%) so a wide (max-w-16rem) chip never overflows
+// sideways on mobile, and the vertical band is kept to 8–52% so chips (a) sit clear of the
+// "Ask" heading + search bar ABOVE the section, and (b) stay within the initially-visible
+// viewport rather than being stranded below the fold by the section's tall min-height.
 // One chip appears at a random one of these each time, never repeating the previous spot.
 const POOL: Array<{ top: string; left?: string; right?: string }> = [
-  { top: "6%", left: "5%" },
-  { top: "6%", right: "5%" },
-  { top: "22%", left: "3%" },
-  { top: "22%", right: "3%" },
+  { top: "8%", left: "5%" },
+  { top: "8%", right: "5%" },
+  { top: "24%", left: "4%" },
+  { top: "24%", right: "4%" },
   { top: "40%", left: "5%" },
   { top: "40%", right: "5%" },
-  { top: "60%", left: "5%" },
-  { top: "60%", right: "5%" },
-  { top: "78%", left: "5%" },
-  { top: "78%", right: "5%" },
+  { top: "52%", left: "5%" },
+  { top: "52%", right: "5%" },
 ];
 const CYCLE_MS = 4200; // slower cadence — one chip at a time
 const FADE_MS = 3800; // animation (fade in → hold → fade out) finishes before the next appears
@@ -59,16 +57,10 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
 
   const q = examples[state.step % examples.length];
   const p = POOL[state.pos];
-  if (typeof document === "undefined") return null;
-  // Portal to <body>: the container is position:fixed so its coordinates are viewport-
-  // relative (chip positions are % of the viewport below the nav) — guaranteeing each chip
-  // renders on-screen regardless of the taller idle section. It MUST be portalled because
-  // an ancestor transform (the fog-in reveal wrapper) would otherwise become the fixed
-  // element's containing block and pin it to the section instead of the viewport. Decorative
-  // / pointer-events-none; the chip button re-enables pointer events. Under nav (z-30) and
-  // any modal (z-50); only mounted in the idle state, so it never lingers.
-  return createPortal(
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 top-[68px] z-10">
+  return (
+    // Absolute within the idle fog area (not fixed) so chips scroll with the page instead of
+    // sticking to the viewport, and sit inside the section — clear of the "Ask" heading above.
+    <div className="pointer-events-none absolute inset-0">
       <button
         key={state.step}
         type="button"
@@ -78,7 +70,6 @@ export function QueryChips({ examples, onPick }: { examples: string[]; onPick: (
       >
         <span className="line-clamp-2">{q}</span>
       </button>
-    </div>,
-    document.body,
+    </div>
   );
 }
