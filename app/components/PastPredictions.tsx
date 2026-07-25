@@ -100,7 +100,10 @@ function PastModal({
             ✕
           </button>
         </div>
-        <div className="min-h-0 overflow-y-auto p-4">
+        {/* data-lenis-prevent: the site-wide Lenis smooth-scroll (layout.tsx) hijacks
+            wheel/touch on the document, so without this the modal's own overflow never
+            scrolls — Lenis scrolls the page behind it instead. */}
+        <div data-lenis-prevent className="min-h-0 overflow-y-auto p-4">
           <table className="w-full border-collapse font-grotesk text-sm">
             <thead>
               <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-wide text-muted">
