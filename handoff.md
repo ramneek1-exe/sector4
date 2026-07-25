@@ -1,22 +1,115 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-22.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-24.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), M3 FRONTEND
-> (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), AND
-> the LANDING FOOTER REDESIGN are all MERGED to `main` and LIVE on PRODUCTION
-> (`sector4.net`).**
+> (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), the
+> LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
+> PR #49), AND the intro/landing TWEAKS (PR #50) are all MERGED to `main` and LIVE on
+> PRODUCTION (`sector4.net`).**
 >
-> ## 🔴 PICK UP HERE NEXT SESSION — PRELOADER + HERO REVEAL (not started)
-> The only piece still deferred from the original landing-v2 ordering (owner: "hero
-> first, then sections working downwards... finally coming back to the preloader + hero
-> reveal followed by the footer") — footer is now done (see below), this is the last
-> item. `data-hero` attrs (`video`/`thesis`/`cta`/`cue`) on the Hero's four layers in
-> `app/page.tsx` are stable hooks already in place specifically for this pass (see the
-> Hero section's own comment). Brainstorm fresh (new spec/plan under
+> ## 🔴 PICK UP HERE NEXT SESSION — PRELOADER + HERO REVEAL (still not started)
+> The last piece deferred from the original landing-v2 ordering (owner: "hero first, then
+> sections working downwards... finally coming back to the preloader + hero reveal
+> followed by the footer"). Footer AND the intro section are now done (see the two newest
+> session entries below); this is the remaining item. `data-hero` attrs
+> (`video`/`thesis`/`cta`/`cue`) on the Hero's four layers in `app/page.tsx` are stable
+> hooks already in place specifically for this pass (see the Hero section's own comment) —
+> left UNTOUCHED through both intervening sessions. Brainstorm fresh (new spec/plan under
 > `docs/superpowers/{specs,plans}/`) — no design direction locked yet, this is a design
 > call from scratch.
+>
+> **ALSO OPEN (deferred from PR #49, low priority): live eyeball of driver-helmet glyphs
+> on prod.** The shared-canvas-reveal refactor (`app/lib/use-reveal-canvas.ts`) touches
+> `AsciiGlyph`'s numeral-overlay path, which renders ONLY on `/ask` (populated answer) and
+> the `/weekend` podium table — both need the Python API / Blob data unavailable under
+> local `next dev`/`start`, so that path was verified byte-for-byte in review but never
+> eyeballed live. Confirm a real `/ask` answer's helmets + the `/weekend` podium helmets
+> look right on the deploy.
+>
+> ## 2026-07-23/24 session — LANDING INTRO SECTION (PR #49) + TWEAKS (PR #50), both MERGED + LIVE
+> **Owner asked for an "About Sector 4" intro section under the hero, above the race-track
+> spine, anchored by a big house helmet with a hover microinteraction.** Spec/plan
+> `docs/superpowers/{specs,plans}/2026-07-23-landing-intro-helmet-radio*`; ledger
+> `.superpowers/sdd/progress.md`. Subagent-driven (Tasks 1-7 + review each), then Task 8
+> (visual candidates) + Task 9 (whole-branch verify) controller-led.
+> **What shipped (PR #49, 19 commits):** the section is a server `AboutSector4()` in
+> `app/page.tsx` (outside the spine wrapper — no `SectorNumeral`/`data-sector-anchor`, so
+> `TrackSpine` geometry is untouched) wrapping one client island `RadioHelmet`. On
+> hover/tap/keyboard-focus the helmet lifts + scales 1.045 (`transform-origin: 50% 100%`,
+> `image-rendering: pixelated` so the scaled pixel-art canvas stays crisp), casts a
+> dithered drop-shadow pool (`DitherShadow`, ellipse-masked warp, mounted only while
+> active so no WebGL context is held at rest — `CardFog` lifecycle), and opens a speech
+> bubble playing one random F1 team-radio line word by word (`app/lib/race-radio.ts`,
+> pure, no-repeat picker + per-word timings, 12 vitest). `HouseHelmet` = brand-blue
+> thresholded helmet, NO driver/team/number, reads nothing from drivers/teams json (PRD
+> §8). Copy: "An F1 companion that shows its working." + a plain what-it-is paragraph, no
+> CTA (hero + S1-S4 already each carry one).
+> **THREE behaviour-preserving refactors landed first** (removed copy-paste before adding
+> a 5th copy, all byte-identical extractions, ZERO test changes): `app/lib/dither-recipe.ts`
+> (warp recipe, was dup in DitherFog+CardFog), `app/lib/use-reduced-motion.ts` (hook was
+> dup in FOUR files: DitherFog/CardFog/DitherVideo/LandingFooter), `app/lib/use-reveal-canvas.ts`
+> (DPR sizing + cell paint + dither reveal loop, was dup in AsciiGlyph+AsciiEmblem;
+> AsciiGlyph's crisp numeral became an optional `drawOverlay` callback).
+> **Two REAL bugs caught in review (both in the plan-authored code, both fixed):** (a)
+> pin-cancel guard used `document.activeElement !== e.currentTarget` — Chrome/Firefox focus
+> a `<button>` on click, so the guard FAILED exactly on click-then-leave and the bubble hung
+> open the full pin; worked only in Safari. Now `!e.currentTarget.matches(":focus-visible")`.
+> (b) the screen-reader live region rendered the PREVIOUS message on activation (new line is
+> picked in a passive effect after paint), so readers announced stale-then-fresh from the 2nd
+> hover on. Now a separate `announced` state set alongside `setMessage`. Also: the shadow
+> pool MUST be a SIBLING of the `<button>`, never a descendant — `DitherShadow` renders a
+> `<div>` and a button takes phrasing content only (same content-model trap as WordmarkFog's
+> `<div>`-in-`<p>` last session).
+> **Owner visual pass (PR #49 Task 8, controller-led):** widened all landing sections
+> `max-w-3xl`→`max-w-7xl` + bigger type (`lg:text-6xl` headings, `lg:text-xl` body w/
+> `lg:max-w-2xl` cap), emblems 64→120, helmet 220→300; retuned `KERB_ZONES`
+> `[0.05,0.35]/[0.65,0.95]`→`[0.0,0.2]/[0.8,1.0]` (DERIVED, not eyeballed — normalising the
+> connector cubic gives curvature peaking AT the ends and down to ~9% of peak by t=0.35, so
+> the old stripes read as painted along a straight; full math in the `KERB_ZONES` comment);
+> softened+tightened the shadow (a wider mask hold let the warp diagonals read through so it
+> looked like water); rebuilt the bubble tail as a rotated square so the ring-1 hairline
+> carries around it instead of dying at the spike. The About section is `lg:flex-row` (NOT
+> `sm:`) — at `sm` the shrink-0 300px helmet crushed the copy to 256px and broke the heading
+> to 4 lines (confirmed in-browser).
+> **PR #50 tweaks (owner, controller-led, 5 commits):** (1) footer capped at 40vh —
+> `min-h-[40vh]` (NOT fixed `h-` — a fixed height + overflow-hidden clipped the legal line at
+> short/landscape viewports; min-h grows to fit there, pins to exactly 40vh on normal ones
+> since the wordmark clamp was shrunk to `clamp(3.25rem,15vw,13rem)`). (2) radio bubble on a
+> TAP now auto-dismisses a message-sized hold (`READ_HOLD_MS` 1200ms) after the final word
+> instead of a flat 5.2s pin — the timer model moved from `pinFor(ms)` to an `autoClose` ref
+> resolved in the activation effect (which knows the message length); keyboard focus still
+> holds until blur. (3) team-radio WAVEFORM — five `.radio-wave` bars leading the bubble
+> text, CSS-animated at staggered delays, gated on `[data-radio-active]` so nothing runs at
+> rest, `aria-hidden`. (4) TRACK SPINE now renders on MOBILE (was `hidden sm:block`) as a
+> faded `opacity-40 sm:opacity-100` background trace so the full-width body text reads clearly
+> over it — profiled under 4x CPU throttle: the group opacity costs ~2ms p95 / 1 long frame in
+> 113, negligible (the browser already layers the animating SVG, so opacity is a compositor
+> blend not a re-rasterize). A perceived scroll stutter mid-session was the DEV SERVER, not a
+> regression — confirmed by profiling the prod build.
+> **VERIFIED both PRs:** vitest 255/2skip, tsc+build clean; whole-branch review (Opus) on
+> each = READY TO MERGE after one fix cycle; reduced-motion (full message present, no
+> stepping, no lift); no horizontal overflow at 1440/1024/660/390. Both deployed to prod
+> (~150s and ~360s post-merge respectively — the second queued behind an R17 data commit).
+> **OPS LESSONS this stretch (don't relearn):**
+> - **`npm run dev` OVERWRITES `.next`**, so a later `npm start` serves broken/dev artifacts
+>   and 500s (MODULE_NOT_FOUND on `_document`). Always `rm -rf .next && npm run build` before
+>   any prod-build verification or profiling.
+> - **Synthetic events must match what React delegates from:** `onPointerEnter` fires from
+>   native `pointerover`/`pointerout` (NOT `pointerenter`), and PointerEvent's default
+>   `pointerType` is `""` not `"mouse"` — a handler filtering `=== "mouse"` silently ignores a
+>   synthetic hover unless you pass `{pointerType:"mouse"}`. `onBlur` delegates from `focusout`,
+>   not `blur`. Two QA runs were invalidated before this was caught. For a real click use a
+>   `MouseEvent('click', {detail:1})` (detail>0 = pointer, detail 0 = keyboard).
+> - **Reduced-motion can't be emulated** via the chrome-devtools tooling; override
+>   `window.matchMedia` in a navigate `initScript` (delegate every method to the real MQL,
+>   bound, override only `matches`, or `addEventListener` throws Illegal invocation) AND mirror
+>   the reduced-motion CSS declarations unconditionally to exercise both halves.
+> - **A "clip" or "offset" measured on the footer/parallax mid-scroll is usually the parallax
+>   transform not yet settled**, not a real overflow — scroll fully to the bottom and confirm
+>   the element's transform is identity before concluding (same false-read class as the
+>   WordmarkFog `getBoundingClientRect`-in-`clipPath` trap).
 >
 > ## 2026-07-22 session — LANDING FOOTER REDESIGN: PR #47 MERGED + LIVE
 > Subagent-driven, 7 tasks (spec/plan `docs/superpowers/{specs,plans}/2026-07-22-landing-footer-redesign*`).
