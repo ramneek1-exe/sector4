@@ -399,3 +399,43 @@ body {
     transition: none;
   }
 }
+
+/* Team-radio waveform: five bars leading the bubble text, pulsing at staggered phases like
+   the broadcast graphic. Sits on the text's own line via inline-flex; the bars only animate
+   while the bubble is active, so nothing runs off-screen at rest. */
+.radio-wave {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 0.85em;
+  margin-right: 0.5em;
+  vertical-align: -0.08em;
+}
+.radio-wave i {
+  display: block;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--ramp-2, #406cd6);
+  transform: scaleY(0.28);
+  transform-origin: center;
+}
+[data-radio-active] .radio-wave i {
+  animation: radio-wave 900ms ease-in-out infinite;
+}
+.radio-wave i:nth-child(1) { animation-delay: 0ms; }
+.radio-wave i:nth-child(2) { animation-delay: 130ms; }
+.radio-wave i:nth-child(3) { animation-delay: 260ms; }
+.radio-wave i:nth-child(4) { animation-delay: 90ms; }
+.radio-wave i:nth-child(5) { animation-delay: 320ms; }
+@keyframes radio-wave {
+  0%, 100% { transform: scaleY(0.28); }
+  50% { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-wave i,
+  [data-radio-active] .radio-wave i {
+    animation: none;
+    transform: scaleY(0.6);
+  }
+}

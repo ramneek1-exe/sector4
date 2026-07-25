@@ -16,7 +16,9 @@ import { useReducedMotion } from "@/app/lib/use-reduced-motion";
 
 const LETTERS = ["S", "E", "C", "T", "O", "R", "4"];
 const WORDMARK_FONT_CLASS = "font-bebas leading-none tracking-wide";
-const WORDMARK_FONT_SIZE = "clamp(5rem, 24vw, 22rem)";
+// Sized so the wordmark + legal line fit inside a 40vh band (see the h-[40vh] container)
+// without overflowing it — the earlier 22rem cap alone was taller than 40vh on desktop.
+const WORDMARK_FONT_SIZE = "clamp(3.25rem, 15vw, 13rem)";
 
 // Parallax travel distances (px) -- owner review (Task 7): the original 32/72 starting
 // point read as too subtle on the real page; bumped up for a more pronounced reveal.
@@ -166,7 +168,11 @@ export function LandingFooter() {
   return (
     <div
       ref={rootRef}
-      className="relative flex min-h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden bg-ink px-6 py-16 sm:px-8"
+      // min-h, not a fixed h: with the shrunk wordmark the content sits under 40vh on normal
+      // viewports so this pins to exactly 40vh there, but on a short viewport (landscape
+      // phone) or at large zoom it GROWS to fit rather than clipping the legal disclaimer
+      // under overflow-hidden. overflow-hidden still contains the parallax/magnet transforms.
+      className="relative flex min-h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden bg-ink px-6 py-10 sm:px-8"
     >
       <div className="mx-auto flex w-full max-w-[1800px] flex-col items-center gap-6 text-center">
         <p
