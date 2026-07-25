@@ -266,7 +266,7 @@ function LearnTheSport() {
             Sector 2 · Learn the sport
           </p>
           <h2 data-reveal className={SECTION_HEADING}>
-            Every answer teaches you something.
+            Every call comes with the why.
           </h2>
           <p data-reveal className={SECTION_BODY}>
             Predictions link straight to the concepts behind them: what tyre degradation
