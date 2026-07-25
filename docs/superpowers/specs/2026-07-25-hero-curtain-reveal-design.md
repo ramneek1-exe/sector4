@@ -92,13 +92,13 @@ t+120ms    curtain starts
              field  translateY(0 → -100%)   over CURTAIN_MS
              gantry translateY(0 → -30vh)   over CURTAIN_MS   (extra, composes to 130vh)
              ease   cubic-bezier(0.76, 0, 0.24, 1)
-t+575ms    [data-preloader-active] dropped  (120 + 700 × 0.65)
+t+705ms    [data-preloader-active] dropped  (120 + 900 × 0.65)
              -> h1 .fog-in starts in open air; CTA +0.18s; scroll cue +0.36s
-t+820ms    overlay unmounts (phase -> "done")
+t+1020ms   overlay unmounts (phase -> "done")
 ```
 
-Worst case from `t0`: `HARD_CAP_MS` (5500) + 820 = **6320ms**, inside the 8000ms pure-JS
-failsafe in `app/page.tsx`. Margin ~1.7s.
+Worst case from `t0`: `HARD_CAP_MS` (5500) + 1020 = **6520ms**, inside the 8000ms pure-JS
+failsafe in `app/page.tsx`. Margin ~1.5s.
 
 ## Implementation
 
@@ -217,7 +217,8 @@ that today.
 
 ## Visual pass
 
-Duration (700ms), the gantry differential (30vh) and the easing curve are **starting
-points, not locked**. Per the project's standing rule, the owner reviews rendered
-candidates before commit; the owner has asked to eyeball all three knobs together in one
-pass rather than one at a time.
+The owner's pass chose a 900ms curtain duration and kept the 30vh gantry differential and
+the `cubic-bezier(0.76, 0, 0.24, 1)` easing. A 14px gantry blur-out was added during this
+pass at the owner's request, beyond the original spec — the gantry smears as it accelerates
+away, held sharp through the easing's slow start and then blurring hard over the fast middle
+and exit to read as speed. Blur applies to the gantry only; the field stays clean.

@@ -58,8 +58,13 @@ body {
 @keyframes preloaderCurtain {
   to { transform: translateY(-100%); }
 }
+/* The gantry also smears as it accelerates away: held sharp through the easing's slow
+   start, then blurring hard over the fast middle and exit, so it reads as speed rather
+   than as a soft focus. Blur is on the gantry ONLY — the field behind it stays clean. */
 @keyframes preloaderCurtainGantry {
-  to { transform: translateY(-30vh); }
+  0% { transform: translateY(0); filter: blur(0px); }
+  30% { filter: blur(1.7px); }
+  100% { transform: translateY(-30vh); filter: blur(14px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

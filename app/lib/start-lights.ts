@@ -49,7 +49,7 @@ export function resolveLightsOut({
 /** A beat on the dark gantry after the lamps go out, before the lift starts — the "GO". */
 export const LIGHTS_OUT_HOLD_MS = 120;
 /** How long the curtain itself takes to clear the viewport. */
-export const CURTAIN_MS = 700;
+export const CURTAIN_MS = 900;
 /** How far through the curtain the hero's paused .fog-in is released. */
 export const TEXT_RELEASE_FRAC = 0.65;
 /**

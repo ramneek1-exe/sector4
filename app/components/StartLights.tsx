@@ -216,7 +216,7 @@ export function StartLights() {
         className="start-lights-gantry flex max-w-full items-center px-3"
         style={{
           gap: ROW_GAP,
-          willChange: "transform",
+          willChange: "transform, filter",
           // Child transforms compose with the parent's, so this carries only the EXTRA
           // travel over the field — the gantry is the nearer object and clears the top
           // edge first, with the field trailing it out.

@@ -57,8 +57,8 @@ describe("resolveLightsOut", () => {
 
 describe("textReleaseDelayMs", () => {
   it("releases the hero partway through the curtain, not at its start", () => {
-    // 120ms dark-gantry beat + 65% of the 700ms lift.
-    expect(textReleaseDelayMs()).toBe(575);
+    // 120ms dark-gantry beat + 65% of the 900ms lift.
+    expect(textReleaseDelayMs()).toBe(705);
   });
   it("stays derived from the constants rather than hard-coded", () => {
     expect(textReleaseDelayMs()).toBe(LIGHTS_OUT_HOLD_MS + CURTAIN_MS * TEXT_RELEASE_FRAC);
@@ -70,7 +70,7 @@ describe("textReleaseDelayMs", () => {
 
 describe("overlayTeardownMs", () => {
   it("is the dark beat plus the full curtain", () => {
-    expect(overlayTeardownMs()).toBe(820);
+    expect(overlayTeardownMs()).toBe(1020);
     expect(overlayTeardownMs()).toBe(LIGHTS_OUT_HOLD_MS + CURTAIN_MS);
   });
 });
