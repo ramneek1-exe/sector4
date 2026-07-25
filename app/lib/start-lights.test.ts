@@ -142,7 +142,9 @@ describe("adoptFailsafe", () => {
     const { d } = fakeDeps(calls);
     const returned = adoptFailsafe({ inlineFailsafeId: undefined, previousBackstopId: 42, ...d });
     expect(d.clearTimer).toHaveBeenCalledWith(42);
-    expect(returned).not.toBe(42);
+    // The fake hands out ids from 100, so pin the returned id exactly rather than merely
+    // ruling out the stale one — this is the value the caller stores as the live backstop.
+    expect(returned).toBe(100);
   });
 
   it("installs the backstop at postHydrationFailsafeMs()", () => {
