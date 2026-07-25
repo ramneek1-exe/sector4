@@ -168,7 +168,11 @@ export function LandingFooter() {
   return (
     <div
       ref={rootRef}
-      className="relative flex h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden bg-ink px-6 py-10 sm:px-8"
+      // min-h, not a fixed h: with the shrunk wordmark the content sits under 40vh on normal
+      // viewports so this pins to exactly 40vh there, but on a short viewport (landscape
+      // phone) or at large zoom it GROWS to fit rather than clipping the legal disclaimer
+      // under overflow-hidden. overflow-hidden still contains the parallax/magnet transforms.
+      className="relative flex min-h-[40vh] w-full flex-col justify-center gap-6 overflow-hidden bg-ink px-6 py-10 sm:px-8"
     >
       <div className="mx-auto flex w-full max-w-[1800px] flex-col items-center gap-6 text-center">
         <p
