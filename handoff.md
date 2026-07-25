@@ -91,6 +91,18 @@
 > `postHydrationFailsafeMs()` (= `HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS` = 7020ms) on
 > its own `t0`. `HERO_FAILSAFE_MS` now covers only "React never hydrates"; the two clocks are no
 > longer compared. See `app/lib/start-lights.ts`, `app/page.tsx`, `app/components/StartLights.tsx`.
+> The backstop's timer id lives at MODULE scope so a later mount supersedes an earlier mount's orphan
+> (nav off `/` and back within 7s would otherwise let mount #1's timer fire mid-sequence in mount #2);
+> it is deliberately NOT in the effect's `timers[]` (a client nav away would clear the last thing able
+> to remove the attribute) and the attribute is deliberately NOT removed in cleanup (StrictMode's dev
+> double-invoke would strip it between the two effect runs — no preloader in dev). **Coverage:** the
+> takeover was extracted into `adoptFailsafe` (dependency-injected, pure) and unit-tested in the node
+> env, 7 cases incl. call order — no jsdom, following `app/lib/snapshot-cron.ts:runSnapshotCron`'s
+> precedent. Its deps have NO defaults on purpose: defaulting them would put `window.setTimeout` into
+> a module `app/page.tsx` (a server component) imports. The LOGIC is covered; the WIRING is not.
+> **Verified on prod** (`b9a8d43`): `window.__s4HeroFailsafe` is set at parse and gone once the island
+> mounts, gate drops at lift+700ms, overlay unmounts at lift+1017ms, and the global never re-appears —
+> so the inline script does not re-execute on hydration.
 > **⚠️ OPEN — iOS SAFARI EYEBALL:** lamps are `border-radius:50%` + `overflow:hidden` inside a subtree
 > that now takes a composited transform AND an animated blur. WebKit has historically dropped
 > rounded-corner clipping on promoted layers mid-transform — the failure mode is **square lamps during
