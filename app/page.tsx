@@ -13,6 +13,7 @@ import { SectionReveal } from "@/app/components/SectionReveal";
 import { TrackSpine } from "@/app/components/TrackSpine";
 import { SectorNumeral } from "@/app/components/SectorNumeral";
 import { RadioHelmet } from "@/app/components/RadioHelmet";
+import { StartLights } from "@/app/components/StartLights";
 import { NAV_H } from "@/app/lib/nav";
 import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
@@ -66,6 +67,18 @@ export default async function LandingPage() {
 
   return (
     <>
+      {/* No-flash preloader gate: runs during HTML parse, BEFORE the hero below
+          paints, so pausing fog-in never flashes. Sets [data-preloader-active]
+          only on this session's first landing visit with motion allowed; the
+          StartLights island removes it at "lights out". Key string must match
+          SESSION_KEY in StartLights.tsx. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.setAttribute('data-preloader-active','')}}catch(e){}})();",
+        }}
+      />
+      <StartLights />
       <Hero />
       <AboutSector4 />
       {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
