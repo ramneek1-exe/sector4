@@ -12,6 +12,7 @@ import teams from "@/app/data/teams.json";
 import { AsciiGlyph } from "@/app/components/AsciiGlyph";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { driverName } from "@/app/lib/glyph";
+import { gpLabel } from "@/app/lib/circuits";
 import {
   driverStandings,
   teamStandings,
@@ -99,7 +100,11 @@ export function ChampionshipTable({ file }: { file: StandingsFile }) {
       </div>
 
       <p className="mb-3 font-grotesk text-sm text-muted">
-        {`After the ${file.throughGp} Grand Prix · ${file.remainingRounds} of ${file.totalRounds} rounds remaining`}
+        {/* gpLabel, not the raw key: `throughGp` is the short calendar key ("Hungary"), and
+            most GP names are adjectival, so "${key} Grand Prix" would read "Hungary Grand
+            Prix" / "Australia Grand Prix". gpLabel maps those and falls through for the
+            place-named ones (Monaco, Miami) that already read correctly. */}
+        {`After the ${gpLabel(file.throughGp)} Grand Prix · ${file.remainingRounds} of ${file.totalRounds} rounds remaining`}
       </p>
 
       <table className="w-full border-collapse font-grotesk text-sm">
