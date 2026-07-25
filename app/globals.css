@@ -31,6 +31,30 @@ body {
   }
 }
 
+/* --- Landing preloader: start-lights -------------------------------------
+   While the preloader is arming/holding, hold the hero's own fog-in reveal so
+   the thesis/CTA/cue don't animate in behind the overlay. The attribute is set
+   pre-paint by an inline gate in page.tsx ONLY on a session's first landing
+   visit with motion allowed; the StartLights island removes it at "lights out"
+   to release. With no attribute (no-JS, reduced-motion, repeat visit) fog-in
+   runs exactly as it does today — zero added delay. */
+[data-preloader-active] .fog-in {
+  animation-play-state: paused;
+}
+
+@keyframes preloaderDissolve {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The overlay is JS-gated off under reduced-motion; keep the dissolve inert
+     as defense-in-depth. */
+  .start-lights-overlay {
+    animation: none !important;
+  }
+}
+
 /* /weekend page opening reveal — content rises + sharpens in once. */
 @keyframes weekendReveal {
   from { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(8px); }

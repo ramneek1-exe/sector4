@@ -1,15 +1,16 @@
 "use client";
 
-// The landing page's closing statement: a giant SECTOR4 wordmark spanning most of the
-// section's width, with the legal disclaimer beneath it -- this page's OWN styled copy of
-// app/lib/legal.ts's DISCLAIMER (the site-wide SiteFooter renders nothing on "/", see
-// SiteFooter.tsx, so this is the only copy of the text rendered here). Two motion layers:
+// The site's closing statement, rendered at the bottom of EVERY page from the root layout
+// (owner call): a giant SECTOR4 wordmark spanning most of the section's width, with the
+// legal disclaimer beneath it -- the single site-wide copy of app/lib/legal.ts's DISCLAIMER
+// (there is no separate legal footer anymore). Two motion layers:
 // a scroll-scrubbed parallax reveal (wordmark + legal line travel different distances),
 // and a cursor-magnet nudge on the individual wordmark letters, gated to only run while
 // the footer is in the viewport (IntersectionObserver, matching the codebase's discipline
 // of not running per-frame work off-screen -- see CardFog, the /lab/dither InView helper).
 import { useEffect, useRef } from "react";
-import { gsap } from "@/app/lib/gsap";
+import { usePathname } from "next/navigation";
+import { gsap, ScrollTrigger } from "@/app/lib/gsap";
 import { DISCLAIMER } from "@/app/lib/legal";
 import { magnetOffset, lerp, type Point } from "@/app/lib/wordmark-magnet";
 import { useReducedMotion } from "@/app/lib/use-reduced-motion";
@@ -38,6 +39,18 @@ export function LandingFooter() {
   const legalRef = useRef<HTMLParagraphElement>(null);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const reduced = useReducedMotion();
+  const pathname = usePathname();
+
+  // This footer lives in the persistent root layout, so on a client-side route change its
+  // ScrollTrigger (created once, below) keeps the FIRST page's geometry — leaving the
+  // parallax stuck at its pre-reveal offset on later pages (the wordmark frozen, the legal
+  // line pushed down and clipped out of the overflow-hidden band = "no legal line"). Recompute
+  // every trigger's start/end against the new page after it has laid out. rAF defers past the
+  // navigation's commit; ScrollTrigger.refresh is a no-op cost when nothing moved.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(raf);
+  }, [pathname]);
 
   // Scroll parallax (unchanged from Task 5).
   useEffect(() => {

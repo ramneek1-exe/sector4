@@ -13,8 +13,8 @@ import { SectionReveal } from "@/app/components/SectionReveal";
 import { TrackSpine } from "@/app/components/TrackSpine";
 import { SectorNumeral } from "@/app/components/SectorNumeral";
 import { RadioHelmet } from "@/app/components/RadioHelmet";
+import { StartLights } from "@/app/components/StartLights";
 import { NAV_H } from "@/app/lib/nav";
-import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 const EXAMPLE_QUERIES = [
   "Who's likely to podium at the next race?",
   "How many pit stops at Monaco?",
-  "What is DRS?",
+  "What is energy harvesting?",
   "How fast do tyres wear at Barcelona?",
 ];
 
@@ -66,6 +66,20 @@ export default async function LandingPage() {
 
   return (
     <>
+      {/* No-flash preloader gate: runs during HTML parse, BEFORE the hero below
+          paints, so pausing fog-in never flashes. Sets [data-preloader-active]
+          only on this session's first landing visit with motion allowed; the
+          StartLights island removes it at "lights out". Key string must match
+          SESSION_KEY in StartLights.tsx. The 8s failsafe is a pure-JS guarantee
+          the hero reveals even if the React bundle never hydrates (so the paused
+          fog-in can't strand the hero invisible) — well past the ~5s sequence. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "(function(){try{if(!sessionStorage.getItem('s4-preloaded')&&!matchMedia('(prefers-reduced-motion: reduce)').matches){var d=document.documentElement;d.setAttribute('data-preloader-active','');setTimeout(function(){d.removeAttribute('data-preloader-active')},8000)}}catch(e){}})();",
+        }}
+      />
+      <StartLights />
       <Hero />
       <AboutSector4 />
       {/* pt: the S1 numeral pokes up (-top-6/-top-10, see AskAnything) above its own
@@ -81,7 +95,6 @@ export default async function LandingPage() {
         <ThisWeekend />
         <HonestByDesign liveScored={liveScored} />
       </div>
-      <LandingFooter />
     </>
   );
 }
