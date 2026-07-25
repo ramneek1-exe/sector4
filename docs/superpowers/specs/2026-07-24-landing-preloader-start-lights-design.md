@@ -201,3 +201,33 @@ prod build after `npm run dev`).
 - Exact visual candidates (§Visual) — resolved via rendered candidates before commit.
 - Precise `heroReady` wiring (`canplay` + dither-paint vs `canplay` + raf) — hard cap is the
   backstop, so this is a robustness detail, not a correctness gate.
+
+## Visual-pass revisions (2026-07-24, owner-directed, post-build)
+
+Live iteration with the owner during the controller-led visual pass changed three
+things from the design above (owner reference image = an F1 start-light gantry with
+red LED-halftone lamps on warm cream):
+
+- **Look: abstract horizontal dots → a row of abstract light HOUSINGS.** Each of the
+  LIGHT_COUNT housings is a dark rounded-rect (4px radius) holding 2 circular lamps
+  filled with a red **LED-halftone dot-matrix** (CSS `radial-gradient` dot grid — the
+  "dither" texture the owner wanted; NOT the ordered-Bayer canvas, NOT a per-dot WebGL
+  shader). Lit lamps ramp on with a red glow; unlit are grey-dotted. Warm paper backdrop
+  `#f3eee6`. Still **abstract + unbranded** — no FOM gantry likeness, no F1/FIA/FOM marks
+  or liveries (PRD §8). This supersedes the earlier "abstract dots, not FOM light gantry"
+  framing: the owner asked for the gantry FEELING, delivered without any branding.
+- **Cadence: snappy (~2.5s cap) → real-F1 (~4-5s).** `ARM_INTERVAL_MS` 240→800 (lights
+  arm ~1/sec, arm done at 4000ms), `HARD_CAP_MS` 2500→5500. Random hold 200-800 unchanged.
+  Live-verified: housings light sequentially ~800ms apart, lights-out + dissolve ~4.8s.
+- **Robustness: added a pure-JS failsafe.** The inline gate now also arms
+  `setTimeout(removeAttribute, 8000)` so the hero reveals even if the React bundle never
+  hydrates (final-review Important finding — the paused fog-in must never strand the hero
+  invisible). 8s is well past the ~5s sequence.
+
+The pure timing module dropped `discCells` (the canvas pixel-disc generator + its tests)
+when the dots became CSS halftone; `start-lights.ts` is now timing-only.
+
+**Open Minor (a11y, for final triage):** the hero CTA sits opacity-0-but-focusable under
+the opaque overlay for the ~4-5s sequence; a keyboard user tabbing immediately lands on an
+invisible target. Low-risk (reduced-motion users skip the overlay entirely) but the window
+grew with the longer cadence — decide whether to make the hero `inert` while active.
