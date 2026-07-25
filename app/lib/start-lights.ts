@@ -92,3 +92,39 @@ export const FAILSAFE_SLACK_MS = 500;
 export function postHydrationFailsafeMs(): number {
   return HARD_CAP_MS + overlayTeardownMs() + FAILSAFE_SLACK_MS;
 }
+
+/** Injected side effects for `adoptFailsafe`, so the takeover is testable without a DOM. */
+export type AdoptFailsafeDeps = {
+  /** The inline gate's pending timer id (the global __s4HeroFailsafe stash), if still armed. */
+  inlineFailsafeId: number | undefined;
+  /** This module's backstop id from an earlier mount, if one is still armed. */
+  previousBackstopId: number | undefined;
+  clearTimer: (id: number) => void;
+  /** Forgets the inline gate's id (deletes the global __s4HeroFailsafe stash). */
+  forgetInlineFailsafe: () => void;
+  setTimer: (fn: () => void, ms: number) => number;
+  /** Removes [data-preloader-active], releasing the hero's paused .fog-in. */
+  releaseGate: () => void;
+};
+
+/**
+ * Moves responsibility for guaranteeing the hero's release onto the island's own clock,
+ * and returns the new backstop's timer id.
+ *
+ * Clears the inline gate's parse-clock failsafe (its "React never hydrated" job is done
+ * once this runs) and any orphan backstop left armed by an earlier mount, then installs a
+ * fresh backstop at `postHydrationFailsafeMs()`. Superseding the earlier mount matters:
+ * navigating away from the landing page and back within that span would otherwise let
+ * mount #1's timer fire mid-sequence during mount #2, dropping the attribute while the
+ * field is still opaque.
+ */
+export function adoptFailsafe(deps: AdoptFailsafeDeps): number {
+  if (deps.inlineFailsafeId !== undefined) {
+    deps.clearTimer(deps.inlineFailsafeId);
+    deps.forgetInlineFailsafe();
+  }
+  if (deps.previousBackstopId !== undefined) {
+    deps.clearTimer(deps.previousBackstopId);
+  }
+  return deps.setTimer(deps.releaseGate, postHydrationFailsafeMs());
+}

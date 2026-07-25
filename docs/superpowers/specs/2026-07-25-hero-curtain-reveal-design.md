@@ -111,10 +111,17 @@ preloader plays at all. That's correct (the alternative is the old bug: the over
 just as long, and then botches the reveal) but it's now the only place hydration time changes
 what the user sees.
 
-The clear-the-inline-timer behaviour itself is not unit-tested: `vitest.config.ts` uses
-`environment: "node"` and `include: ["app/**/*.test.ts"]`, so covering it would need jsdom
-and a `.test.tsx` file. Not adding that infrastructure here — noting it so the gap isn't
-mistaken for covered.
+The clear-the-inline-timer takeover itself is now unit-tested: it was extracted into
+`adoptFailsafe` (`app/lib/start-lights.ts`), a pure, dependency-injected function following
+the precedent of `runSnapshotCron` in `app/lib/snapshot-cron.ts` — all side effects
+(`clearTimer`, `forgetInlineFailsafe`, `setTimer`, `releaseGate`) are injected, so its
+ordering and behavior are covered in the node environment (`app/lib/start-lights.test.ts`,
+`describe("adoptFailsafe", ...)`) without jsdom. What remains uncovered is the **wiring**:
+that `StartLights` actually calls `adoptFailsafe`, from the right place in the effect (after
+the `HARD_CAP_MS` backstop is scheduled, so a backstop is always armed), with the real
+`window`/`document` deps. `vitest.config.ts` still uses `environment: "node"` and
+`include: ["app/**/*.test.ts"]`, so that wiring would need jsdom and a `.test.tsx` file. Not
+adding that infrastructure here — noting it so the gap isn't mistaken for covered.
 
 ## Implementation
 

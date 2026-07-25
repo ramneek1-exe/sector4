@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   ARM_DONE_MS,
   ARM_INTERVAL_MS,
@@ -11,6 +11,8 @@ import {
   LIGHT_COUNT,
   LIGHTS_OUT_HOLD_MS,
   TEXT_RELEASE_FRAC,
+  type AdoptFailsafeDeps,
+  adoptFailsafe,
   armSchedule,
   overlayTeardownMs,
   pickHold,
@@ -91,5 +93,86 @@ describe("postHydrationFailsafeMs", () => {
     // Bounds the CONSTANT only. These are different clocks, so this does NOT bound the
     // user-perceived wait, which from HTML parse is hydrationDelay + postHydrationFailsafeMs().
     expect(postHydrationFailsafeMs()).toBeLessThan(HERO_FAILSAFE_MS);
+  });
+});
+
+describe("adoptFailsafe", () => {
+  // Plain fakes, no library — mirrors runSnapshotCron's test style (see snapshot-cron.test.ts).
+  // `calls` records call order; `setTimer` hands out a fresh id per invocation and captures
+  // its callback so tests can fire the installed backstop directly.
+  function fakeDeps(calls: string[]) {
+    let nextId = 100;
+    let installedCallback: (() => void) | undefined;
+    const clearTimer = vi.fn((id: number) => calls.push(`clear:${id}`));
+    const forgetInlineFailsafe = vi.fn(() => calls.push("forget"));
+    const setTimer = vi.fn((fn: () => void, ms: number) => {
+      calls.push(`set:${ms}`);
+      installedCallback = fn;
+      return nextId++;
+    });
+    const releaseGate = vi.fn(() => calls.push("release"));
+    const d: Omit<AdoptFailsafeDeps, "inlineFailsafeId" | "previousBackstopId"> = {
+      clearTimer,
+      forgetInlineFailsafe,
+      setTimer,
+      releaseGate,
+    };
+    return { d, getInstalledCallback: () => installedCallback };
+  }
+
+  it("clears the inline gate's timer and forgets it when one is armed", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: 1, previousBackstopId: undefined, ...d });
+    expect(d.clearTimer).toHaveBeenCalledWith(1);
+    expect(d.forgetInlineFailsafe).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not touch the inline gate's timer when none is armed, but still installs a backstop", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: undefined, previousBackstopId: undefined, ...d });
+    expect(d.clearTimer).not.toHaveBeenCalled();
+    expect(d.forgetInlineFailsafe).not.toHaveBeenCalled();
+    expect(d.setTimer).toHaveBeenCalledTimes(1);
+  });
+
+  it("supersedes an earlier mount's orphan backstop", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    const returned = adoptFailsafe({ inlineFailsafeId: undefined, previousBackstopId: 42, ...d });
+    expect(d.clearTimer).toHaveBeenCalledWith(42);
+    expect(returned).not.toBe(42);
+  });
+
+  it("installs the backstop at postHydrationFailsafeMs()", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: undefined, previousBackstopId: undefined, ...d });
+    expect(d.setTimer).toHaveBeenCalledWith(expect.any(Function), postHydrationFailsafeMs());
+  });
+
+  it("the installed callback releases the gate", () => {
+    const calls: string[] = [];
+    const { d, getInstalledCallback } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: undefined, previousBackstopId: undefined, ...d });
+    getInstalledCallback()?.();
+    expect(d.releaseGate).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears the inline timer before installing the new backstop", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: 1, previousBackstopId: undefined, ...d });
+    expect(calls).toEqual(["clear:1", "forget", `set:${postHydrationFailsafeMs()}`]);
+  });
+
+  it("clears both stale timers when both are present", () => {
+    const calls: string[] = [];
+    const { d } = fakeDeps(calls);
+    adoptFailsafe({ inlineFailsafeId: 1, previousBackstopId: 42, ...d });
+    expect(d.clearTimer).toHaveBeenCalledWith(1);
+    expect(d.clearTimer).toHaveBeenCalledWith(42);
+    expect(d.clearTimer).toHaveBeenCalledTimes(2);
   });
 });

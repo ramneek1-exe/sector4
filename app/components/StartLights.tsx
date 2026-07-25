@@ -21,10 +21,10 @@ import {
   HARD_CAP_MS,
   LIGHTS_OUT_HOLD_MS,
   LIGHT_COUNT,
+  adoptFailsafe,
   armSchedule,
   overlayTeardownMs,
   pickHold,
-  postHydrationFailsafeMs,
   resolveLightsOut,
   textReleaseDelayMs,
 } from "@/app/lib/start-lights";
@@ -206,27 +206,30 @@ export function StartLights() {
     // sequence length to how long hydration took: a slow hydration could let that timer
     // fire mid-curtain and release the hero behind the still-opaque field. React is
     // demonstrably alive here, so that timer's only job ("never hydrated") is done —
-    // clear it and take over on our own clock.
-    const w = window as Window & { __s4HeroFailsafe?: number };
-    if (w.__s4HeroFailsafe !== undefined) {
-      clearTimeout(w.__s4HeroFailsafe);
-      delete w.__s4HeroFailsafe;
-    }
+    // clear it and take over on our own clock (adoptFailsafe, in app/lib/start-lights.ts,
+    // so the takeover itself is unit-testable without a DOM).
+    //
     // removeAttribute is idempotent, so after a normal release this backstop firing is a
     // no-op. (Removing the attribute in the cleanup instead would break dev: React
     // StrictMode double-invokes the effect, so the cleanup would strip the attribute
-    // between the two runs and the second run would bail out — no preloader in dev.) Clear
-    // any prior mount's orphaned backstop before installing this mount's: without this, a
-    // client-side navigation away and back within postHydrationFailsafeMs() leaves mount
-    // #1's timer armed, and it can fire mid-sequence in mount #2, dropping the attribute
-    // while the field is still opaque — the same failure this commit removes, relocated
-    // from cross-clock to cross-mount. It also means StrictMode's double-invoke would
-    // otherwise install two of them.
-    if (islandFailsafe !== undefined) clearTimeout(islandFailsafe);
-    islandFailsafe = window.setTimeout(
-      () => root.removeAttribute("data-preloader-active"),
-      postHydrationFailsafeMs(),
-    );
+    // between the two runs and the second run would bail out — no preloader in dev.)
+    // adoptFailsafe also clears any prior mount's orphaned backstop before installing this
+    // mount's: without this, a client-side navigation away and back within
+    // postHydrationFailsafeMs() leaves mount #1's timer armed, and it can fire mid-sequence
+    // in mount #2, dropping the attribute while the field is still opaque — the same
+    // failure this commit removes, relocated from cross-clock to cross-mount. It also means
+    // StrictMode's double-invoke would otherwise install two of them.
+    const w = window as Window & { __s4HeroFailsafe?: number };
+    islandFailsafe = adoptFailsafe({
+      inlineFailsafeId: w.__s4HeroFailsafe,
+      previousBackstopId: islandFailsafe,
+      clearTimer: (id) => clearTimeout(id),
+      forgetInlineFailsafe: () => {
+        delete w.__s4HeroFailsafe;
+      },
+      setTimer: (fn, ms) => window.setTimeout(fn, ms),
+      releaseGate: () => root.removeAttribute("data-preloader-active"),
+    });
 
     return () => {
       timers.forEach(clearTimeout);
