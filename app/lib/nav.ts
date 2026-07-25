@@ -18,9 +18,8 @@ export function isActiveLink(pathname: string, href: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-// True only for the landing page itself ("/") -- used to gate the site-wide legal footer
-// off on the landing route, since LandingFooter renders its own styled copy of the same
-// disclaimer text there (see SiteFooter.tsx / app/lib/legal.ts).
+// True only for the landing page itself ("/") -- used by SiteNav for landing-specific
+// nav behaviour.
 export function isLandingRoute(pathname: string): boolean {
   return pathname === "/";
 }

@@ -1,9 +1,9 @@
 "use client";
 
-// The landing page's closing statement: a giant SECTOR4 wordmark spanning most of the
-// section's width, with the legal disclaimer beneath it -- this page's OWN styled copy of
-// app/lib/legal.ts's DISCLAIMER (the site-wide SiteFooter renders nothing on "/", see
-// SiteFooter.tsx, so this is the only copy of the text rendered here). Two motion layers:
+// The site's closing statement, rendered at the bottom of EVERY page from the root layout
+// (owner call): a giant SECTOR4 wordmark spanning most of the section's width, with the
+// legal disclaimer beneath it -- the single site-wide copy of app/lib/legal.ts's DISCLAIMER
+// (there is no separate legal footer anymore). Two motion layers:
 // a scroll-scrubbed parallax reveal (wordmark + legal line travel different distances),
 // and a cursor-magnet nudge on the individual wordmark letters, gated to only run while
 // the footer is in the viewport (IntersectionObserver, matching the codebase's discipline

@@ -28,7 +28,7 @@ const EXAMPLES = [
   "How many pit stops at the Monaco Grand Prix?",
   "Long-run pace at the 2026 Austrian Grand Prix",
   "Pit-lane time loss at the next race?",
-  "What is DRS?",
+  "What is energy harvesting?",
   "Podium odds for the British Grand Prix",
   "How many stops at Austria?",
   "How fast do tyres wear at Barcelona?",
@@ -169,7 +169,7 @@ function DriverStopsModal({ strategy, onClose }: { strategy: StrategyFacts; onCl
             ✕
           </button>
         </div>
-        <div className="grid min-h-0 grid-cols-3 gap-x-2 gap-y-4 overflow-y-auto p-4 sm:grid-cols-4">
+        <div data-lenis-prevent className="grid min-h-0 grid-cols-3 gap-x-2 gap-y-4 overflow-y-auto p-4 sm:grid-cols-4">
           {strategy.drivers.map((d) => (
             <div key={d.driver} className="flex flex-col items-center gap-0.5">
               <AsciiGlyph code={d.driver} team={d.team} size={42} />

@@ -15,7 +15,6 @@ import { SectorNumeral } from "@/app/components/SectorNumeral";
 import { RadioHelmet } from "@/app/components/RadioHelmet";
 import { StartLights } from "@/app/components/StartLights";
 import { NAV_H } from "@/app/lib/nav";
-import { LandingFooter } from "@/app/components/LandingFooter";
 import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
@@ -37,7 +36,7 @@ export const metadata: Metadata = {
 const EXAMPLE_QUERIES = [
   "Who's likely to podium at the next race?",
   "How many pit stops at Monaco?",
-  "What is DRS?",
+  "What is energy harvesting?",
   "How fast do tyres wear at Barcelona?",
 ];
 
@@ -96,7 +95,6 @@ export default async function LandingPage() {
         <ThisWeekend />
         <HonestByDesign liveScored={liveScored} />
       </div>
-      <LandingFooter />
     </>
   );
 }

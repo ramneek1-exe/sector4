@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { fontVars } from "@/app/lib/fonts";
 import { SiteNav } from "@/app/components/SiteNav";
-import { SiteFooter } from "@/app/components/SiteFooter";
+import { LandingFooter } from "@/app/components/LandingFooter";
 import { SmoothScroll } from "@/app/components/SmoothScroll";
 
 const TAGLINE = "Honest podium odds, strategy, and the numbers behind them.";
@@ -45,7 +45,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             padding (matching SiteNav NAV_H) keeps page content clear of it. */}
         <SiteNav />
         {children}
-        <SiteFooter />
+        {/* The big SECTOR4 wordmark footer now closes EVERY page (owner call), so it
+            moved here from app/page.tsx. It carries the legal DISCLAIMER, so the old
+            per-page legal SiteFooter is gone (its text would otherwise duplicate). */}
+        <LandingFooter />
       </body>
     </html>
   );
