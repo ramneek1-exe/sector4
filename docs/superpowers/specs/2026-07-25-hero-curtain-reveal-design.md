@@ -1,7 +1,7 @@
 # Hero Reveal — Curtain Lift with Parallax
 
 **Date:** 2026-07-25
-**Status:** Design (approved in brainstorm, pending spec review)
+**Status:** Implemented (spec approved, visual pass recorded)
 **Scope:** Landing page (`/`) only. Frontend-only. No API / Python / data / cron change.
 **Supersedes:** the "lights out → dissolve" handoff in
 `docs/superpowers/specs/2026-07-24-landing-preloader-start-lights-design.md` §Visual.
@@ -196,7 +196,7 @@ Add cases for `textReleaseDelayMs()` and `overlayTeardownMs()`, plus one regress
 that is currently unprotected:
 
 ```
-HARD_CAP_MS + overlayTeardownMs() < HERO_FAILSAFE_MS      // 6320 < 8000
+HARD_CAP_MS + overlayTeardownMs() < HERO_FAILSAFE_MS      // 6520 < 8000
 ```
 
 If a future timing tweak pushes the sequence past the failsafe, the failsafe fires

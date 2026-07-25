@@ -43,7 +43,7 @@ export function resolveLightsOut({
 
 // --- Lights-out → hero curtain ------------------------------------------------
 // See docs/superpowers/specs/2026-07-25-hero-curtain-reveal-design.md.
-// Replaces the old flat opacity dissolve (OUT_MS): the warm field lifts straight up
+// Replaces the old flat opacity dissolve: the warm field lifts straight up
 // out of frame while the gantry lifts further on top of it (parallax).
 
 /** A beat on the dark gantry after the lamps go out, before the lift starts — the "GO". */

@@ -562,5 +562,5 @@ git commit -m "fix: tune curtain duration, parallax depth and easing"
 
 - The **arming** path must come out of this branch byte-identical. A diff touching lamp geometry, colors, `ARM_INTERVAL_MS`, `HARD_CAP_MS`, or the hero-readiness gating is out of scope.
 - Watch for `%` sneaking into `preloaderCurtainGantry`. It will look almost-right — a ~45px nudge instead of a parallax — which is exactly the kind of thing that survives a quick eyeball.
-- `willChange: "transform"` is set on two elements that unmount ~820ms later, so it carries no standing cost.
+- `willChange` is gated to the `"out"` phase so the layers are only promoted for the curtain itself, not for the whole arming sequence.
 - The `visibility: hidden` addition is scoped to `[data-preloader-active] .fog-in`, which only ever matches on `/` during the sequence. It cannot affect `.fog-in` anywhere else on the site.

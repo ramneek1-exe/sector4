@@ -205,7 +205,7 @@ export function StartLights() {
       aria-hidden
       style={{
         background: BACKDROP,
-        willChange: "transform",
+        willChange: phase === "out" ? "transform" : undefined,
         animation:
           phase === "out"
             ? `preloaderCurtain ${CURTAIN_MS}ms ${CURTAIN_EASE} ${LIGHTS_OUT_HOLD_MS}ms forwards`
@@ -216,7 +216,7 @@ export function StartLights() {
         className="start-lights-gantry flex max-w-full items-center px-3"
         style={{
           gap: ROW_GAP,
-          willChange: "transform, filter",
+          willChange: phase === "out" ? "transform, filter" : undefined,
           // Child transforms compose with the parent's, so this carries only the EXTRA
           // travel over the field — the gantry is the nearer object and clears the top
           // edge first, with the field trailing it out.
@@ -227,7 +227,7 @@ export function StartLights() {
         }}
       >
         {Array.from({ length: LIGHT_COUNT }, (_, i) => (
-          // "out" clears every housing (all lamps dark) before the dissolve —
+          // "out" clears every housing (all lamps dark) before the lift —
           // the classic lights-out beat.
           <LightHousing key={i} lit={phase === "arming" && i < lit} />
         ))}

@@ -73,7 +73,7 @@ export default async function LandingPage() {
           StartLights island removes it at "lights out". Key string must match
           SESSION_KEY in StartLights.tsx. The 8s failsafe is a pure-JS guarantee
           the hero reveals even if the React bundle never hydrates (so the paused
-          fog-in can't strand the hero invisible) — well past the worst-case ~6.3s
+          fog-in can't strand the hero invisible) — well past the worst-case ~6.5s
           sequence (guarded by a test in start-lights.test.ts). */}
       <script
         dangerouslySetInnerHTML={{
@@ -130,7 +130,7 @@ function Hero() {
         data-hero="thesis"
         className="legible relative z-10 flex flex-col items-center gap-7 px-10 py-14 text-center sm:px-16 sm:py-20"
       >
-        <h1 className="fog-in max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
+        <h1 className="fog-in preload-gated max-w-4xl font-pixel-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
           A lap has three sectors.
           <br />
           This is the one where you find out why.
@@ -139,7 +139,7 @@ function Hero() {
           data-hero="cta"
           href="/ask"
           style={{ animationDelay: "0.18s" }}
-          className="fog-in mt-2 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 font-grotesk text-lg font-medium text-white shadow-sm transition duration-200 hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+          className="fog-in preload-gated mt-2 inline-flex h-12 items-center justify-center rounded-full bg-accent px-8 font-grotesk text-lg font-medium text-white shadow-sm transition duration-200 hover:-translate-y-px hover:bg-accent-bright motion-reduce:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         >
           Ask your first question
         </Link>
@@ -149,7 +149,7 @@ function Hero() {
         data-hero="cue"
         aria-hidden
         style={{ animationDelay: "0.36s" }}
-        className="fog-in legible absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full p-3"
+        className="fog-in preload-gated legible absolute bottom-8 left-1/2 z-10 -translate-x-1/2 rounded-full p-3"
       >
         <svg
           width="20"
