@@ -103,10 +103,12 @@
 > **Verified on prod** (`b9a8d43`): `window.__s4HeroFailsafe` is set at parse and gone once the island
 > mounts, gate drops at lift+700ms, overlay unmounts at lift+1017ms, and the global never re-appears —
 > so the inline script does not re-execute on hydration.
-> **⚠️ OPEN — iOS SAFARI EYEBALL:** lamps are `border-radius:50%` + `overflow:hidden` inside a subtree
-> that now takes a composited transform AND an animated blur. WebKit has historically dropped
-> rounded-corner clipping on promoted layers mid-transform — the failure mode is **square lamps during
-> the lift**. Untestable from this environment; check on a phone.
+> **✅ CLOSED — iOS SAFARI:** the concern was that the lamps are `border-radius:50%` +
+> `overflow:hidden` inside a subtree that now takes a composited transform AND an animated blur, and
+> WebKit has historically dropped rounded-corner clipping on promoted layers mid-transform — failure
+> mode being **square lamps during the lift**. Owner checked on a real iPhone (2026-07-25): lamps stay
+> round, no issues. No code change made — the hardening (drawing the lamp with a radial-gradient
+> background so there is no clip to lose) was deliberately NOT applied on a guess, and isn't needed.
 > **Minor, deferred:** overlay teardown is wall-clock rather than `animationend`, so under heavy jank
 > it could unmount a frame before the field fully clears (observed +1063ms vs 1020ms nominal, i.e. the
 > animation finished first in practice). Also note `willChange` is now gated to `phase === "out"`,
