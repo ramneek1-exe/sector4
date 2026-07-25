@@ -28,7 +28,13 @@ const SESSION_KEY = "s4-preloaded";
 
 // Visual constants — tuned live against rendered candidates during the visual pass.
 const LAMPS_PER_HOUSING = 2; // stacked lamps per housing
-const LAMP_D = 64; // lamp diameter (css px)
+// Responsive lamp diameter: shrinks with the viewport so the full 5-housing row never
+// overflows a narrow phone (~320-390px). Caps at 64px on desktop. (String, not px number —
+// it feeds width/height directly.)
+const LAMP_D = "clamp(34px, 11vw, 64px)";
+const HOUSING_PAD = "clamp(5px, 2vw, 10px)"; // housing inner padding, scales with LAMP_D
+const HOUSING_GAP = "clamp(6px, 1.5vw, 10px)"; // gap between the two lamps in a housing
+const ROW_GAP = "clamp(8px, 3vw, 16px)"; // gap between housings
 const DOT_CELL = 5; // LED-halftone grid cell (css px) — the dither texture
 const HOUSING_BG = "#0b0b0d"; // dark housing body
 const LAMP_BASE = "#141417"; // unlit lamp disc
@@ -95,8 +101,8 @@ function LightHousing({ lit }: { lit: boolean }) {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 10,
-        padding: 10,
+        gap: HOUSING_GAP,
+        padding: HOUSING_PAD,
         borderRadius: 4,
         background: HOUSING_BG,
         boxShadow: "0 8px 22px rgba(0,0,0,0.22)",
@@ -190,7 +196,7 @@ export function StartLights() {
         animation: phase === "out" ? `preloaderDissolve ${OUT_MS}ms ease forwards` : undefined,
       }}
     >
-      <div className="flex items-center" style={{ gap: 16 }}>
+      <div className="flex max-w-full items-center px-3" style={{ gap: ROW_GAP }}>
         {Array.from({ length: LIGHT_COUNT }, (_, i) => (
           // "out" clears every housing (all lamps dark) before the dissolve —
           // the classic lights-out beat.
