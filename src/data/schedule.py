@@ -69,7 +69,7 @@ def derive_calendar(events: list[EventInfo], now: pd.Timestamp, year: int,
             continue
         known.append((key, e))
     if not known:
-        return {"calendar": [], "schedule": None}
+        return {"calendar": [], "schedule": None, "totalRounds": 0, "remainingRounds": 0}
 
     completed = [k for k, e in known if e.race_dt < now]
     remaining = [(k, e) for k, e in known if e.race_dt >= now]
@@ -90,7 +90,16 @@ def derive_calendar(events: list[EventInfo], now: pd.Timestamp, year: int,
         "final": _iso(tev.race_dt),
         "nextGp": next_gp,
     }
-    return {"calendar": calendar, "schedule": schedule}
+    return {
+        "calendar": calendar,
+        "schedule": schedule,
+        # Schedule METADATA, not lap data — safe to expose in full, unlike `calendar`,
+        # which stays truncated to completed + the single upcoming target because fastf1
+        # leaks future race laps. Nothing in src/features/ or the inference path may read
+        # these; they exist only for the championship picture's remaining-round maths.
+        "totalRounds": len(known),
+        "remainingRounds": len(remaining),
+    }
 
 
 def _session_dt(event, name: str) -> pd.Timestamp | None:

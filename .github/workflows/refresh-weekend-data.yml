@@ -93,7 +93,7 @@ jobs:
           # Stage the deterministic, meaningful files first; the fingerprint captures any
           # real parquet CONTENT change, JSON diffs capture calendar/schedule/entity changes.
           git add api/data-fingerprint.json app/data/grids.json app/data/entity-whats.json \
-                  app/data/weekend-schedule.json src/race_calendar.json
+                  app/data/weekend-schedule.json app/data/standings.json src/race_calendar.json
           if git diff --cached --quiet; then
             echo "No content changes — discarding non-deterministic parquet churn."
             git checkout -- api/*.parquet || true

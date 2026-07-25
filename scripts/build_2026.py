@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 import pandas as pd
 
 from src import store
-from src.calendar import RACE_CALENDAR, race_id
+from src.calendar import GP_TO_EVENT, RACE_CALENDAR, race_id
 from src.data.grid import load_qualifying_grid
 from src.data.results import load_results
 from src.data.schedule import derive_live_calendar
@@ -51,6 +51,7 @@ API_DIR, DATA_DIR = "api", "data"
 # The qualifying grid is read by the TS layer (app/lib/grid.ts), not the Python API, so it
 # is written straight into app/data — a single static-imported JSON keyed by race_id.
 GRIDS_JSON = os.path.join("app", "data", "grids.json")
+STANDINGS_JSON = os.path.join("app", "data", "standings.json")
 SCHEDULE_JSON = os.path.join("app", "data", "weekend-schedule.json")
 RACE_CALENDAR_JSON = os.path.join("src", "race_calendar.json")
 TABLES = [
@@ -71,7 +72,6 @@ def assert_no_unraced_target(tables: dict, target_gp: str, target_raced: bool,
     rather than deploying leaked data."""
     if target_raced:
         return
-    from src.calendar import GP_TO_EVENT
     target_names = {target_gp, GP_TO_EVENT.get(target_gp, target_gp)}
     for name, df in tables.items():
         if df is None or df.empty or "gp" not in df.columns or "year" not in df.columns:
@@ -135,17 +135,19 @@ def _merge_live(base_path: str, fresh: pd.DataFrame) -> pd.DataFrame:
     return merge_refreshed(base, fresh, key="race_id")
 
 
-def _refresh_calendar_and_schedule() -> list[str]:
+def _refresh_calendar_and_schedule() -> tuple[list[str], dict | None]:
     """Derive the live calendar + weekend schedule from fastf1 and persist both JSON files.
 
-    Returns the derived circuit list to use as LIVE_CIRCUITS (NOT the import-cached
-    RACE_CALENDAR[LIVE_SEASON], which would be stale within this process). On a schedule
-    fetch failure, leaves both committed files untouched and returns the committed calendar.
+    Returns (circuit list, round counts). The circuit list is what to use as LIVE_CIRCUITS
+    (NOT the import-cached RACE_CALENDAR[LIVE_SEASON], which would be stale within this
+    process). On a schedule fetch failure, leaves both committed files untouched and returns
+    the committed calendar with round counts of None (so downstream standings writing is
+    skipped rather than writing stale/partial counts).
     """
     derived = derive_live_calendar(LIVE_SEASON)
     if derived is None or not derived.get("calendar"):
         print("0/7 calendar — schedule fetch failed; keeping committed calendar/schedule.")
-        return RACE_CALENDAR[LIVE_SEASON]
+        return RACE_CALENDAR[LIVE_SEASON], None
     cal = derived["calendar"]
     with open(RACE_CALENDAR_JSON, "w") as f:
         json.dump({str(LIVE_SEASON): cal}, f, indent=2)
@@ -156,11 +158,52 @@ def _refresh_calendar_and_schedule() -> list[str]:
         f.write("\n")
     print(f"0/7 calendar — {len(cal)} rounds, target {derived['schedule']['gp']} "
           f"(next {derived['schedule']['nextGp']}) -> {RACE_CALENDAR_JSON}, {SCHEDULE_JSON}")
-    return cal
+    rounds = {"totalRounds": derived["totalRounds"], "remainingRounds": derived["remainingRounds"]}
+    return cal, rounds
+
+
+def _write_standings(results: pd.DataFrame, rounds: dict | None) -> None:
+    """Emit app/data/standings.json: live-season points per driver and per team, plus the
+    round counts the TS layer needs for the championship picture.
+
+    A pure read of the already-built season_results table (whose `points` column already
+    folds in sprint points) — no fastf1, no model, no inference. Leaves the committed file
+    untouched rather than writing a partial one when inputs are missing, so the TS side sees
+    either good data or the previous good data, never a half-written table.
+    """
+    if rounds is None:
+        print("8/8 standings — no round counts (schedule fetch failed); leaving standings.json.")
+        return
+    live = results[results["year"] == LIVE_SEASON]
+    if live.empty:
+        print("8/8 standings — no live-season results yet; leaving standings.json.")
+        return
+    event_to_gp = {event: short for short, event in GP_TO_EVENT.items()}
+    last = live.sort_values("date").iloc[-1]
+    payload = {
+        "year": LIVE_SEASON,
+        # season_results.gp holds the fastf1 EventName ("Hungarian Grand Prix"); map back to
+        # the short calendar key the rest of the app uses ("Hungary").
+        "throughGp": event_to_gp.get(str(last["gp"]), str(last["gp"])),
+        "throughRound": int(last["round"]),
+        "totalRounds": int(rounds["totalRounds"]),
+        "remainingRounds": int(rounds["remainingRounds"]),
+        "drivers": {k: round(float(v), 1)
+                    for k, v in sorted(live.groupby("Driver")["points"].sum().items())},
+        "teams": {k: round(float(v), 1)
+                  for k, v in sorted(live.groupby("team")["points"].sum().items())},
+    }
+    os.makedirs(os.path.dirname(STANDINGS_JSON), exist_ok=True)
+    with open(STANDINGS_JSON, "w") as f:
+        json.dump(payload, f, indent=2, sort_keys=True)
+        f.write("\n")
+    print(f"8/8 standings — through {payload['throughGp']} (R{payload['throughRound']}), "
+          f"{payload['remainingRounds']} of {payload['totalRounds']} rounds left "
+          f"-> {STANDINGS_JSON}")
 
 
 def main() -> None:
-    live_circuits = _refresh_calendar_and_schedule()
+    live_circuits, rounds = _refresh_calendar_and_schedule()
     _seed_data_from_api()
 
     print(f"1/7 season_results — refresh {LIVE_SEASON}, reuse cached history...")
@@ -208,6 +251,7 @@ def main() -> None:
         shutil.copy(os.path.join(DATA_DIR, t), os.path.join(API_DIR, t))
 
     _refresh_grid()
+    _write_standings(results, rounds)
     print("DONE — feature tables refreshed and copied into api/.")
 
 

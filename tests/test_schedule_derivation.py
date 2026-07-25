@@ -60,3 +60,19 @@ def test_unknown_event_is_skipped():
               _ev(3, "Bravo Grand Prix", "03-29")]
     out = derive_calendar(events, TS("2026-04-01T00:00:00"), 2026, NAME_TO_KEY)
     assert out["calendar"] == ["Alpha", "Bravo"]  # Unlisted dropped, not crashed
+
+
+def test_round_counts_do_not_widen_the_calendar():
+    events = [_ev(1, "Alpha Grand Prix", "03-08"), _ev(2, "Bravo Grand Prix", "03-15"),
+              _ev(3, "Charlie Grand Prix", "03-29"), _ev(4, "Delta Grand Prix", "04-12")]
+    now = TS("2026-03-20T00:00:00")  # after Alpha+Bravo, before Charlie+Delta
+    out = derive_calendar(events, now, 2026, NAME_TO_KEY)
+    assert out["totalRounds"] == 4
+    assert out["remainingRounds"] == 2
+    # The leak guard: completed rounds + exactly one upcoming target, never all four.
+    assert len(out["calendar"]) == 3
+
+
+def test_round_counts_on_empty_known_events():
+    out = derive_calendar([], TS("2026-01-01T00:00:00"), 2026, NAME_TO_KEY)
+    assert out == {"calendar": [], "schedule": None, "totalRounds": 0, "remainingRounds": 0}
