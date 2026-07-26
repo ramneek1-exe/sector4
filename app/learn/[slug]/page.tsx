@@ -7,6 +7,9 @@ import { allConcepts, getConcept, resolveRelated } from "@/app/lib/concepts";
 import { emblemForGroup } from "@/app/lib/emblems";
 import { TrustBadge } from "@/app/components/TrustBadge";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
+import { routeMetadata } from "@/app/lib/seo";
+import { JsonLd } from "@/app/components/JsonLd";
+import { conceptArticleJsonLd, breadcrumbJsonLd, jsonLdGraph } from "@/app/lib/json-ld";
 
 export function generateStaticParams() {
   return allConcepts().map((c) => ({ slug: c.slug }));
@@ -14,16 +17,25 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }) {
   const c = getConcept(params.slug);
-  return { title: c ? c.term : "Learn" }; // layout template adds " · Sector 4"
+  if (!c) return { title: "Learn" };
+  return routeMetadata({ title: c.term, description: c.summary, path: `/learn/${c.slug}` });
 }
 
 export default function ConceptPage({ params }: { params: { slug: string } }) {
   const concept = getConcept(params.slug);
   if (!concept) notFound();
   const related = resolveRelated(concept.slug);
+  const conceptJsonLd = jsonLdGraph(
+    conceptArticleJsonLd(concept),
+    breadcrumbJsonLd([
+      { name: "Learn", path: "/learn" },
+      { name: concept.term, path: `/learn/${concept.slug}` },
+    ]),
+  );
 
   return (
     <main className="relative mx-auto max-w-2xl px-5 py-14 sm:py-20">
+      <JsonLd data={conceptJsonLd} />
       {/* Large, faded brand emblem for this concept's theme — a thematic backdrop sitting
           right-of-centre behind the text, fully visible (no clipping) (PRD §8 dither). */}
       <div

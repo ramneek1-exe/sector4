@@ -18,8 +18,24 @@ import { BAND_TEXT } from "@/app/lib/bands";
 import { driverName } from "@/app/lib/glyph";
 import { loadStandings } from "@/app/lib/championship";
 import { getCircuitFacts, getCircuitName, getEntityWhat } from "@/app/lib/entity-whats";
+import { routeMetadata } from "@/app/lib/seo";
+import { JsonLd } from "@/app/components/JsonLd";
+import { sportsEventJsonLd, breadcrumbJsonLd, jsonLdGraph } from "@/app/lib/json-ld";
 
 export const dynamic = "force-dynamic";
+
+const GP_LABEL = gpLabel(schedule.gp);
+
+export const metadata = routeMetadata({
+  title: `${GP_LABEL} Grand Prix`,
+  description: `Podium odds, pit-stop strategy, and the numbers behind the ${GP_LABEL} Grand Prix weekend, sharpening from Friday to race day.`,
+  path: "/weekend",
+});
+
+const weekendJsonLd = jsonLdGraph(
+  sportsEventJsonLd({ gpLabel: GP_LABEL, startDate: schedule.final }),
+  breadcrumbJsonLd([{ name: "Weekend", path: "/weekend" }]),
+);
 
 const CHECKPOINT_LABEL: Record<string, string> = {
   "pre-quali": "Issued Friday, pre-qualifying",
@@ -104,6 +120,7 @@ export default async function WeekendPage() {
       : null;
     return (
       <>
+        <JsonLd data={weekendJsonLd} />
         <SideFog />
         <main className={`legible weekend-reveal relative z-10 ${SHELL}`}>
           <p className="font-grotesk text-xs font-semibold uppercase tracking-[0.15em] text-muted">
@@ -171,6 +188,7 @@ export default async function WeekendPage() {
 
   return (
     <>
+      <JsonLd data={weekendJsonLd} />
       <SideFog />
       <main className={`legible weekend-reveal relative z-10 ${SHELL}`}>
         <header className="mb-8">
