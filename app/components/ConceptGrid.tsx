@@ -17,21 +17,28 @@ export function ConceptGrid({ concepts, startIndex }: { concepts: Concept[]; sta
   return (
     <>
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {visible.map((c, i) => (
-          <li
-            key={c.slug}
-            className="learn-rise"
-            style={{ animationDelay: `${150 + (startIndex + i) * 55}ms` }}
-          >
-            <ConceptCard concept={c} />
-          </li>
-        ))}
+        {visible.map((c, i) => {
+          // The first INITIAL_VISIBLE cards are on screen at page load and use the
+          // page-wide stagger (startIndex carries the running index across every
+          // theme). Cards past that only mount once "see more" is clicked -- they're
+          // freshly rendered then, not sitting on the page since load, so reusing the
+          // page-load delay (which can be 1-2s+ for a later theme) would leave them
+          // invisible for a beat after an action the user just took. Short local
+          // stagger instead, starting near 0ms.
+          const delay =
+            i < INITIAL_VISIBLE ? 150 + (startIndex + i) * 55 : (i - INITIAL_VISIBLE) * 55;
+          return (
+            <li key={c.slug} className="learn-rise" style={{ animationDelay: `${delay}ms` }}>
+              <ConceptCard concept={c} />
+            </li>
+          );
+        })}
       </ul>
       {hasMore && (
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="cta-grow mt-4 inline-block font-grotesk text-xs font-semibold uppercase tracking-wide text-accent"
+          className="cta-grow relative mt-4 inline-block font-grotesk text-xs font-semibold uppercase tracking-wide text-accent"
         >
           {expanded ? "See less" : `See ${concepts.length - INITIAL_VISIBLE} more`}
         </button>
