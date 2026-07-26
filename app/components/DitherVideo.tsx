@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { bayerLuminancePasses } from "@/app/lib/bayer";
 import { useReducedMotion } from "@/app/lib/use-reduced-motion";
+import { shouldPaint } from "@/app/lib/frame-throttle";
 
 type Matrix = "4x4" | "8x8";
 
@@ -64,6 +65,10 @@ function useIsDesktop(): boolean {
 function isRemoteSrc(src: string): boolean {
   return /^https?:\/\//i.test(src);
 }
+
+// Matches public/hero.mp4's real encode rate (ffprobe: r_frame_rate=30/1) -- painting
+// the dither canvas faster than the source video's own frame rate is pure waste.
+const PAINT_INTERVAL_MS = 1000 / 30;
 
 let swatchCanvas: HTMLCanvasElement | null = null;
 
@@ -268,11 +273,22 @@ export function DitherVideo({
   }, [reduced, paintFrame]);
 
   // The rAF paint loop: only while actually playing, near-viewport, and tab-visible.
+  // Gated to ~30fps (PAINT_INTERVAL_MS), matching the source video's real encode rate
+  // (confirmed via ffprobe: public/hero.mp4 is 30fps) -- painting faster just re-dithers
+  // the identical decoded frame, which was the cause of a repeated-long-task pattern
+  // found by a performance audit (see docs/superpowers/specs/2026-07-26-dither-video-
+  // paint-throttle-design.md). requestAnimationFrame still fires every display refresh
+  // so the existing pause/visibility semantics are unchanged -- only the expensive
+  // paintFrame() call itself is throttled.
   useEffect(() => {
     if (reduced || !playing || !inView || !pageVisible) return;
     let raf = 0;
-    const tick = () => {
-      paintFrame();
+    let lastPaint = 0;
+    const tick = (now: number) => {
+      if (shouldPaint(now, lastPaint, PAINT_INTERVAL_MS)) {
+        lastPaint = now;
+        paintFrame();
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
