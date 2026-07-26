@@ -4,17 +4,32 @@
     "term": "Tyre Degradation",
     "group": "Tyres & strategy",
     "summary": "How a tyre loses grip and pace as a stint goes on, the core driver of race strategy.",
-    "aliases": ["tyre degradation", "tyre deg", "degradation", "deg"],
+    "aliases": [
+      "tyre degradation",
+      "tyre deg",
+      "degradation",
+      "deg"
+    ],
     "body": [
       "As a tyre runs, heat and wear gradually reduce the grip it can deliver, so lap times creep up over a stint. This loss is 'degradation', or 'deg'. Softer compounds are faster when fresh but degrade quicker; harder compounds give up outright pace for longer life.",
       "Deg isn't linear or identical for every car. Track surface, temperature, fuel load and how a driver manages the tyre all change the rate. Teams measure it in practice long runs to estimate how many laps a set stays competitive."
     ],
     "whyItMatters": "Sector 4's stop-count model leans on degradation measured in Friday practice, where steeper deg points toward an extra stop. It's the telemetry signal that actually beats a track-history baseline.",
-    "related": ["stop-count-strategy", "undercut-overcut", "track-evolution"],
+    "related": [
+      "stop-count-strategy",
+      "undercut-overcut",
+      "track-evolution"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One tyres",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_tyres"
+      }
     ]
   },
   {
@@ -22,17 +37,31 @@
     "term": "Undercut / Overcut",
     "group": "Tyres & strategy",
     "summary": "Two ways to gain track position by timing a pit stop earlier or later than a rival.",
-    "aliases": ["undercut", "overcut"],
+    "aliases": [
+      "undercut",
+      "overcut"
+    ],
     "body": [
       "An undercut pits earlier than the car ahead: fresh tyres give an immediate pace boost, so you bank lap time while the rival is still on worn rubber, then emerge ahead once they stop. An overcut is the opposite: staying out longer and betting that your older tyres in clean air beat a rival who pitted into traffic or whose new tyres take time to switch on.",
       "Which one works depends on degradation, how much time the pit lane costs, and traffic. High-deg tracks favour the undercut; circuits where it's hard to follow can reward the overcut."
     ],
     "whyItMatters": "These are the moves a stop-count call sets up. When Sector 4 flags a likely two-stop, the undercut or overcut is the on-track lever teams use to make it pay.",
-    "related": ["tyre-degradation", "stop-count-strategy", "pit-lane-time-loss", "dirty-air"],
+    "related": [
+      "tyre-degradation",
+      "stop-count-strategy",
+      "pit-lane-time-loss",
+      "dirty-air"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Glossary of motorsport terms",
+        "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms"
+      }
     ]
   },
   {
@@ -40,17 +69,33 @@
     "term": "Stop-Count Strategy",
     "group": "Tyres & strategy",
     "summary": "Whether a race is run on one pit stop or two, the strategic spine of a Grand Prix.",
-    "aliases": ["stop-count", "stop count", "one-stop", "two-stop", "extra stop"],
+    "aliases": [
+      "stop-count",
+      "stop count",
+      "one-stop",
+      "two-stop",
+      "extra stop"
+    ],
     "body": [
       "The pit-stop count is the headline strategic choice: fewer stops mean less time lost in the pit lane but more laps on tyres past their best; more stops mean fresher rubber but repeated pit-lane losses. The break-even depends on how fast tyres degrade versus how much a stop costs.",
       "Most dry races settle into a dominant pattern, a one-stop or two-stop race, though teams split strategies to cover each other and react to safety cars."
     ],
     "whyItMatters": "This is Sector 4's one validated telemetry edge: a model trained on practice degradation predicts per-driver stop count better than a track-history baseline. We surface it as a supporting call, always caveated for safety cars.",
-    "related": ["tyre-degradation", "undercut-overcut", "pit-lane-time-loss"],
+    "related": [
+      "tyre-degradation",
+      "undercut-overcut",
+      "pit-lane-time-loss"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One racing",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_racing"
+      }
     ]
   },
   {
@@ -58,17 +103,31 @@
     "term": "Pit-Lane Time Loss",
     "group": "Tyres & strategy",
     "summary": "The total time a pit stop costs versus staying out, counting pit-lane transit plus the stop itself.",
-    "aliases": ["pit-lane time loss", "pit lane loss", "pit loss", "pit stop"],
+    "aliases": [
+      "pit-lane time loss",
+      "pit lane loss",
+      "pit loss",
+      "pit stop"
+    ],
     "body": [
       "Every stop loses time: the car slows to the pit-lane speed limit, drives its length, and sits stationary for the tyre change. Added up against a flying lap, that's the 'pit-loss', typically around 20 seconds, though it varies a lot by circuit depending on pit-lane length and layout.",
       "The stationary part, the actual tyre change, is only about 2 to 3 seconds of it; most of the loss is the slow transit through the pit lane."
     ],
     "whyItMatters": "Pit-loss sets the break-even for strategy: the higher it is, the more a stop has to be worth. Sector 4 computes it per circuit from real data, so the strategy explanations rest on the actual cost at each track.",
-    "related": ["stop-count-strategy", "undercut-overcut"],
+    "related": [
+      "stop-count-strategy",
+      "undercut-overcut"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Pit stop",
+        "url": "https://en.wikipedia.org/wiki/Pit_stop"
+      }
     ]
   },
   {
@@ -76,17 +135,30 @@
     "term": "Qualifying vs. Race Pace",
     "group": "Pace & sessions",
     "summary": "Why a car's one-lap qualifying speed can differ from its long-run race pace.",
-    "aliases": ["qualifying pace", "race pace", "quali pace"],
+    "aliases": [
+      "qualifying pace",
+      "race pace",
+      "quali pace"
+    ],
     "body": [
       "Qualifying rewards a single low-fuel lap on fresh soft tyres with everything turned up. Race pace is about sustaining competitive lap times over a stint, with heavy fuel, managing tyre wear, and looking after the car. A team can be strong at one and ordinary at the other.",
       "That gap is why grid position and race result often diverge, and why practice long runs, not the quick laps, are the better read on Sunday pace."
     ],
     "whyItMatters": "Sector 4's pace model predicts long-run race-pace gaps, not qualifying, and Phase 1 found that's a supporting context signal rather than a podium edge. The grid (qualifying) remains the strongest single podium predictor.",
-    "related": ["track-evolution", "tyre-degradation"],
+    "related": [
+      "track-evolution",
+      "tyre-degradation"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One racing",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_racing"
+      }
     ]
   },
   {
@@ -94,17 +166,30 @@
     "term": "Track Evolution",
     "group": "Pace & sessions",
     "summary": "How a circuit gets faster across a weekend as rubber builds up and the surface cleans.",
-    "aliases": ["track evolution", "track ramps up", "rubbering in"],
+    "aliases": [
+      "track evolution",
+      "track ramps up",
+      "rubbering in"
+    ],
     "body": [
       "A 'green' track at the start of practice is slow and slippery. As cars lap, they lay down rubber and sweep away dust, raising grip, so lap times tumble through the weekend even if nothing about the cars changes. This is 'track evolution', or 'rubbering in'.",
       "It complicates comparisons: a time set on Friday isn't directly comparable to one on Saturday, and the last runners in qualifying often benefit from the cleanest, fastest track."
     ],
     "whyItMatters": "When Sector 4 compares practice pace across sessions, it corrects for evolution, since otherwise a later, faster lap looks like a quicker car rather than just a quicker track.",
-    "related": ["qualifying-vs-race-pace", "tyre-degradation"],
+    "related": [
+      "qualifying-vs-race-pace",
+      "tyre-degradation"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Racing line",
+        "url": "https://en.wikipedia.org/wiki/Racing_line"
+      }
     ]
   },
   {
@@ -112,17 +197,29 @@
     "term": "Dirty Air",
     "group": "Air & aero",
     "summary": "The turbulent wake behind a car that robs the one following of downforce and grip.",
-    "aliases": ["dirty air", "clean air"],
+    "aliases": [
+      "dirty air",
+      "clean air"
+    ],
     "body": [
       "F1 cars make most of their grip from aerodynamics, which need clean, smooth airflow. Running closely behind another car puts you in its turbulent 'dirty air', cutting downforce, so the following car slides, struggles in corners, and overheats its tyres.",
       "This is why following closely is hard and why overtaking often needs a big pace gap or an overtake aid. Recent rules aimed to reduce the effect, but it never fully disappears."
     ],
     "whyItMatters": "Dirty air shapes whether track position can be held or lost. It is the context for why an overcut into clean air can beat fresher tyres stuck in traffic.",
-    "related": ["drs", "undercut-overcut"],
+    "related": [
+      "drs",
+      "undercut-overcut"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Downforce", "url": "https://en.wikipedia.org/wiki/Downforce" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Downforce",
+        "url": "https://en.wikipedia.org/wiki/Downforce"
+      }
     ]
   },
   {
@@ -130,17 +227,32 @@
     "term": "DRS & Active Aero",
     "group": "Air & aero",
     "summary": "How cars are helped past each other, from the DRS flap of 2011 to 2025 to the active aero and energy boost of 2026.",
-    "aliases": ["drs", "active aero", "active-aero", "overtake boost"],
+    "aliases": [
+      "drs",
+      "active aero",
+      "active-aero",
+      "overtake boost"
+    ],
     "body": [
       "The Drag Reduction System (DRS) ran from 2011 to 2025. It let a chasing driver open a flap in the rear wing on set straights, cutting drag for extra straight-line speed when within one second of the car ahead at a detection point. It was disabled in wet or dangerous conditions, and the zones were fixed per circuit. The 2026 rules retire DRS.",
       "In its place, 2026 cars run active aerodynamics. The driver switches the front and rear wings between a high-downforce mode for the corners and a low-drag 'straight' mode for the straights. Overtaking is helped instead by a manual override boost, an 'overtake' mode that hands the chasing car extra electrical power. With the new power units drawing close to half their output from the battery, recovering and deploying that energy ('regen') over a lap becomes a big part of both attack and defence."
     ],
     "whyItMatters": "Where a track lets a driver deploy the overtake boost and recover energy shapes how easily positions change. That feeds into how a predicted strategy actually plays out on Sunday.",
-    "related": ["dirty-air", "power-modes", "energy-harvesting"],
+    "related": [
+      "dirty-air",
+      "power-modes",
+      "energy-harvesting"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
     ]
   },
   {
@@ -148,18 +260,34 @@
     "term": "Tyre Compounds",
     "group": "Tyres & strategy",
     "summary": "The range of dry tyres a team can pick from, and the trade of outright speed against how long they last.",
-    "aliases": ["compound", "compounds", "tyre compound", "soft tyre", "medium tyre", "hard tyre"],
+    "aliases": [
+      "compound",
+      "compounds",
+      "tyre compound",
+      "soft tyre",
+      "medium tyre",
+      "hard tyre"
+    ],
     "body": [
       "Pirelli brings a range of dry-weather tyres graded from the hardest to the softest. For each weekend it nominates three of them, and those become the soft, medium, and hard for that event. So the 'soft' at one track can be a different underlying rubber than the 'soft' at another.",
       "Softer tyres grip harder and set faster lap times, but they wear out sooner. Harder tyres give up some outright pace for a longer, steadier life. Choosing which to run, and for how long, is the heart of race strategy.",
       "Because the three chosen tyres differ track to track, the compound that ends up dominating a race is partly a function of what was brought that weekend."
     ],
     "whyItMatters": "The compound mix shapes how many stops a race needs and which tyre tends to dominate, which is exactly what our strategy and compound answers reason about.",
-    "related": ["tyre-degradation", "stop-count-strategy"],
+    "related": [
+      "tyre-degradation",
+      "stop-count-strategy"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One tyres",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_tyres"
+      }
     ]
   },
   {
@@ -167,18 +295,30 @@
     "term": "Marbles",
     "group": "Tyres & strategy",
     "summary": "Bits of worn rubber that build up off the racing line, cutting grip for any car that strays there.",
-    "aliases": ["marbles", "off-line grip"],
+    "aliases": [
+      "marbles",
+      "off-line grip"
+    ],
     "body": [
       "As tyres wear, small pieces of rubber shear off and get flung outward by a corner's forces, landing just off the line the fastest cars actually take. Lap after lap, that rubber builds into a layer of loose grit known as 'marbles'.",
       "The racing line itself stays clean and grippy because cars constantly scrub over it, but step off it, even by a car's width, and the marbles cut available grip. That happens when defending a position, running around the outside to overtake, or picking a line to a grid slot at a standing restart.",
       "The effect builds through a session, and it can catch out a driver who has to leave the line, sometimes badly enough that a slide looks like a mistake when it is really just where the rubber piled up."
     ],
     "whyItMatters": "Marbles are part of why staying on the racing line matters as much as raw pace. It's useful context for the risk in an overtaking move, especially late in a stint when the off-line rubber has had the longest to build up.",
-    "related": ["tyre-degradation", "dirty-air"],
+    "related": [
+      "tyre-degradation",
+      "dirty-air"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One tyres", "url": "https://en.wikipedia.org/wiki/Formula_One_tyres" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One tyres",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_tyres"
+      }
     ]
   },
   {
@@ -186,18 +326,32 @@
     "term": "Double-Stacking",
     "group": "Tyres & strategy",
     "summary": "Pitting both of a team's cars on back-to-back laps within a single stop window.",
-    "aliases": ["double stack", "double-stacking", "stacking"],
+    "aliases": [
+      "double stack",
+      "double-stacking",
+      "stacking"
+    ],
     "body": [
       "When both of a team's cars need to stop in the same window, most often right after a Safety Car or Virtual Safety Car has bunched up the field and made a stop cheap, the team can bring them in a lap apart rather than waiting. That's a 'double stack'.",
       "The second car peels into the box right after the first, but has to wait for that first car's tyre change to finish before its own crew can get to work. That wait costs the second car a little extra time next to a stop taken on its own, since the crew and equipment can only service one car at a time.",
       "Even with that extra cost, banking both stops while the whole field is running slowly is usually worth far more than sending one car out to pit alone later, back into a track that's up to speed again."
     ],
     "whyItMatters": "Double-stacking is a common reason a driver loses more time in the pits than the raw pit-loss number suggests, especially under a Safety Car, when every team's stops bunch into the same short window. It's a useful check on why a stop didn't play out exactly on paper.",
-    "related": ["stop-count-strategy", "pit-lane-time-loss", "undercut-overcut"],
+    "related": [
+      "stop-count-strategy",
+      "pit-lane-time-loss",
+      "undercut-overcut"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Pit stop", "url": "https://en.wikipedia.org/wiki/Pit_stop" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Pit stop",
+        "url": "https://en.wikipedia.org/wiki/Pit_stop"
+      }
     ]
   },
   {
@@ -205,7 +359,13 @@
     "term": "Free Practice (FP1-FP3)",
     "group": "Pace & sessions",
     "summary": "What each free practice session is for, and why FP2 long runs give the best public read on race pace.",
-    "aliases": ["free practice", "FP1", "FP2", "FP3", "practice session"],
+    "aliases": [
+      "free practice",
+      "FP1",
+      "FP2",
+      "FP3",
+      "practice session"
+    ],
     "body": [
       "A standard race weekend runs three free practice sessions. FP1, on Friday morning, is largely a systems check: new parts get bedded in, sensors are validated, and drivers take their first laps of the weekend on that circuit.",
       "FP2 is where the weekend starts to show its hand. Teams typically run a low-fuel qualifying simulation and a longer run on heavier fuel that mimics a race stint, so the FP2 long run is the closest thing to a public preview of Sunday's pace.",
@@ -213,11 +373,20 @@
       "Because FP2 is the only session built around race-like fuel loads and stint lengths, it's the one worth watching if you want a sense of who might actually be fast on race day, not just over one lap."
     ],
     "whyItMatters": "Sector 4 leans on FP2 long runs when reading degradation and race pace, since it's the only public session that looks anything like a race stint.",
-    "related": ["qualifying-vs-race-pace", "sandbagging"],
+    "related": [
+      "qualifying-vs-race-pace",
+      "sandbagging"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One", "url": "https://en.wikipedia.org/wiki/Formula_One" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One",
+        "url": "https://en.wikipedia.org/wiki/Formula_One"
+      }
     ]
   },
   {
@@ -225,18 +394,30 @@
     "term": "Sandbagging",
     "group": "Pace & sessions",
     "summary": "Deliberately hiding a car's true pace in practice so rivals can't read how fast it really is.",
-    "aliases": ["sandbagging", "hiding pace"],
+    "aliases": [
+      "sandbagging",
+      "hiding pace"
+    ],
     "body": [
       "Practice times are public, and every rival team is watching them. So a team that thinks it has genuine pace often doesn't show it: they'll run a touch heavier on fuel, turn the engine down a notch, or simply not push a lap to its limit. That's 'sandbagging'.",
       "The motive is simple game theory. Showing real pace on Friday tips off rivals on setup direction and strategy before it matters, in qualifying and the race. Better to look ordinary on Friday and fast on Sunday.",
       "It means practice classification should be read with real caution. A team near the back of the FP2 times isn't necessarily slow; it might just not be showing its hand yet."
     ],
     "whyItMatters": "Sandbagging is a big part of why practice pace alone is a noisy signal, and why Sector 4 treats FP long runs as a supporting input, not a standalone prediction of who's fastest.",
-    "related": ["fp-session-purpose", "qualifying-vs-race-pace"],
+    "related": [
+      "fp-session-purpose",
+      "qualifying-vs-race-pace"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Sandbagging", "url": "https://en.wikipedia.org/wiki/Sandbagging" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Sandbagging",
+        "url": "https://en.wikipedia.org/wiki/Sandbagging"
+      }
     ]
   },
   {
@@ -244,18 +425,32 @@
     "term": "Sector Characteristics",
     "group": "Pace & sessions",
     "summary": "How a lap splits into three timed sectors, each with its own mix of corner speeds, revealing where a car's pace really comes from.",
-    "aliases": ["sector", "sectors", "sector time", "corner speed"],
+    "aliases": [
+      "sector",
+      "sectors",
+      "sector time",
+      "corner speed"
+    ],
     "body": [
       "Every lap is timed in three sectors, split at fixed points around the circuit. Each sector usually has its own character: a run of low-speed corners, a fast flowing section, a long straight, or some mix of all three.",
       "A car's strengths don't have to show up evenly. One built for high-speed stability might gain heavily in a fast sector and give some of it back in a tight, low-speed one, so its overall lap time can hide a lot of variation underneath.",
       "Comparing sector times, not just the final lap, is how you see where a car's pace actually comes from, and it can flag a setup trade-off before it shows up in the results."
     ],
     "whyItMatters": "Sector splits are part of how Sector 4 reads practice pace, since a lap time on its own can mask whether an advantage is real corner speed or just one strong sector.",
-    "related": ["qualifying-vs-race-pace", "track-evolution"],
+    "related": [
+      "qualifying-vs-race-pace",
+      "track-evolution"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Racing line", "url": "https://en.wikipedia.org/wiki/Racing_line" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Racing line",
+        "url": "https://en.wikipedia.org/wiki/Racing_line"
+      }
     ]
   },
   {
@@ -263,18 +458,31 @@
     "term": "Slipstream / Tow",
     "group": "Air & aero",
     "summary": "Sitting in the wake of the car ahead cuts drag on a straight, giving a following car a speed boost.",
-    "aliases": ["slipstream", "tow", "the tow"],
+    "aliases": [
+      "slipstream",
+      "tow",
+      "the tow"
+    ],
     "body": [
       "A car pushes through the air and leaves a pocket of low-pressure, slower-moving air behind it. A car following closely on a straight can sit in that pocket, meeting less resistance and gaining extra speed for the same amount of power. That's the 'slipstream' or 'tow'.",
       "It's the helpful side of running close behind another car. The same wake that costs a following car downforce and grip through the corners, dirty air, works in its favour once the road straightens out.",
       "A strong tow can be worth several tenths on a long straight, enough to close a gap or set up a move at the braking zone, which is why drivers jostle for a run out of the last corner before it."
     ],
     "whyItMatters": "The tow is part of the on-track picture around overtaking and qualifying laps, and it's the straight-line counterpart to dirty air's cornering cost.",
-    "related": ["dirty-air", "drs"],
+    "related": [
+      "dirty-air",
+      "drs"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Slipstream", "url": "https://en.wikipedia.org/wiki/Slipstream" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Slipstream",
+        "url": "https://en.wikipedia.org/wiki/Slipstream"
+      }
     ]
   },
   {
@@ -282,18 +490,31 @@
     "term": "Ground Effect",
     "group": "Air & aero",
     "summary": "The underfloor tunnels that generate most of a modern F1 car's downforce, reintroduced with the 2022 regulations.",
-    "aliases": ["ground effect", "underfloor", "porpoising", "venturi"],
+    "aliases": [
+      "ground effect",
+      "underfloor",
+      "venturi"
+    ],
     "body": [
       "Since the 2022 rules, F1 cars make most of their downforce from shaped tunnels under the floor rather than wings alone. Air accelerates through the tunnels, which lowers pressure underneath the car and pulls it toward the track, generating grip with less drag than an equivalent amount from wings.",
       "One aim of bringing it back was to let cars follow each other more closely, since ground-effect downforce holds up a bit better in another car's wake than the old wing-heavy cars did.",
       "It came with a side effect early on: at high speed the floor could stall and reattach in a rapid cycle, bouncing the car violently down the straights. That bouncing, 'porpoising', was largely tamed through floor and suspension changes over the following seasons."
     ],
     "whyItMatters": "Ground effect is why current cars can run closer together than the previous generation, which feeds directly into how dirty air and the tow play out in a race.",
-    "related": ["dirty-air", "drs"],
+    "related": [
+      "dirty-air",
+      "drs"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Ground effect (cars)", "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Ground effect (cars)",
+        "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)"
+      }
     ]
   },
   {
@@ -301,18 +522,32 @@
     "term": "Safety Car & Virtual Safety Car",
     "group": "Race control",
     "summary": "The two ways race control slows the whole field down after an incident, one behind a physical car and one on a virtual pace limit.",
-    "aliases": ["safety car", "virtual safety car", "VSC"],
+    "aliases": [
+      "safety car",
+      "virtual safety car",
+      "VSC"
+    ],
     "body": [
       "A Safety Car comes out after a serious incident or heavy debris on track. It leads the whole field around at reduced speed, bunches the cars up nose to tail behind it, and holds them there until it's safe for racing to resume.",
       "A Virtual Safety Car does the same job without a physical car on track. Instead, every driver is shown a pace they must not beat through each marshalling sector, which forces a set slower lap, then the VSC ends and the race resumes at full speed.",
       "Both slow the whole field together, so the usual pace cost of pitting shrinks: everyone is running slowly anyway, which makes a stop far cheaper than it would be at racing speed. That's why so many strategy calls change the moment one comes out."
     ],
     "whyItMatters": "A Safety Car or VSC is one of the biggest strategy resets in a race, and it's a big part of the uncertainty Sector 4 flags around any stop-count call.",
-    "related": ["stop-count-strategy", "double-stacking", "flags"],
+    "related": [
+      "stop-count-strategy",
+      "double-stacking",
+      "flags"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Safety car", "url": "https://en.wikipedia.org/wiki/Safety_car" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Safety car",
+        "url": "https://en.wikipedia.org/wiki/Safety_car"
+      }
     ]
   },
   {
@@ -320,7 +555,14 @@
     "term": "Flags & Signals",
     "group": "Race control",
     "summary": "The flag and light-panel signals marshals and race control use to tell drivers what's happening on track.",
-    "aliases": ["yellow flag", "double yellow", "blue flag", "red flag", "chequered flag", "checkered flag"],
+    "aliases": [
+      "yellow flag",
+      "double yellow",
+      "blue flag",
+      "red flag",
+      "chequered flag",
+      "checkered flag"
+    ],
     "body": [
       "A single yellow flag means caution and no overtaking in that zone, because there's a hazard just ahead. A double yellow raises that warning further, for a bigger hazard or marshals working on the track, and usually means slowing down noticeably rather than just easing off.",
       "A blue flag is shown to a driver who is about to be lapped, telling them a faster car is closing and they should let it through at the next reasonable chance rather than holding it up.",
@@ -328,11 +570,19 @@
       "The chequered flag simply ends the session, waved at the leader as they complete the final lap and then at every car behind as it crosses the line."
     ],
     "whyItMatters": "Flags shape how a race actually plays out lap to lap, since a well-timed yellow or a red flag can bunch the field up much like a Safety Car does.",
-    "related": ["safety-car-vsc"],
+    "related": [
+      "safety-car-vsc"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Racing flags", "url": "https://en.wikipedia.org/wiki/Racing_flags" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Racing flags",
+        "url": "https://en.wikipedia.org/wiki/Racing_flags"
+      }
     ]
   },
   {
@@ -340,7 +590,11 @@
     "term": "Grid Penalties",
     "group": "Race control",
     "summary": "Why a driver sometimes starts lower than they qualified, and how a penalty is applied to the grid.",
-    "aliases": ["grid penalty", "grid drop", "pit lane start"],
+    "aliases": [
+      "grid penalty",
+      "grid drop",
+      "pit lane start"
+    ],
     "body": [
       "A driver doesn't always start where they qualified. Race control can order a grid penalty, dropping a driver back a set number of places, most often for using more new power-unit components across a season than their allocation allows.",
       "A gearbox has to last a set number of races before it can be changed without penalty; swap it early outside of exceptional circumstances and it carries a similar grid drop.",
@@ -348,11 +602,19 @@
       "A pit-lane start is the harshest version: the driver starts from the pit lane, after the rest of the field, under the pit-lane speed limit, losing far more time than a grid-place drop would."
     ],
     "whyItMatters": "Grid penalties are why a driver's actual starting spot can differ sharply from raw pace or qualifying form, which matters for any podium read that leans on the grid.",
-    "related": ["qualifying-vs-race-pace"],
+    "related": [
+      "qualifying-vs-race-pace"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
     ]
   },
   {
@@ -360,18 +622,31 @@
     "term": "DNF & Reliability",
     "group": "Race control",
     "summary": "\"Did Not Finish\" covers any car that doesn't complete the race, and reliability is a real performance factor in its own right.",
-    "aliases": ["DNF", "did not finish", "retirement", "reliability"],
+    "aliases": [
+      "DNF",
+      "did not finish",
+      "retirement",
+      "reliability"
+    ],
     "body": [
       "DNF stands for Did Not Finish. It covers any car that doesn't complete the race distance, whether from a mechanical failure, a crash, or the team retiring it for safety or damage reasons.",
       "Reliability, how rarely a car or power unit breaks under race conditions, is a real competitive factor on its own, separate from outright pace. A fast car that doesn't finish scores nothing, while a slower, dependable one can keep racking up points race after race.",
       "Because failures and incidents are inherently hard to foresee, they're a core reason no prediction, ours included, can promise a result. A DNF can rewrite a race's finishing order regardless of how accurate the pace or strategy read was going in."
     ],
     "whyItMatters": "DNFs are part of why Sector 4 frames predictions as calibrated probabilities rather than certainties, since even a well-supported pace or strategy call can be overtaken by a retirement no model saw coming.",
-    "related": ["safety-car-vsc"],
+    "related": [
+      "safety-car-vsc"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Glossary of motorsport terms", "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Glossary of motorsport terms",
+        "url": "https://en.wikipedia.org/wiki/Glossary_of_motorsport_terms"
+      }
     ]
   },
   {
@@ -379,18 +654,32 @@
     "term": "Fuel Effect",
     "group": "Power & energy",
     "summary": "A car starts the race heaviest, with a full fuel load, and gets quicker lap on lap as that fuel burns off.",
-    "aliases": ["fuel effect", "fuel load", "fuel burn", "fuel correction"],
+    "aliases": [
+      "fuel effect",
+      "fuel load",
+      "fuel burn",
+      "fuel correction"
+    ],
     "body": [
       "A Formula 1 car is heaviest at the start of a stint, when it's carrying all the fuel it needs. Every lap burns some of that off, and the car gets lighter and faster as a result, worth roughly a few hundredths of a second per lap for every kilogram shed.",
       "That means a driver's very first laps on a full tank are never their true pace. Someone running long on old fuel can look artificially slow next to a car that's already burned off weight, even if the underlying pace is similar.",
       "To compare drivers or stints fairly, that fuel weight has to be corrected out of the lap times first. It's one of the basic cleaning steps behind any honest read of race pace."
     ],
     "whyItMatters": "Correcting for fuel effect is a first step in our pace pipeline, since skipping it would make heavier, early-stint laps look like a driver problem instead of a fuel one.",
-    "related": ["qualifying-vs-race-pace", "tyre-degradation"],
+    "related": [
+      "qualifying-vs-race-pace",
+      "tyre-degradation"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One racing",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_racing"
+      }
     ]
   },
   {
@@ -398,18 +687,31 @@
     "term": "Lift and Coast",
     "group": "Power & energy",
     "summary": "Easing off the throttle before a braking point to manage the car, rather than braking as late as possible every lap.",
-    "aliases": ["lift and coast", "lift-and-coast", "lico"],
+    "aliases": [
+      "lift and coast",
+      "lift-and-coast",
+      "lico"
+    ],
     "body": [
       "Lift and coast means a driver backs out of the throttle earlier than flat-out racing would allow, before the braking zone, instead of carrying full speed to the last possible moment.",
       "In 2026, with the power unit drawing a much bigger share of its output from the battery, lift and coast is primarily an energy-management move: easing off banks extra charge for later deployment. It still helps save fuel, tyres, and brakes too, which matters across a long stint or when nursing a car home.",
       "It isn't free. Lifting early costs a little lap time on the lap it happens, so teams and drivers are weighing that small loss against the energy, fuel, or component life they get back."
     ],
     "whyItMatters": "Laps with visible lift and coast are exactly the kind of laps our pace pipeline has to recognize and treat differently, since they understate a driver's outright pace on purpose.",
-    "related": ["fuel-effect", "energy-harvesting"],
+    "related": [
+      "fuel-effect",
+      "energy-harvesting"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One racing", "url": "https://en.wikipedia.org/wiki/Formula_One_racing" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One racing",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_racing"
+      }
     ]
   },
   {
@@ -417,18 +719,32 @@
     "term": "Energy Harvesting",
     "group": "Power & energy",
     "summary": "How a car recovers energy into its battery under braking, feeding the electrical power it deploys elsewhere on the lap.",
-    "aliases": ["harvesting", "energy recovery", "regen", "ERS", "MGU-K"],
+    "aliases": [
+      "harvesting",
+      "energy recovery",
+      "regen",
+      "ERS"
+    ],
     "body": [
       "Every time a Formula 1 car brakes, its Motor Generator Unit-Kinetic (MGU-K) can recover some of that energy and store it in the battery instead of losing it all as heat, a process usually shorthanded as regen.",
       "The 2026 power unit draws close to half its total output from electrical power, up sharply from earlier hybrid eras. That makes harvesting enough energy over a lap, especially under the heavier braking zones, central to how much a driver can deploy later for attack or defence.",
       "A car that harvests well can spend more freely when it counts. One that struggles to recover energy, on a lap with fewer or gentler braking zones, has less in the bank and has to manage deployment more carefully."
     ],
     "whyItMatters": "How well a car harvests shapes what it can deploy through power modes, which is a genuine 2026 storyline behind who can attack or defend late in a stint.",
-    "related": ["power-modes", "lift-and-coast"],
+    "related": [
+      "power-modes",
+      "lift-and-coast"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
     ]
   },
   {
@@ -436,18 +752,704 @@
     "term": "Power Modes",
     "group": "Power & energy",
     "summary": "How a 2026 driver manages and deploys stored electrical power across a lap, including a manual boost for attack or defence.",
-    "aliases": ["overtake mode", "boost mode", "override", "manual override"],
+    "aliases": [
+      "overtake mode",
+      "boost mode",
+      "override",
+      "manual override"
+    ],
     "body": [
       "2026 cars give the driver control over how stored electrical energy is deployed across a lap, balancing it against what's been harvested under braking. Spend too freely too early and there's less left when it matters later.",
       "On top of that base deployment, a manual override, sometimes called overtake mode, hands the driver a short burst of extra electrical power to help an attack or a defence, echoing the role DRS used to play before 2026.",
       "It pairs with the aero side of the 2026 rules: a driver switching to the low-drag 'straight' mode on a straight is a separate, aero call, covered under DRS & Active Aero. Power modes are the energy-deployment half of that same 2026 story."
     ],
     "whyItMatters": "Where and how a driver can deploy the override boost shapes how easily a position actually changes hands, which is part of how a predicted strategy plays out on Sunday.",
-    "related": ["energy-harvesting", "drs"],
+    "related": [
+      "energy-harvesting",
+      "drs"
+    ],
     "badge": "verified",
     "sources": [
-      { "label": "Formula 1 official site", "url": "https://www.formula1.com/en/latest" },
-      { "label": "Wikipedia: Formula One regulations", "url": "https://en.wikipedia.org/wiki/Formula_One_regulations" }
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "graining",
+    "term": "Graining",
+    "group": "Tyres & strategy",
+    "summary": "A cold-tyre surface tearing that hurts grip early in a stint, distinct from the heat-driven wear of degradation.",
+    "aliases": [
+      "graining",
+      "tyre graining",
+      "cold tyres"
+    ],
+    "body": [
+      "Graining happens when a tyre is running cooler or harder than its ideal window and the rubber surface shears rather than melts smoothly, tearing off tiny pellets of rubber that roll along the tread instead of gripping the track. It shows up as a sudden, temporary loss of grip early in a stint, often on out-laps or after a safety car has cooled everything down.",
+      "It's easy to confuse with degradation, but the mechanism runs the opposite way: degradation is a tyre getting too hot over time, graining is a tyre that's too cold. Graining usually fades once the tyre works back up to temperature and the torn rubber wears away, so a car that looked slow for the first few laps of a stint can recover on its own.",
+      "Because graining is a temperature problem rather than a wear problem, it doesn't map cleanly onto the stint-length and stop-count signals a strategy model reads from long-run practice data: a genuinely graining-prone stint can look worse early than it will actually run."
+    ],
+    "whyItMatters": "Sector 4's strategy read leans on Friday long-run pace; a graining-affected opening sector of a stint is a real but temporary dip, not a sign the tyre is failing, so it's worth knowing the difference before reading too much into an early lap time.",
+    "related": [
+      "tyre-degradation",
+      "tyre-compounds",
+      "track-evolution"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One tyres",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_tyres"
+      }
+    ]
+  },
+  {
+    "slug": "tyre-allocation",
+    "term": "Tyre Allocation",
+    "group": "Tyres & strategy",
+    "summary": "The fixed set of dry compounds Pirelli nominates for each race weekend, and why every car works from the same options.",
+    "aliases": [
+      "tyre allocation",
+      "compound nomination",
+      "pirelli allocation"
+    ],
+    "body": [
+      "Before every race weekend, Pirelli nominates which three of its five dry compounds (from hardest C1 to softest C5) will be available, based on how abrasive and demanding that circuit is. Every team gets the same three, relabelled on-track as hard, medium and soft for that weekend only; the actual compound underneath can be completely different from what 'medium' meant at the previous race.",
+      "Each driver also gets a fixed number of sets across the weekend, with rules on how many of each compound they must return unused and a minimum requirement to use two different dry compounds during the race (barring wet conditions). That allocation shapes practice: teams have to budget which sets they burn testing long runs versus saving for qualifying and the race.",
+      "Because the compound trio changes track to track, a driver's 'soft' at a high-deg circuit can behave nothing like their 'soft' at a smooth one; the label is relative to that weekend's allocation, not a fixed compound."
+    ],
+    "whyItMatters": "Compound prediction needs this weekend's actual allocation as an input: a call is only as good as knowing which three compounds are even in play, which is exactly why the model reads the allocation, not just prior history.",
+    "related": [
+      "tyre-compounds",
+      "tyre-degradation"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One tyres",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_tyres"
+      }
+    ]
+  },
+  {
+    "slug": "qualifying-format",
+    "term": "Qualifying Format (Q1/Q2/Q3)",
+    "group": "Pace & sessions",
+    "summary": "The three-part knockout that sets the grid: Q1 and Q2 each cut five cars, Q3 decides pole.",
+    "aliases": [
+      "qualifying format",
+      "Q1",
+      "Q2",
+      "Q3",
+      "knockout qualifying"
+    ],
+    "body": [
+      "Qualifying runs as three knockout segments. In Q1, all cars run and the slowest five are eliminated and locked into the back of the grid in the order they qualified. The rest advance to Q2, where the same cut happens again, eliminating five more.",
+      "The remaining ten cars go into Q3 to fight for pole position and the rest of the top-ten grid slots. Each segment has its own fixed time window, so drivers eliminated early get less track time overall, and teams have to decide how many sets of tyres to spend getting through Q1 and Q2 versus saving fresh ones for a final Q3 push.",
+      "Some seasons have also required the top ten to start the race on the tyre they set their best Q2 time on, tying grid position and starting-tyre strategy together; that specific rule has been added, dropped, and reinstated across different years, so it's worth checking whether it's active for the season in question rather than assuming."
+    ],
+    "whyItMatters": "When the Q2 tyre rule is active it's a real strategy constraint baked into the grid before the race even begins, part of why grid position alone carries real predictive signal for the podium (PRD's validated baseline).",
+    "related": [
+      "push-banker-lap",
+      "qualifying-vs-race-pace"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One race weekend",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_race_weekend"
+      }
+    ]
+  },
+  {
+    "slug": "push-banker-lap",
+    "term": "Push Lap vs Banker Lap",
+    "group": "Pace & sessions",
+    "summary": "A 'banker' lap banks a safe time first; a 'push' lap is the all-out attempt to improve on it.",
+    "aliases": [
+      "banker lap",
+      "push lap",
+      "qualifying tactics"
+    ],
+    "body": [
+      "With limited time and tyre sets in each qualifying segment, drivers often run a 'banker' lap first: a committed but not maximum-risk lap that guarantees a time good enough to advance, in the bank in case anything goes wrong later.",
+      "Once that banker is set, the driver can push harder on a following lap, taking more risk in the corners since a lock-up, a run wide, or a red flag no longer costs them their spot; the banker lap is already there as a fallback.",
+      "Track position in the final minutes matters here too: a driver without a clean lap banked yet who gets stuck behind slower cars on their only remaining attempt can be eliminated on pure bad luck, not pace."
+    ],
+    "whyItMatters": "It's a big part of why a driver's fastest lap of a session doesn't always land on their final attempt, worth knowing when reading a qualifying segment's headline lap times.",
+    "related": [
+      "qualifying-format",
+      "out-in-lap"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One race weekend",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_race_weekend"
+      }
+    ]
+  },
+  {
+    "slug": "out-in-lap",
+    "term": "Out-Lap & In-Lap",
+    "group": "Pace & sessions",
+    "summary": "The lap leaving the pits and the lap returning to them, both slower than a representative lap and usually excluded from pace reads.",
+    "aliases": [
+      "out lap",
+      "in lap",
+      "warm-up lap"
+    ],
+    "body": [
+      "An out-lap is the first lap after leaving the pits, run at reduced pace early on to bring tyres and brakes up to temperature before pushing. An in-lap is the last lap of a run, before peeling into the pits, often eased off once the driver knows the timed lap that matters is already done.",
+      "Neither lap is representative of a car's real pace, so both are normally discarded when reading practice long runs or comparing lap times; including one would understate how fast a car actually is mid-run.",
+      "They still matter for tyre and fuel management: a slow out-lap on a cold tyre is part of why an in-and-out pit stop costs more time than just the stationary time in the pit box (see pit-lane time loss)."
+    ],
+    "whyItMatters": "Long-run pace analysis has to filter these out to get an honest read of race pace; including an out-lap in a stint average would make a car look slower than it actually is.",
+    "related": [
+      "pit-lane-time-loss",
+      "qualifying-vs-race-pace"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One race weekend",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_race_weekend"
+      }
+    ]
+  },
+  {
+    "slug": "fuel-corrected-pace",
+    "term": "Fuel-Corrected Pace",
+    "group": "Pace & sessions",
+    "summary": "Adjusting a lap time for how much fuel the car was carrying, so laps at different points in a stint can be compared fairly.",
+    "aliases": [
+      "fuel corrected pace",
+      "fuel adjusted lap time"
+    ],
+    "body": [
+      "A heavier car is slower, so a lap early in a long run (more fuel on board) isn't directly comparable to a lap late in the same run (less fuel, lighter car). Fuel-corrected pace applies a standard per-lap time adjustment for the fuel burned, so every lap in a run can be compared as if it were run at the same fuel load.",
+      "Teams do this constantly to read practice sessions honestly: without correcting for fuel, a long run simply looks like it gets faster every lap, which mixes together the car getting lighter and the tyre wearing in ways that actually pull on the lap time in opposite directions at once.",
+      "It's also how outside analysts estimate a car's true race pace from public practice times, since fuel loads themselves aren't published; the correction is an estimate, not an exact figure."
+    ],
+    "whyItMatters": "Any pace comparison Sector 4 makes between cars or across a stint has to account for this the same way, or a genuinely quick car on a heavy fuel load would look slower than it really is.",
+    "related": [
+      "fuel-effect",
+      "qualifying-vs-race-pace"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "downforce-drag",
+    "term": "Downforce vs Drag",
+    "group": "Air & aero",
+    "summary": "The core aerodynamic trade-off: more downforce means more cornering grip, but usually more drag and a lower top speed.",
+    "aliases": [
+      "downforce",
+      "drag",
+      "aero trade-off"
+    ],
+    "body": [
+      "Downforce is the aerodynamic force pushing a car onto the track, generated by wings and the floor shaping the airflow. More downforce means more grip in corners, letting a car carry more speed through them without sliding.",
+      "That grip isn't free: generating downforce also creates drag, the aerodynamic resistance that slows the car down on the straights, since the same effect that presses the car down also pushes back against it moving forward. A car set up with a lot of wing angle corners brilliantly but tops out at a lower straight-line speed than a car trimmed for low drag.",
+      "Every circuit is a different trade-off. A tight, twisty track rewards maximum downforce even at a straight-line-speed cost, while a track with long straights rewards trimming the wings down, even if it costs some cornering grip."
+    ],
+    "whyItMatters": "This trade-off is why the same car can look dominant at one circuit and midfield at the next: it's set up differently, not suddenly faster or slower.",
+    "related": [
+      "ground-effect",
+      "drs"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Downforce",
+        "url": "https://en.wikipedia.org/wiki/Downforce"
+      }
+    ]
+  },
+  {
+    "slug": "porpoising",
+    "term": "Porpoising",
+    "group": "Air & aero",
+    "summary": "A high-speed bouncing the current ground-effect cars can suffer when the underfloor airflow stalls and recovers in a repeating cycle.",
+    "aliases": [
+      "porpoising",
+      "car bouncing",
+      "bottoming out"
+    ],
+    "body": [
+      "Porpoising is a vertical bouncing motion that can build up at high speed on ground-effect cars. As the car gets low to the ground, airflow accelerating under the floor increases downforce and pulls the car down further, until the gap gets so tight the airflow stalls, downforce collapses, and the car springs back up, restarting the cycle.",
+      "It reappeared when ground-effect floors returned to F1 in 2022 after a long absence, catching several teams out in a way none had fully modelled beforehand. Some drivers reported real physical discomfort from the repeated impacts at speed, not just a performance loss.",
+      "Teams manage it mainly through ride height and floor stiffness: running the car higher avoids the stall but gives up some of the downforce the low ride height was there for in the first place, so eliminating porpoising is its own trade-off against outright pace."
+    ],
+    "whyItMatters": "It's a good example of how a single regulation change (the return of ground effect) can create a brand-new performance variable overnight, exactly the kind of thing that makes a reg-reset season harder to predict from history alone.",
+    "related": [
+      "ground-effect",
+      "downforce-drag"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Ground effect (cars)",
+        "url": "https://en.wikipedia.org/wiki/Ground_effect_(cars)"
+      }
+    ]
+  },
+  {
+    "slug": "front-rear-wing",
+    "term": "Front Wing & Rear Wing",
+    "group": "Air & aero",
+    "summary": "The two main wing elements that generate downforce at the front and back of the car, and why balancing them matters.",
+    "aliases": [
+      "front wing",
+      "rear wing",
+      "wing angle"
+    ],
+    "body": [
+      "The front wing is the first part of the car to meet the air, shaping how much downforce the front axle gets and how the airflow is directed toward the rest of the car, including the floor and rear wing behind it. The rear wing does the same job at the back, and is also where DRS opens a flap to cut drag on straights.",
+      "Balancing the two matters as much as the total amount of downforce: too much rear wing relative to the front and the car resists turning in (understeer); too much front relative to the rear and the rear can step out under braking or mid-corner (oversteer). Teams adjust wing angles between sessions to chase that balance for the specific circuit.",
+      "Because the front wing sets up the airflow for everything downstream, damage to it (a common result of wheel-to-wheel contact) tends to cost more overall performance than its size would suggest: it's not just losing front grip, it's disrupting the whole car's aero."
+    ],
+    "whyItMatters": "Front-wing damage is one of the more common, visible reasons a car's pace drops mid-race without a tyre or strategy explanation, worth knowing when a stint suddenly looks off.",
+    "related": [
+      "downforce-drag",
+      "dirty-air"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Downforce",
+        "url": "https://en.wikipedia.org/wiki/Downforce"
+      }
+    ]
+  },
+  {
+    "slug": "floor-diffuser",
+    "term": "Floor & Diffuser",
+    "group": "Air & aero",
+    "summary": "The underbody shaping that generates most of a modern F1 car's downforce, current ground-effect regulations' main event.",
+    "aliases": [
+      "floor",
+      "diffuser",
+      "underbody aero"
+    ],
+    "body": [
+      "The floor is the flat underside of the car, shaped with channels ('tunnels') that accelerate airflow underneath it. The diffuser is the upward-curving section at the back of the floor, where that fast-moving air expands and slows back down, which is what actually generates the pressure difference (the suction) that produces downforce.",
+      "Since the 2022 regulations, the floor and diffuser generate the majority of a car's total downforce, more than the front or rear wing individually, which is why 'ground effect' returned as the defining description of this generation of cars.",
+      "Because so much performance now comes from air travelling underneath the car rather than over the wings, floor damage or even small amounts of debris caught under the car can cost real, hard-to-diagnose performance without any obvious visible damage."
+    ],
+    "whyItMatters": "It's the main reason ride height and kerb-riding are such a big deal for current cars: losing floor performance over bumps or kerbs is a bigger loss than it would have been for older, wing-dominated cars.",
+    "related": [
+      "ground-effect",
+      "porpoising"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Diffuser (automotive)",
+        "url": "https://en.wikipedia.org/wiki/Diffuser_(automotive)"
+      }
+    ]
+  },
+  {
+    "slug": "wake-turbulence",
+    "term": "Wake Turbulence (Cleaner-Air Regs)",
+    "group": "Air & aero",
+    "summary": "The 2022 aero rules aimed to make a car's disturbed wake less punishing for the car following it, reducing (not eliminating) the dirty-air penalty.",
+    "aliases": [
+      "cleaner air",
+      "wake turbulence",
+      "dirty air regulations"
+    ],
+    "body": [
+      "Every car leaves behind a wake of disturbed, lower-energy air. The 2022 regulations moved most of the downforce generation from wings (which throw off messy, high-turbulence wake) to the floor and diffuser (whose wake is comparatively smoother), specifically to reduce how badly a following car's aero suffers in traffic.",
+      "It worked, to a degree: teams and drivers broadly agreed cars could follow more closely than under the previous generation of rules. It didn't remove the effect entirely; a car in another's wake still loses downforce, just less catastrophically than before.",
+      "This is a genuinely different aero era from the pre-2022 cars, which is part of why older seasons' overtaking and following data doesn't map cleanly onto current-generation racing."
+    ],
+    "whyItMatters": "It's a reminder that 'dirty air' isn't a fixed, unchanging quantity: the regulations actively shape how punishing it is, and this generation's version is a real, deliberate improvement on the last.",
+    "related": [
+      "dirty-air",
+      "ground-effect"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "track-limits",
+    "term": "Track Limits",
+    "group": "Race control",
+    "summary": "The boundary of the circuit a driver must stay within, usually the outer white line, with lap times deleted for exceeding it.",
+    "aliases": [
+      "track limits",
+      "off track",
+      "exceeding track limits"
+    ],
+    "body": [
+      "Track limits define the edge of the circuit a car must stay within; at most F1 tracks this is the outer edge of the white line bordering the track, with the line itself still counting as 'on track'. Running with all four wheels beyond that line is exceeding track limits.",
+      "In practice and qualifying, a lap where a driver exceeds track limits at a corner that's being monitored has its lap time deleted, which can knock a driver out of a qualifying segment even if the deleted lap was their fastest. In the race, repeated track-limits violations at the same corner escalate to a time penalty.",
+      "Some corners are watched more closely than others depending on the layout, and the FIA can adjust or add gravel or kerbs between sessions or seasons if a track-limits problem at a particular corner becomes persistent."
+    ],
+    "whyItMatters": "A deleted lap time is a common, non-obvious reason a driver's qualifying result doesn't match what looked like their fastest lap on TV, worth knowing before reading too much into a headline time.",
+    "related": [
+      "qualifying-format",
+      "flags"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "red-flag-restarts",
+    "term": "Red Flag Restarts",
+    "group": "Race control",
+    "summary": "What happens after a session stops under red flag: how the grid resets, and what teams are allowed to change before it goes again.",
+    "aliases": [
+      "red flag restart",
+      "standing restart"
+    ],
+    "body": [
+      "When a red flag stops a race, cars queue up in the pit lane or return to the grid, and the restart is usually a standing start from the order the field was running in when the red flag came out, not a rolling restart behind a safety car.",
+      "A red flag stoppage briefly suspends the usual parc fermé restrictions: teams get a window to make repairs, and in wet conditions, to change tyres or make some setup adjustments they couldn't touch under normal parc fermé rules.",
+      "If a red flag comes out very early in a race, how much of the original race distance is left can affect whether the result still counts as a full points-scoring race; the exact thresholds have changed across different seasons' regulations."
+    ],
+    "whyItMatters": "A red flag genuinely resets strategy calculations: the stops, tyres, and gaps built up before it can be partly or fully wiped out, which is exactly the kind of discontinuity that limits how far any pre-race strategy call can be trusted.",
+    "related": [
+      "flags",
+      "safety-car-vsc"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Racing flags",
+        "url": "https://en.wikipedia.org/wiki/Racing_flags"
+      }
+    ]
+  },
+  {
+    "slug": "time-penalties",
+    "term": "Time Penalties (5s/10s)",
+    "group": "Race control",
+    "summary": "A fixed time added for an in-race infraction, served at the next pit stop or added after the finish if there isn't one.",
+    "aliases": [
+      "5 second penalty",
+      "10 second penalty",
+      "time penalty",
+      "stop-go penalty"
+    ],
+    "body": [
+      "For less serious in-race infringements, like a track-limits escalation, an unsafe rejoin, or causing a minor collision, race control can issue a 5 or 10-second time penalty. If the driver still has a pit stop left to make, the penalty is served there: they must stay stationary in their pit box for that many extra seconds.",
+      "If a driver doesn't stop again before the race ends, the time penalty is simply added to their finishing time instead, which can drop them behind cars they crossed the line ahead of.",
+      "More serious infractions can draw a drive-through penalty (drive through the pit lane at the speed limit without stopping) or a stop-go penalty (stop in the pit box for a fixed time with no other work allowed), both costing noticeably more time than a straight 5 or 10 seconds."
+    ],
+    "whyItMatters": "A time penalty served in the pits changes the actual strategy on track (an extra stationary stint mid-stop), not just the results sheet after the race: it's a real, live variable, not just a post-race adjustment.",
+    "related": [
+      "pit-lane-time-loss",
+      "grid-penalties"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "parc-ferme",
+    "term": "Parc Fermé",
+    "group": "Race control",
+    "summary": "The rules locking a car's setup once qualifying starts, preventing changes that would undo the qualifying result's fairness.",
+    "aliases": [
+      "parc ferme",
+      "parc fermé conditions"
+    ],
+    "body": [
+      "From the moment a car leaves the pits for qualifying until the race's formation lap, it's under parc fermé conditions: the FIA restricts what teams can change on it, to stop a team qualifying with one setup and racing with a substantially different, better one.",
+      "Only a short list of adjustments are allowed under parc fermé, things like tyre changes, minor front wing angle tweaks, and repairs for safety reasons; anything beyond that requires special permission, and usually comes with a grid penalty attached.",
+      "A team that wants a bigger setup change (say, after a wet qualifying leaves the car set up wrong for a dry race) has to choose: keep the qualifying position and live with the setup, or start from the pit lane instead in exchange for a free setup change."
+    ],
+    "whyItMatters": "It's why a grid position from qualifying is a meaningfully binding commitment, not just a starting order: the car underneath it is largely locked in too.",
+    "related": [
+      "grid-penalties",
+      "qualifying-format"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Parc fermé",
+        "url": "https://en.wikipedia.org/wiki/Parc_ferm%C3%A9"
+      }
+    ]
+  },
+  {
+    "slug": "formation-lap-start",
+    "term": "Formation Lap & Race Start",
+    "group": "Race control",
+    "summary": "The slow lap before a standing start that lets drivers warm tyres and brakes, and check the grid is clear before the race begins.",
+    "aliases": [
+      "formation lap",
+      "race start",
+      "standing start"
+    ],
+    "body": [
+      "Before a standing start, the field completes a formation lap at reduced pace, weaving to build heat into the tyres and testing the brakes, before settling back into grid order to take their marks. Overtaking on the formation lap itself isn't allowed.",
+      "If a car has a problem and can't take its grid slot, it can start from the pit lane instead once the rest of the field has gone, or the start can be delayed. A car that stalls on the grid itself can trigger an aborted start for the whole field.",
+      "The race start itself is a standing start: all cars stationary, released together on the lights going out. It's one of the few moments a lot of grid positions can change at once, since a good launch or a slow one is worth more places in the first few hundred metres than almost anywhere else on the lap."
+    ],
+    "whyItMatters": "The start is a genuinely high-variance moment that no pre-race model captures well: it's one of the honest reasons a podium probability is a probability, not a certainty, right from lap one.",
+    "related": [
+      "grid-penalties",
+      "safety-car-vsc"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formation lap",
+        "url": "https://en.wikipedia.org/wiki/Parade_lap"
+      }
+    ]
+  },
+  {
+    "slug": "power-unit-components",
+    "term": "Power Unit Components (ICE & MGU-K)",
+    "group": "Power & energy",
+    "summary": "The hardware inside a 2026 power unit: a turbocharged combustion engine paired with a single electric motor-generator, the MGU-K.",
+    "aliases": [
+      "power unit",
+      "ICE",
+      "MGU-K",
+      "internal combustion engine"
+    ],
+    "body": [
+      "A Formula 1 power unit combines an internal combustion engine (ICE), a turbocharged V6, with an electric motor-generator called the MGU-K, connected to the crankshaft. The MGU-K both recovers energy under braking and adds electric power back under acceleration.",
+      "Previous-generation power units (2014-2025) also carried a second motor-generator, the MGU-H, which recovered energy from exhaust heat via the turbocharger. The 2026 regulations remove the MGU-H entirely, simplifying the unit to just the ICE and MGU-K, while substantially increasing the MGU-K's power contribution to compensate.",
+      "This is a genuinely different power unit architecture from the previous era, not just a tweak, which is part of why the 2026 season is treated as a real reset rather than an incremental update."
+    ],
+    "whyItMatters": "The power unit is one of the biggest actual hardware changes in the 2026 reset, alongside the chassis and aero rules: a real reason to expect the season to take time to settle into predictable patterns.",
+    "related": [
+      "energy-harvesting",
+      "power-modes"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One engines",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_engines"
+      }
+    ]
+  },
+  {
+    "slug": "sustainable-fuel",
+    "term": "Sustainable Fuel (2026)",
+    "group": "Power & energy",
+    "summary": "From 2026, F1 cars run on fuel made entirely from non-fossil carbon sources, part of the sport's move to carbon neutrality.",
+    "aliases": [
+      "sustainable fuel",
+      "e-fuel",
+      "100% sustainable fuel"
+    ],
+    "body": [
+      "Since 2022, F1 cars ran on E10 fuel, a 90/10 blend of fossil fuel and renewable ethanol. From 2026, the regulations require a fully sustainable fuel: made from sources like municipal waste, non-food biomass, or captured carbon, rather than crude oil, while still working as a drop-in replacement for the same combustion engines.",
+      "The goal is a genuinely closed carbon loop: the carbon released when the fuel burns is meant to roughly match the carbon captured or diverted in making it, rather than adding new fossil carbon to the atmosphere.",
+      "Because the fuel's chemistry is different from traditional petrol, engine suppliers had to re-tune combustion for it; it isn't simply a drop-in swap under the hood, even if it behaves like one at the pump."
+    ],
+    "whyItMatters": "It's one of the less visible parts of the 2026 reset compared to the new chassis or power unit, but a real regulatory and engineering change worth knowing when the season gets described as a full reset, not just a styling refresh.",
+    "related": [
+      "power-unit-components",
+      "fuel-effect"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "power-unit-allocation",
+    "term": "Power Unit Allocation",
+    "group": "Power & energy",
+    "summary": "The fixed number of engine and battery components each driver gets for a season before using more triggers a grid penalty.",
+    "aliases": [
+      "power unit allocation",
+      "component allocation",
+      "engine penalty pool"
+    ],
+    "body": [
+      "Each driver is allotted a fixed number of power unit components for the season: a set number of internal combustion engines, MGU-Ks, turbochargers, energy stores, and control electronics. Exactly how many varies by component and can change between seasons as the regulations are updated.",
+      "Using more than the allocated number of any component before the season's races are up triggers a grid penalty (see grid penalties), scaled roughly to how far over the limit a team goes. Teams track this budget across the whole season, not race by race.",
+      "This turns reliability into a strategic resource, not just a technical one: a team might deliberately take a known penalty at a circuit where overtaking is easier, to fit a fresh, more reliable component in before a harder-to-pass track later in the season."
+    ],
+    "whyItMatters": "It's the mechanism behind most grid penalties that aren't for driving incidents, worth knowing as the 'why' behind a penalty that otherwise looks unrelated to how the driver actually performed that weekend.",
+    "related": [
+      "grid-penalties",
+      "power-unit-components"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
+    ]
+  },
+  {
+    "slug": "brake-by-wire",
+    "term": "Brake-by-Wire",
+    "group": "Power & energy",
+    "summary": "How the rear brakes blend friction braking with the MGU-K's energy recovery, since both act on the same rear wheels at once.",
+    "aliases": [
+      "brake by wire",
+      "brake blending"
+    ],
+    "body": [
+      "On the rear axle, the MGU-K recovering energy under braking and the physical brake discs are both trying to slow the same wheels at the same time. Brake-by-wire is the electronic system that blends the two, adjusting how much of the braking force comes from energy recovery versus the discs, lap by lap and even corner by corner, so the total braking feel stays consistent to the driver.",
+      "This matters because the amount of energy available to recover changes: a nearly-full energy store can't accept much more charge, so the system has to lean more on the physical brakes at that moment and compensate so the pedal doesn't suddenly feel different.",
+      "It's a genuinely hard engineering problem, getting the blend wrong makes the rear brakes feel inconsistent under braking, which is dangerous at speed, and why brake-by-wire calibration is a real area teams compete on, not just a background detail."
+    ],
+    "whyItMatters": "It's a good example of how the hybrid system reaches into parts of the car that have nothing to do with 'power' in the straight-line sense: braking feel and stability are shaped by the energy system too.",
+    "related": [
+      "energy-harvesting",
+      "power-unit-components"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Brake-by-wire",
+        "url": "https://en.wikipedia.org/wiki/Brake-by-wire"
+      }
+    ]
+  },
+  {
+    "slug": "minimum-weight",
+    "term": "Minimum Car Weight",
+    "group": "Power & energy",
+    "summary": "The regulation floor on how light a car and driver can be, which has climbed for years as batteries and safety structures got heavier.",
+    "aliases": [
+      "minimum weight",
+      "car weight limit"
+    ],
+    "body": [
+      "F1 sets a minimum weight for the car and driver combined; teams that build lighter than the limit add ballast (weight placed at chosen points on the car) to reach it exactly, since a car right at the limit with weight placed optimally is better than one that's simply lighter and under the limit illegally.",
+      "That minimum has climbed steadily as the cars have gained hybrid batteries, bigger safety structures, and larger tyres: the current generation is meaningfully heavier than cars from a decade earlier, even though bare performance has kept climbing too.",
+      "A heavier car needs more energy to accelerate and more to slow down, so the weight floor isn't just a chassis-design detail: it interacts with tyre wear, braking, and how much the hybrid system's power actually translates into lap time."
+    ],
+    "whyItMatters": "It's part of the broader story that current cars are heavier machines than older comparisons might assume, worth keeping in mind when a historical stat gets compared straight across eras.",
+    "related": [
+      "power-unit-components",
+      "fuel-effect"
+    ],
+    "badge": "verified",
+    "sources": [
+      {
+        "label": "Formula 1 official site",
+        "url": "https://www.formula1.com/en/latest"
+      },
+      {
+        "label": "Wikipedia: Formula One regulations",
+        "url": "https://en.wikipedia.org/wiki/Formula_One_regulations"
+      }
     ]
   }
 ]

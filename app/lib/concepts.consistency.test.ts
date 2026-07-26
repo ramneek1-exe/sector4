@@ -81,15 +81,23 @@ describe("concepts.json integrity", () => {
     }
   });
 
-  it("ships all 24 concepts", () => {
-    expect(concepts.length).toBe(24);
+  it("ships all 45 concepts", () => {
+    expect(concepts.length).toBe(45);
   });
 
-  it("all 24 concepts are verified", () => {
+  it("all 45 concepts are verified", () => {
     const verified = concepts.filter((c) => c.badge === "verified").length;
     const drafted = concepts.filter((c) => c.badge === "drafted").length;
-    expect(verified).toBe(24);
+    expect(verified).toBe(45);
     expect(drafted).toBe(0);
+  });
+
+  it("every theme has at least 9 concepts", () => {
+    const counts = new Map<string, number>();
+    for (const c of concepts) counts.set(c.group, (counts.get(c.group) ?? 0) + 1);
+    for (const [group, n] of counts) {
+      expect(n, group).toBeGreaterThanOrEqual(9);
+    }
   });
 
   it("covers all five groups", () => {
