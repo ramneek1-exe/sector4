@@ -11,8 +11,32 @@
 > lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), the
 > CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
 > (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
-> BUG FIX (PR #53), and a README HERO GIF + badges (PR #54) are all **LIVE on
-> PRODUCTION (`sector4.net`)** — deploy `5e8f990` (2026-07-26). **M7 is DONE.**
+> BUG FIX (PR #53), a README HERO GIF + badges (PR #54), and a FONT WOFF2 PERF FIX (PR #55)
+> are all **LIVE on PRODUCTION (`sector4.net`)** — deploy `e9b7a9e` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 2026-07-26 — font WOFF2 perf fix (PR #55), verified real, hero bundle work deferred
+> `PPMondwest-Regular` + `PPNeueBit-Bold` (the two pixel/bitmap display fonts) were served
+> as raw OTF via `next/font/local` — the audit's performance pass flagged this as the
+> dominant LCP contributor on `/learn/[slug]`, though it wrongly guessed the culprit was
+> Bebas Neue (already WOFF2) — the actual OTF-served fonts were these two, both ~50% smaller
+> once converted (144KB→69KB, 128KB→60KB) via `fontTools` (glyph order + cmap verified
+> byte-identical before/after — safe, no visual risk). `PPMondwest-Regular.otf` STAYS on
+> disk: `app/opengraph-image.tsx` reads it directly via satori, which can't parse WOFF2 —
+> dual-format on purpose, don't "clean up" the otf as unused. **Verified real, not just
+> theoretical:** Lighthouse (mobile, simulated throttling) before/after on
+> `/learn/tyre-degradation` — LCP breakdown's `elementRenderDelay` **2166ms → 109ms** (20x).
+> The simulated-throttling HEADLINE LCP number barely moved (3.67s→3.6s), which is expected
+> and already documented in the audit as a simulated-vs-observed gap, not a failed fix — the
+> observed/real subpart is what actually improved; CrUX field data (needs a Google API key,
+> not configured) would be the authoritative real-world confirmation if ever set up.
+> **DEFERRED, deliberately not touched:** the other two performance items from the audit —
+> code-splitting the WebGPU dither/shader + start-lights bundle off the homepage's initial
+> load, and confirming the hero's animation render loop yields every frame (INP risk). Owner
+> agreed to stop after the font fix rather than continue into these — they touch the
+> hero/preloader, the most heavily-tuned and regression-prone part of this codebase (see the
+> long list of past traps in the preloader/curtain-reveal session entries below: unit
+> mixups, failsafe clock bugs, StrictMode double-invoke issues). Treat as its own
+> brainstorm→spec→plan cycle when picked up, not a quick add-on.
 >
 > ## 🟢 2026-07-26 follow-ups — weekend strategy bug fix (PR #53) + README hero GIF (PR #54)
 > Both from the SEO audit's deferred items, picked up same day. **PR #53:** `/weekend`'s
