@@ -7,10 +7,16 @@ describe("entity-whats accessors", () => {
     expect(getEntityWhat("driver", "VER")?.title).toBe("Max Verstappen");
     expect(getEntityWhat("team", "Nowhere")).toBeUndefined();
   });
-  it("getCircuitFacts sentence-splits the summary (drop-in for /weekend)", () => {
+  // NOTE: entity-whats.json is LLM-regenerated on the weekend refresh cadence, so the
+  // sentence COUNT of any given circuit's summary is live data, not a contract. This
+  // originally asserted `> 1` and broke on 2026-07-26 when Austria's summary was rewritten
+  // from two sentences to one. The contract worth testing is "returns clean, non-empty
+  // sentences"; the splitting behaviour itself is pinned properly by the fixed-input
+  // splitSentences test below.
+  it("getCircuitFacts returns clean non-empty sentences (drop-in for /weekend)", () => {
     const facts = getCircuitFacts("Austria");
     expect(Array.isArray(facts)).toBe(true);
-    expect(facts.length).toBeGreaterThan(1);
+    expect(facts.length).toBeGreaterThanOrEqual(1);
     expect(facts.every((f) => f.trim().length > 0 && !f.includes("  "))).toBe(true);
   });
   it("splitSentences never breaks on decimals or intra-token periods", () => {
