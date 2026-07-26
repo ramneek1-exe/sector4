@@ -17,6 +17,44 @@
 > "SEE MORE" BUG FIX (PR #60) are all **LIVE on PRODUCTION (`sector4.net`)** — deploy
 > `0b68f3b` (2026-07-26). **M7 is DONE.**
 >
+> ## 🟢 2026-07-26 — promotion drafts, footer credit (PR #63), red-main fix (PR #64)
+> **Footer author credit** (PR #63): "Made with ♥ by Ramneek" → ramneeksingh.ca, pixel font,
+> grow-underline, in the root-layout footer so it's on every page. Two gotchas worth
+> remembering: (1) **any new `.cta-grow` consumer MUST add `relative`** — the underline is an
+> absolutely-positioned `::after` and without a positioned ancestor it escapes and strikes
+> across the whole page (the PR #60 bug, nearly repeated here; verified `::after` = 47.1px,
+> matching the link). (2) The default underline draws in `--ramp-1` (#2f2e89, dark indigo)
+> which is near-invisible on the dark `bg-ink` footer — added a **`.cta-grow-light`** variant
+> in globals.css for light-on-dark contexts.
+> **Promotion drafts** appended to `docs/promotion-copy.md`: LinkedIn post, 4-frame IG story,
+> and three deliberately-different creator DMs (Mar Antaya / Ena Racing / Ruth Buscombe).
+> Sequencing + timing guidance included and it matters more than the wording: **send outreach
+> on a race weekend** (otherwise `/weekend` shows its between-races "setting up our garage"
+> screen and wastes the impression), and **do outreach LAST** so it points at a live writeup
+> rather than a bare URL. The Buscombe draft is framed as a *technical question*, not a share
+> request, with an explicit note that a non-reply is expected and reflects professional
+> positioning (a paddock strategist publicly engaging with a third-party predictions product)
+> rather than the quality of the work.
+> **⚠️ `main` WAS RED and it wasn't from any code change (PR #64).** The 2026-07-26 weekend
+> data refresh regenerated `app/data/entity-whats.json`, rewriting Austria's summary from two
+> sentences to one. Two tests asserted counts derived from that live LLM-regenerated data
+> (`entity-whats.test.ts`: `facts.length > 1`; `orchestrate.test.ts`: `context.length === 2`)
+> and both broke. **General lesson for this repo: never assert exact counts against
+> `entity-whats.json` — it is regenerated on the weekend cadence and its sentence counts are
+> data, not contract.** Both now assert the real contract (clean non-empty sentences; context
+> flows through capped at 2) with comments recording why an exact count can't be asserted.
+> The fixed-input `splitSentences` test never broke and remains the proper pin for the
+> splitting logic.
+> **OPEN — verify tomorrow:** Hungary is missing from `/accuracy`. Diagnosed as *expected
+> timing*, not a bug: the race ended 13:00 UTC, the Vercel cron fires 06:00 UTC (7h earlier),
+> and `weekend-schedule.json` had already rolled to Netherlands so the due-write no longer
+> targets Hungary. `reconcile-finals.ts` documents this exact scenario and its
+> `hadLiveCheckpoint()` guard should backfill it **unflagged (counted LIVE)** because Hungary
+> has live pre-quali/post-quali snapshots. **Check `/accuracy` after 06:00 UTC 2026-07-27 — if
+> Hungary appears labelled "From testing · not predicted live", that IS a real bug** (the
+> guard failed) and needs investigation. Couldn't verify from outside: reading Blob needs
+> `CRON_SECRET`.
+>
 > ## 🟢 2026-07-26 — SEO RE-AUDIT (PR #61) + a RETRACTED perf "regression" worth not re-chasing
 > Re-ran the audit against prod to check whether the #51-#60 fixes held. **They do**:
 > sitemap (50 URLs), robots, per-page canonical/OG, security headers, unique meta
