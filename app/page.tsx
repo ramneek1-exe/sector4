@@ -4,7 +4,6 @@
 // design" section does one live Blob read (season calibration index) and degrades to
 // copy-only if it fails or returns nothing — see HonestByDesign below.
 import Link from "next/link";
-import type { Metadata } from "next";
 import schedule from "@/app/data/weekend-schedule.json";
 import { DitherVideo } from "@/app/components/DitherVideo";
 import { DitherFog } from "@/app/components/DitherFog";
@@ -20,19 +19,22 @@ import { getJson } from "@/app/lib/blob";
 import { seasonIndexKey } from "@/app/lib/snapshot";
 import type { CalibrationRow } from "@/app/lib/calibration";
 import { gpLabel } from "@/app/lib/circuits";
+import { JsonLd } from "@/app/components/JsonLd";
+import { organizationJsonLd, websiteJsonLd, jsonLdGraph } from "@/app/lib/json-ld";
+import { routeMetadata } from "@/app/lib/seo";
 
 // The live scored-race count below reads Blob per request (no-store); mark the route
 // dynamic explicitly, matching /accuracy and /weekend.
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  // `absolute` bypasses the root layout's "%s · Sector 4" template — the wordmark IS the
-  // whole title here, not a page name to suffix.
-  title: { absolute: "Sector 4" },
+export const metadata = routeMetadata({
+  title: "Sector 4",
   description:
     "An F1 companion that tells you the truth about what it knows: honest podium odds, " +
     "real strategy calls, and the numbers behind them.",
-};
+  path: "/",
+  titleMode: "absolute",
+});
 
 const EXAMPLE_QUERIES = [
   "Who's likely to podium at the next race?",
@@ -67,6 +69,7 @@ export default async function LandingPage() {
 
   return (
     <>
+      <JsonLd data={jsonLdGraph(organizationJsonLd(), websiteJsonLd())} />
       {/* No-flash preloader gate: runs during HTML parse, BEFORE the hero below
           paints, so pausing fog-in never flashes. Sets [data-preloader-active]
           only on this session's first landing visit with motion allowed; the

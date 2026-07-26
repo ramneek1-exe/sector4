@@ -1,0 +1,17 @@
+# Sector 4
+
+> An explainer-led F1 weekend companion: honest, calibrated podium odds, pit-stop strategy, and the numbers behind a race weekend, with plain-English explanations. Not affiliated with Formula 1, FOM, or the FIA.
+
+Sector 4 pairs grounded predictions with plain-English explanations, and is explicit about where its data is thin rather than sounding falsely confident. Predictions are based on public standings/form and historical telemetry patterns (validated strategy-stop-count signal), not qualifying prediction, betting odds, or live lap-by-lap forecasting.
+
+## Pages
+
+- [Ask](https://sector4.net/ask): natural-language Q&A about podium odds, pit stops, tyre wear, and strategy for the current race weekend.
+- [Weekend](https://sector4.net/weekend): this race weekend's frozen podium-odds and strategy predictions, sharpening from Friday to Saturday.
+- [Learn](https://sector4.net/learn): a glossary of ~24 hand-authored, cited F1 concept explainers (tyre degradation, DRS, undercut/overcut, safety car, and more).
+- [Accuracy](https://sector4.net/accuracy): the season track record — how calibrated the predictions have actually been, updated after every race.
+
+## Notes
+
+- No driver photos, team logos, or betting odds anywhere on the site by design.
+- `/learn/[slug]` articles cite external sources (Formula1.com, Wikipedia) per concept.

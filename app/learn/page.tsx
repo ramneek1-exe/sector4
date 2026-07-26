@@ -2,19 +2,33 @@
 // thematically. Server component — static; the per-card fog hover is a client island.
 // Wider than reading width so the cards breathe. (A distinct ASCII brand element for this
 // page is planned separately.)
-import { conceptsByGroup } from "@/app/lib/concepts";
+import { allConcepts, conceptsByGroup } from "@/app/lib/concepts";
 import { emblemForGroup } from "@/app/lib/emblems";
 import { ConceptCard } from "@/app/components/ConceptCard";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
+import { routeMetadata } from "@/app/lib/seo";
+import { JsonLd } from "@/app/components/JsonLd";
+import { learnCollectionJsonLd, breadcrumbJsonLd, jsonLdGraph } from "@/app/lib/json-ld";
 
-export const metadata = { title: "Learn" };
+export const metadata = routeMetadata({
+  title: "Learn",
+  description:
+    "A glossary of F1 concepts behind the predictions: tyres, strategy, pace, and air, " +
+    "explained in plain English and cited to real sources.",
+  path: "/learn",
+});
 
 export default function LearnPage() {
   const groups = conceptsByGroup();
+  const learnJsonLd = jsonLdGraph(
+    learnCollectionJsonLd(allConcepts().map((c) => ({ term: c.term, slug: c.slug }))),
+    breadcrumbJsonLd([{ name: "Learn", path: "/learn" }]),
+  );
   // A running index across all cards drives a single cascading rise on page enter.
   let card = 0;
   return (
     <main className="mx-auto max-w-5xl px-5 pb-20 pt-10 sm:px-8">
+      <JsonLd data={learnJsonLd} />
       <header className="learn-rise mb-12">
         <h1 className="font-pixel-serif text-5xl text-ink sm:text-6xl">Learn</h1>
         <p className="mt-3 max-w-prose font-lastik text-muted">

@@ -10,9 +10,21 @@ import { summarize, raceDetail, type CalibrationRow, type RaceDetail } from "@/a
 import { CalibrationChart } from "@/app/components/CalibrationChart";
 import { BloomCard } from "@/app/components/BloomCard";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
+import { routeMetadata } from "@/app/lib/seo";
+import { JsonLd } from "@/app/components/JsonLd";
+import { webPageJsonLd } from "@/app/lib/json-ld";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Accuracy" };
+
+const ACCURACY_DESCRIPTION =
+  "The season track record: every podium call scored against the real finish, and how " +
+  "calibrated the predictions have actually been so far.";
+
+export const metadata = routeMetadata({
+  title: "Accuracy",
+  description: ACCURACY_DESCRIPTION,
+  path: "/accuracy",
+});
 
 const YEAR = (scheduleData as { year: number }).year;
 
@@ -45,6 +57,7 @@ export default async function AccuracyPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-5 pb-20 pt-10 sm:px-8">
+      <JsonLd data={webPageJsonLd({ title: "Accuracy", description: ACCURACY_DESCRIPTION, path: "/accuracy" })} />
       <header className="mb-8 flex items-center gap-3">
         <AsciiEmblem kind="car" size={52} cols={34} className="shrink-0" />
         <div>
