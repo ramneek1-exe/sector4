@@ -13,8 +13,28 @@
 > (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
 > BUG FIX (PR #53), a README HERO GIF + badges (PR #54), a FONT WOFF2 PERF FIX (PR #55), an
 > OFF-SITE PROMOTION STRATEGY + COPY (PR #56), an OG/TWITTER CARD REFRESH (PR #57), the
-> DITHER PAINT-LOOP THROTTLE (PR #58), and the /LEARN EXPANSION TO 45 CONCEPTS (PR #59) are
-> all **LIVE on PRODUCTION (`sector4.net`)** — deploy `d9679e8` (2026-07-26). **M7 is DONE.**
+> DITHER PAINT-LOOP THROTTLE (PR #58), the /LEARN EXPANSION TO 45 CONCEPTS (PR #59), and a
+> "SEE MORE" BUG FIX (PR #60) are all **LIVE on PRODUCTION (`sector4.net`)** — deploy
+> `0b68f3b` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 2026-07-26 — /learn "see more" bug fixes (PR #60), owner-reported same day as #59
+> Two real bugs, both caught live within minutes of PR #59 shipping. **(1) Underline struck
+> across the whole page:** `.cta-grow::after` is `position: absolute` by design (documented
+> in the `globals.css` comment right above the rule) — every other consumer in the codebase
+> adds `relative` for its own positioning context, `ConceptGrid`'s new button didn't, so the
+> underline positioned against the nearest ancestor that had one (or the viewport) instead
+> of the button. **(2) Newly-revealed cards took a beat to appear:** they reused the
+> page-load stagger formula (`150 + globalIndex*55ms`, meant for the initial cascading rise
+> on page mount), which for a later theme section runs 1-2s+; `.learn-rise` holds its
+> invisible `from` state for the FULL `animation-delay` (fill-mode `both`), so freshly-
+> mounted cards sat invisible that long after the click that revealed them — read as slow
+> rendering, was actually a leftover page-load-only delay applied to a click-triggered
+> reveal. Fixed: cards past the initial 6 now get a short local stagger starting near 0ms.
+> Both root causes found by reading the actual CSS rule + its own doc comment first, no
+> guessing. **Verified live, not just by reasoning**: measured the button's own width vs.
+> screenshotting the hover state to confirm the underline now sits under "SEE LESS" only;
+> clicked the LAST theme's button (worst case for the old delay bug, ~2s) and screenshotted
+> immediately after click, confirming instant reveal.
 >
 > ## 🟢 2026-07-26 — /learn expanded to 45 concepts (9 per theme, PR #59)
 > The other queued item, picked up right after the perf audit closed. **Owner explicitly
