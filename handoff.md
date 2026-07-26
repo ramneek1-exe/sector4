@@ -10,10 +10,26 @@
 > gantry) + a batch of site tweaks/fixes, the HERO CURTAIN REVEAL (the preloader's
 > lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), the
 > CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
-> (sitemap/robots/canonical/JSON-LD, PR #51), and a README SYNC (PR #52) are all **LIVE on
-> PRODUCTION (`sector4.net`)** — deploy `ac15863` (2026-07-26). **M7 is DONE.**
+> (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
+> BUG FIX (PR #53), and a README HERO GIF + badges (PR #54) are all **LIVE on
+> PRODUCTION (`sector4.net`)** — deploy `5e8f990` (2026-07-26). **M7 is DONE.**
 >
-> ## 🟢 SEO FOUNDATION (2026-07-26) — sitemap/robots/canonical/JSON-LD, PR #51 merged + live
+> ## 🟢 2026-07-26 follow-ups — weekend strategy bug fix (PR #53) + README hero GIF (PR #54)
+> Both from the SEO audit's deferred items, picked up same day. **PR #53:** `/weekend`'s
+> Strategy section was rendering the literal string "0% of the field" — root cause,
+> `strategy.dominant.share` can legitimately be `null` (the "historical norm" mode, no
+> per-driver breakdown — `src/inference/strategy.py`'s `historical_stop_norm` branch), but
+> `app/weekend/page.tsx` typed `share` as non-nullable `number` and rendered
+> `Math.round(share * 100)` unguarded — `null * 100` coerces to `0` in JS. `app/lib/narrative.ts`
+> and `app/ask/page.tsx` already had the correct `share: number | null` + null-guard pattern;
+> `/weekend` just hadn't been brought in line. **PR #54:** README got a GIF of the live hero
+> (start-lights preloader → curtain reveal), captured against production via Playwright
+> (`~/Library/Application Support/claude-seo/.venv` — the claude-seo plugin's isolated venv,
+> reused since this repo has no Playwright of its own) then converted with ffmpeg
+> (720w/12fps/~2.5MB), plus live-site/Next.js/TypeScript badges. **No LICENSE file exists in
+> the repo** — flagged to owner, not invented; no license badge added pending that decision.
+>
+> ## 🟢 SEO FOUNDATION (2026-07-25/26) — sitemap/robots/canonical/JSON-LD, PR #51 merged + live
 > Ran `/seo audit sector4.net` (the `claude-seo` plugin) against production first — health
 > score 59/100, full report in `sector4.net-audit/` (gitignored scratch, not in git; the
 > plugin's 8 parallel specialist subagents needed several resumes, one was cut off mid-task
