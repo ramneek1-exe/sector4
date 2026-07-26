@@ -209,6 +209,24 @@ export function LandingFooter() {
         <p ref={legalRef} className="max-w-3xl font-grotesk text-xs leading-snug text-bg/60">
           {DISCLAIMER}
         </p>
+        {/* Author credit. `relative` is REQUIRED: .cta-grow's underline is an absolutely
+            positioned ::after, so without a positioned ancestor it escapes and draws across
+            the page (the exact bug fixed in PR #60 on /learn's see-more button). */}
+        <p className="font-pixel text-base text-bg/70">
+          Made with{" "}
+          <span role="img" aria-label="love">
+            ♥
+          </span>{" "}
+          by{" "}
+          <a
+            href="https://ramneeksingh.ca"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-grow cta-grow-light relative inline-block text-bg"
+          >
+            Ramneek
+          </a>
+        </p>
       </div>
     </div>
   );
