@@ -18,7 +18,9 @@
     "related": [
       "stop-count-strategy",
       "undercut-overcut",
-      "track-evolution"
+      "track-evolution",
+      "graining",
+      "marbles"
     ],
     "badge": "verified",
     "sources": [
@@ -50,7 +52,8 @@
       "tyre-degradation",
       "stop-count-strategy",
       "pit-lane-time-loss",
-      "dirty-air"
+      "dirty-air",
+      "dnf-reliability"
     ],
     "badge": "verified",
     "sources": [
@@ -84,7 +87,9 @@
     "related": [
       "tyre-degradation",
       "undercut-overcut",
-      "pit-lane-time-loss"
+      "pit-lane-time-loss",
+      "tyre-allocation",
+      "double-stacking"
     ],
     "badge": "verified",
     "sources": [
@@ -116,7 +121,9 @@
     "whyItMatters": "Pit-loss sets the break-even for strategy: the higher it is, the more a stop has to be worth. Sector 4 computes it per circuit from real data, so the strategy explanations rest on the actual cost at each track.",
     "related": [
       "stop-count-strategy",
-      "undercut-overcut"
+      "undercut-overcut",
+      "time-penalties",
+      "double-stacking"
     ],
     "badge": "verified",
     "sources": [
@@ -147,7 +154,10 @@
     "whyItMatters": "Sector 4's pace model predicts long-run race-pace gaps, not qualifying, and Phase 1 found that's a supporting context signal rather than a podium edge. The grid (qualifying) remains the strongest single podium predictor.",
     "related": [
       "track-evolution",
-      "tyre-degradation"
+      "tyre-degradation",
+      "sector-characteristics",
+      "parc-ferme",
+      "sandbagging"
     ],
     "badge": "verified",
     "sources": [
@@ -178,7 +188,10 @@
     "whyItMatters": "When Sector 4 compares practice pace across sessions, it corrects for evolution, since otherwise a later, faster lap looks like a quicker car rather than just a quicker track.",
     "related": [
       "qualifying-vs-race-pace",
-      "tyre-degradation"
+      "tyre-degradation",
+      "marbles",
+      "sector-characteristics",
+      "out-in-lap"
     ],
     "badge": "verified",
     "sources": [
@@ -208,7 +221,10 @@
     "whyItMatters": "Dirty air shapes whether track position can be held or lost. It is the context for why an overcut into clean air can beat fresher tyres stuck in traffic.",
     "related": [
       "drs",
-      "undercut-overcut"
+      "undercut-overcut",
+      "wake-turbulence",
+      "front-rear-wing",
+      "slipstream-tow"
     ],
     "badge": "verified",
     "sources": [
@@ -241,7 +257,9 @@
     "related": [
       "dirty-air",
       "power-modes",
-      "energy-harvesting"
+      "energy-harvesting",
+      "slipstream-tow",
+      "front-rear-wing"
     ],
     "badge": "verified",
     "sources": [
@@ -276,7 +294,10 @@
     "whyItMatters": "The compound mix shapes how many stops a race needs and which tyre tends to dominate, which is exactly what our strategy and compound answers reason about.",
     "related": [
       "tyre-degradation",
-      "stop-count-strategy"
+      "stop-count-strategy",
+      "tyre-allocation",
+      "graining",
+      "out-in-lap"
     ],
     "badge": "verified",
     "sources": [
@@ -307,7 +328,8 @@
     "whyItMatters": "Marbles are part of why staying on the racing line matters as much as raw pace. It's useful context for the risk in an overtaking move, especially late in a stint when the off-line rubber has had the longest to build up.",
     "related": [
       "tyre-degradation",
-      "dirty-air"
+      "dirty-air",
+      "track-limits"
     ],
     "badge": "verified",
     "sources": [
@@ -340,7 +362,8 @@
     "related": [
       "stop-count-strategy",
       "pit-lane-time-loss",
-      "undercut-overcut"
+      "undercut-overcut",
+      "formation-lap-start"
     ],
     "badge": "verified",
     "sources": [
@@ -375,7 +398,9 @@
     "whyItMatters": "Sector 4 leans on FP2 long runs when reading degradation and race pace, since it's the only public session that looks anything like a race stint.",
     "related": [
       "qualifying-vs-race-pace",
-      "sandbagging"
+      "sandbagging",
+      "minimum-weight",
+      "push-banker-lap"
     ],
     "badge": "verified",
     "sources": [
@@ -406,7 +431,8 @@
     "whyItMatters": "Sandbagging is a big part of why practice pace alone is a noisy signal, and why Sector 4 treats FP long runs as a supporting input, not a standalone prediction of who's fastest.",
     "related": [
       "fp-session-purpose",
-      "qualifying-vs-race-pace"
+      "qualifying-vs-race-pace",
+      "fuel-corrected-pace"
     ],
     "badge": "verified",
     "sources": [
@@ -439,7 +465,8 @@
     "whyItMatters": "Sector splits are part of how Sector 4 reads practice pace, since a lap time on its own can mask whether an advantage is real corner speed or just one strong sector.",
     "related": [
       "qualifying-vs-race-pace",
-      "track-evolution"
+      "track-evolution",
+      "push-banker-lap"
     ],
     "badge": "verified",
     "sources": [
@@ -471,7 +498,8 @@
     "whyItMatters": "The tow is part of the on-track picture around overtaking and qualifying laps, and it's the straight-line counterpart to dirty air's cornering cost.",
     "related": [
       "dirty-air",
-      "drs"
+      "drs",
+      "wake-turbulence"
     ],
     "badge": "verified",
     "sources": [
@@ -503,7 +531,9 @@
     "whyItMatters": "Ground effect is why current cars can run closer together than the previous generation, which feeds directly into how dirty air and the tow play out in a race.",
     "related": [
       "dirty-air",
-      "drs"
+      "drs",
+      "floor-diffuser",
+      "minimum-weight"
     ],
     "badge": "verified",
     "sources": [
@@ -536,7 +566,10 @@
     "related": [
       "stop-count-strategy",
       "double-stacking",
-      "flags"
+      "flags",
+      "red-flag-restarts",
+      "formation-lap-start",
+      "dnf-reliability"
     ],
     "badge": "verified",
     "sources": [
@@ -571,7 +604,9 @@
     ],
     "whyItMatters": "Flags shape how a race actually plays out lap to lap, since a well-timed yellow or a red flag can bunch the field up much like a Safety Car does.",
     "related": [
-      "safety-car-vsc"
+      "safety-car-vsc",
+      "track-limits",
+      "red-flag-restarts"
     ],
     "badge": "verified",
     "sources": [
@@ -603,7 +638,9 @@
     ],
     "whyItMatters": "Grid penalties are why a driver's actual starting spot can differ sharply from raw pace or qualifying form, which matters for any podium read that leans on the grid.",
     "related": [
-      "qualifying-vs-race-pace"
+      "qualifying-vs-race-pace",
+      "time-penalties",
+      "power-unit-allocation"
     ],
     "badge": "verified",
     "sources": [
@@ -635,7 +672,8 @@
     ],
     "whyItMatters": "DNFs are part of why Sector 4 frames predictions as calibrated probabilities rather than certainties, since even a well-supported pace or strategy call can be overtaken by a retirement no model saw coming.",
     "related": [
-      "safety-car-vsc"
+      "safety-car-vsc",
+      "parc-ferme"
     ],
     "badge": "verified",
     "sources": [
@@ -668,7 +706,10 @@
     "whyItMatters": "Correcting for fuel effect is a first step in our pace pipeline, since skipping it would make heavier, early-stint laps look like a driver problem instead of a fuel one.",
     "related": [
       "qualifying-vs-race-pace",
-      "tyre-degradation"
+      "tyre-degradation",
+      "fuel-corrected-pace",
+      "sustainable-fuel",
+      "lift-and-coast"
     ],
     "badge": "verified",
     "sources": [
@@ -700,7 +741,8 @@
     "whyItMatters": "Laps with visible lift and coast are exactly the kind of laps our pace pipeline has to recognize and treat differently, since they understate a driver's outright pace on purpose.",
     "related": [
       "fuel-effect",
-      "energy-harvesting"
+      "energy-harvesting",
+      "brake-by-wire"
     ],
     "badge": "verified",
     "sources": [
@@ -733,7 +775,9 @@
     "whyItMatters": "How well a car harvests shapes what it can deploy through power modes, which is a genuine 2026 storyline behind who can attack or defend late in a stint.",
     "related": [
       "power-modes",
-      "lift-and-coast"
+      "lift-and-coast",
+      "brake-by-wire",
+      "sustainable-fuel"
     ],
     "badge": "verified",
     "sources": [
@@ -766,7 +810,8 @@
     "whyItMatters": "Where and how a driver can deploy the override boost shapes how easily a position actually changes hands, which is part of how a predicted strategy plays out on Sunday.",
     "related": [
       "energy-harvesting",
-      "drs"
+      "drs",
+      "power-unit-allocation"
     ],
     "badge": "verified",
     "sources": [
@@ -799,7 +844,8 @@
     "related": [
       "tyre-degradation",
       "tyre-compounds",
-      "track-evolution"
+      "track-evolution",
+      "fp-session-purpose"
     ],
     "badge": "verified",
     "sources": [
@@ -865,7 +911,8 @@
     "whyItMatters": "When the Q2 tyre rule is active it's a real strategy constraint baked into the grid before the race even begins, part of why grid position alone carries real predictive signal for the podium (PRD's validated baseline).",
     "related": [
       "push-banker-lap",
-      "qualifying-vs-race-pace"
+      "qualifying-vs-race-pace",
+      "fp-session-purpose"
     ],
     "badge": "verified",
     "sources": [
@@ -992,7 +1039,8 @@
     "whyItMatters": "This trade-off is why the same car can look dominant at one circuit and midfield at the next: it's set up differently, not suddenly faster or slower.",
     "related": [
       "ground-effect",
-      "drs"
+      "drs",
+      "porpoising"
     ],
     "badge": "verified",
     "sources": [
@@ -1120,7 +1168,8 @@
     "whyItMatters": "It's a reminder that 'dirty air' isn't a fixed, unchanging quantity: the regulations actively shape how punishing it is, and this generation's version is a real, deliberate improvement on the last.",
     "related": [
       "dirty-air",
-      "ground-effect"
+      "ground-effect",
+      "slipstream-tow"
     ],
     "badge": "verified",
     "sources": [
@@ -1312,7 +1361,8 @@
     "whyItMatters": "The power unit is one of the biggest actual hardware changes in the 2026 reset, alongside the chassis and aero rules: a real reason to expect the season to take time to settle into predictable patterns.",
     "related": [
       "energy-harvesting",
-      "power-modes"
+      "power-modes",
+      "floor-diffuser"
     ],
     "badge": "verified",
     "sources": [
