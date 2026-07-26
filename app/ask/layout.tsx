@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { routeMetadata } from "@/app/lib/seo";
 import { JsonLd } from "@/app/components/JsonLd";
-import { webPageJsonLd } from "@/app/lib/json-ld";
+import { webPageJsonLd, jsonLdGraph } from "@/app/lib/json-ld";
 
 export const metadata = routeMetadata({
   title: "Ask",
@@ -17,11 +17,13 @@ export default function AskLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <JsonLd
-        data={webPageJsonLd({
-          title: "Ask",
-          description: metadata.description as string,
-          path: "/ask",
-        })}
+        data={jsonLdGraph(
+          webPageJsonLd({
+            title: "Ask",
+            description: metadata.description as string,
+            path: "/ask",
+          }),
+        )}
       />
       {children}
     </>
