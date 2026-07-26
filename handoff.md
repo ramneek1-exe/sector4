@@ -12,9 +12,48 @@
 > CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
 > (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
 > BUG FIX (PR #53), a README HERO GIF + badges (PR #54), a FONT WOFF2 PERF FIX (PR #55), an
-> OFF-SITE PROMOTION STRATEGY + COPY (PR #56), an OG/TWITTER CARD REFRESH (PR #57), and the
-> DITHER PAINT-LOOP THROTTLE (PR #58 — the last deferred item from the perf audit) are all
-> **LIVE on PRODUCTION (`sector4.net`)** — deploy `ffe8b44` (2026-07-26). **M7 is DONE.**
+> OFF-SITE PROMOTION STRATEGY + COPY (PR #56), an OG/TWITTER CARD REFRESH (PR #57), the
+> DITHER PAINT-LOOP THROTTLE (PR #58), and the /LEARN EXPANSION TO 45 CONCEPTS (PR #59) are
+> all **LIVE on PRODUCTION (`sector4.net`)** — deploy `d9679e8` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 2026-07-26 — /learn expanded to 45 concepts (9 per theme, PR #59)
+> The other queued item, picked up right after the perf audit closed. **Owner explicitly
+> confirmed 45 total (9 × 5 themes) as a real, deliberate v2 target** before any writing
+> started — this is a genuine scope increase past the PRD's stated v1 target of ~15-25
+> concept whats (§6.6); 24 was already at the top of that range, so this was surfaced as a
+> real decision point, not assumed. 21 new concepts written, 2-5 per existing theme,
+> checked against every existing concept's ACTUAL BODY TEXT (not just titles) before
+> finalizing the list — caught two real near-duplicates this way: a planned "Red Flags"
+> article would have restated what "Flags & Signals" already covers (retargeted to the
+> restart *procedure* instead, a genuinely different angle); a planned "Power Unit
+> Penalties" article would have restated "Grid Penalties"' existing PU-component paragraph
+> (retargeted to the season-long allocation *budget* instead). **Sourcing discipline held**:
+> every new concept follows the exact existing pattern (generic F1.com `/en/latest` link +
+> a specific Wikipedia article), and every single Wikipedia URL was verified REAL via
+> WebSearch before use, not assumed — Porpoising has no dedicated Wikipedia article (cited
+> `Ground_effect_(cars)` instead of inventing one), "Formation lap" redirects to
+> `Parade_lap` (cited the canonical target directly). **Two alias collisions caught and
+> fixed** (`porpoising`, `MGU-K`) so the new dedicated articles win `/ask`'s concept lookup
+> over the older, less-specific concepts that happened to list them as a loose alias — and
+> a REAL bug in my own first attempt at this fix was caught before committing:
+> `matchConcept()` in `app/lib/concepts.ts` only reads the `aliases` array, never `term`,
+> so blindly removing "porpoising" from BOTH concepts (to fix the duplicate-alias test)
+> would have made the new Porpoising article unfindable by its own name via `/ask`. Badge:
+> owner's explicit call to promote all 21 straight to `verified` (not `drafted,
+> unverified`) — matches the precedent already set for the earlier 16 M7 concepts.
+> **Also shipped (owner-requested mid-task, "add a see more option if things get too
+> crowded")**: new `ConceptGrid` client island on `/learn` — 9 cards per theme was
+> genuinely more than the page should dump on load, so each section now collapses to 6
+> with a "see N more" toggle. `llms.txt`'s concept count updated ~24 → ~45.
+> **Verified live in-browser**: `/learn` renders 6+toggle per theme correctly, expand/
+> collapse works, a sampled new concept page (`/learn/porpoising`) renders byte-identical
+> in structure to the pre-existing 24 (badge, related links, sources). `concepts.consistency.test.ts`
+> updated (45 total, all verified, every theme ≥9, no broken related links, no duplicate
+> aliases, no em-dashes — the em-dash rule caught 47 instances across my first draft of the
+> 21 new entries before commit, all rewritten). Sitemap auto-grew to 50 URLs (still derived
+> from `allConcepts()`, no manual sitemap maintenance needed).
+> **This closes the owner's full 2026-07-25/26 backlog** (SEO/perf/promo audit arc, PRs
+> #51-#58, plus this /learn expansion, PR #59). No open next-up item as of this entry.
 >
 > ## 🟢 2026-07-26 — dither paint-loop throttle (PR #58), the deferred hero perf work, DONE
 > The two performance items deferred back on the font-WOFF2 PR (#55) turned out to
