@@ -1,16 +1,58 @@
 # Project Handoff: Sector 4
 
 > Living context doc so a fresh session never cold-starts. Read this first, then
-> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-25.
+> `CLAUDE.md`, `sector4-prd.md`, and `notebooks/*_RESULTS.md`. Last updated 2026-07-26.
 > **Status: Phase 1 COMPLETE + product repositioned (explainer-led). M1 (pipeline lib,
 > PR #1), M2 (thin slice), M3 BACKEND + live podium integration (PR #3), M3 FRONTEND
 > (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), the
 > LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
 > PR #49), the intro/landing TWEAKS (PR #50), AND the LANDING PRELOADER (start-lights
 > gantry) + a batch of site tweaks/fixes, the HERO CURTAIN REVEAL (the preloader's
-> lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), and the
-> CHAMPIONSHIP PICTURE (season standings, M7's stretch goal) are all **LIVE on
-> PRODUCTION (`sector4.net`)** — deploy `79b4e6e` (2026-07-25). **M7 is DONE.**
+> lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), the
+> CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
+> (sitemap/robots/canonical/JSON-LD, PR #51), and a README SYNC (PR #52) are all **LIVE on
+> PRODUCTION (`sector4.net`)** — deploy `ac15863` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 SEO FOUNDATION (2026-07-26) — sitemap/robots/canonical/JSON-LD, PR #51 merged + live
+> Ran `/seo audit sector4.net` (the `claude-seo` plugin) against production first — health
+> score 59/100, full report in `sector4.net-audit/` (gitignored scratch, not in git; the
+> plugin's 8 parallel specialist subagents needed several resumes, one was cut off mid-task
+> and finished manually from its own saved raw fetches — expect that friction again if this
+> plugin is reused). Site had **zero** crawlability infrastructure: no `robots.txt` /
+> `sitemap.xml` (both 404 live, confirmed), no canonical tags anywhere, zero JSON-LD, and a
+> real bug — `og:url`/`og:title` were hardcoded to the homepage on every non-home page.
+> **Shipped:** `app/sitemap.ts` (29 URLs: 5 static + every `allConcepts()` slug) +
+> `app/robots.ts`; `app/lib/seo.ts` `routeMetadata()` so every route
+> (`/`, `/ask`, `/weekend`, `/learn`, `/learn/[slug]`, `/accuracy`) builds a fully
+> self-contained title/description/canonical/openGraph/twitter object — **Next does not
+> deep-merge `openGraph`/`twitter` across the layout tree**, so a page overriding one field
+> silently drops the rest, including the file-convention OG image injection (verified live
+> by curling the built output: a bare `openGraph:{title,url}` override lost `og:type`,
+> `og:site_name`, `twitter:card`, AND `og:image`, not just the fields left unset — a real
+> regression introduced then caught and fixed in the same session, see the comment at the
+> top of `app/lib/seo.ts`). `app/lib/json-ld.ts` + `<JsonLd>`: WebSite+Organization (with a
+> `SearchAction` into `/ask?q=`) on `/`, Article+DefinedTerm+BreadcrumbList per
+> `/learn/[slug]`, CollectionPage on `/learn`, SportsEvent on `/weekend` (deliberately no
+> Offer/AggregateRating — a betting-odds reading is a PRD non-goal), baseline WebPage on
+> `/ask`/`/accuracy`. `/ask` is a client component, so its metadata lives in a new
+> `app/ask/layout.tsx` server wrapper. `next.config.mjs` got baseline security headers
+> (X-Content-Type-Options / Referrer-Policy / X-Frame-Options — no CSP yet, needs the
+> WebGPU dither shader's `script-src` allowlisted first) and `public/llms.txt` was added.
+> **Deliberately flagged, not fixed, in this pass:** a real product bug found during the
+> audit — `/weekend`'s Strategy section renders the literal string "0% of the field";
+> LCP/font/JS-bundle-splitting performance issues (both pages tested fail the 2.5s LCP bar,
+> root causes + exact fixes are diagnosed in `sector4.net-audit/findings/performance.md` if
+> picked up later); off-site brand presence (the GEO audit's biggest single gap — zero
+> search results for "Sector 4" F1, name collides with generic "sector" content and F1's
+> own S1-S4 terminology — not a code fix, belongs under promotion).
+> **Also this session (PR #52):** README was still describing the pre-repositioning
+> "predictive telemetry intelligence" framing and pointing at `phase-1-data-spike.md` as
+> the current task — rewritten to match `CLAUDE.md`'s explainer-led framing, current
+> live status, and points start-here at `handoff.md`.
+> **NEXT UP:** owner chose to keep going on SEO/promo (2026-07-26) — likely candidates are
+> the deferred product bug, performance fixes, or off-site presence, not yet narrowed down.
+> The other queued item is expanding `/learn` to 9 articles per theme (current count is 24
+> total across ALL themes combined — substantial expansion, scope properly before starting).
 >
 > ## 🟢 M7 COMPLETE (2026-07-25) — championship picture + landing copy pass, both merged + live
 > **M7's "optional championship-projection stretch" (PRD §11) shipped.** Season standings,
