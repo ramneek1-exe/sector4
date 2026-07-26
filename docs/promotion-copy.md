@@ -149,7 +149,7 @@ content and engagement-per-post runs higher against thinner supply.
 
 ## LinkedIn post
 
-> I spent a few weeks building an F1 prediction site, and the most useful thing I did was
+> I spent my summer building an F1 prediction site, and the most useful thing I did was
 > try to prove it wouldn't work.
 >
 > Before building anything, I ran the validation: 2023–2025 race data, rolling-origin
