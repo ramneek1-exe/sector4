@@ -4,7 +4,7 @@
 // page is planned separately.)
 import { allConcepts, conceptsByGroup } from "@/app/lib/concepts";
 import { emblemForGroup } from "@/app/lib/emblems";
-import { ConceptCard } from "@/app/components/ConceptCard";
+import { ConceptGrid } from "@/app/components/ConceptGrid";
 import { AsciiEmblem } from "@/app/components/AsciiEmblem";
 import { routeMetadata } from "@/app/lib/seo";
 import { JsonLd } from "@/app/components/JsonLd";
@@ -37,34 +37,29 @@ export default function LearnPage() {
         </p>
       </header>
 
-      {groups.map(({ group, concepts }, gi) => (
-        <section key={group} className="mb-12">
-          <div
-            className="learn-rise mb-4 flex items-center gap-2.5"
-            style={{ animationDelay: `${90 + gi * 60}ms` }}
-          >
-            <AsciiEmblem
-              kind={emblemForGroup(group)}
-              size={emblemForGroup(group) === "car" ? 52 : 32}
-              cols={emblemForGroup(group) === "car" ? 34 : 20}
-              className="shrink-0"
-            />
-            <h2 className="font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
-              {group}
-            </h2>
-          </div>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {concepts.map((c) => {
-              const delay = 150 + card++ * 55;
-              return (
-                <li key={c.slug} className="learn-rise" style={{ animationDelay: `${delay}ms` }}>
-                  <ConceptCard concept={c} />
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ))}
+      {groups.map(({ group, concepts }, gi) => {
+        const startIndex = card;
+        card += concepts.length;
+        return (
+          <section key={group} className="mb-12">
+            <div
+              className="learn-rise mb-4 flex items-center gap-2.5"
+              style={{ animationDelay: `${90 + gi * 60}ms` }}
+            >
+              <AsciiEmblem
+                kind={emblemForGroup(group)}
+                size={emblemForGroup(group) === "car" ? 52 : 32}
+                cols={emblemForGroup(group) === "car" ? 34 : 20}
+                className="shrink-0"
+              />
+              <h2 className="font-grotesk text-xs font-semibold uppercase tracking-wide text-muted">
+                {group}
+              </h2>
+            </div>
+            <ConceptGrid concepts={concepts} startIndex={startIndex} />
+          </section>
+        );
+      })}
     </main>
   );
 }

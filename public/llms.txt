@@ -8,7 +8,7 @@ Sector 4 pairs grounded predictions with plain-English explanations, and is expl
 
 - [Ask](https://sector4.net/ask): natural-language Q&A about podium odds, pit stops, tyre wear, and strategy for the current race weekend.
 - [Weekend](https://sector4.net/weekend): this race weekend's frozen podium-odds and strategy predictions, sharpening from Friday to Saturday.
-- [Learn](https://sector4.net/learn): a glossary of ~24 hand-authored, cited F1 concept explainers (tyre degradation, DRS, undercut/overcut, safety car, and more).
+- [Learn](https://sector4.net/learn): a glossary of ~45 hand-authored, cited F1 concept explainers (tyre degradation, DRS, undercut/overcut, safety car, and more).
 - [Accuracy](https://sector4.net/accuracy): the season track record — how calibrated the predictions have actually been, updated after every race.
 
 ## Notes
