@@ -11,8 +11,36 @@
 > lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), the
 > CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
 > (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
-> BUG FIX (PR #53), a README HERO GIF + badges (PR #54), and a FONT WOFF2 PERF FIX (PR #55)
-> are all **LIVE on PRODUCTION (`sector4.net`)** — deploy `e9b7a9e` (2026-07-26). **M7 is DONE.**
+> BUG FIX (PR #53), a README HERO GIF + badges (PR #54), a FONT WOFF2 PERF FIX (PR #55), an
+> OFF-SITE PROMOTION STRATEGY + COPY (PR #56), and an OG/TWITTER CARD REFRESH (PR #57) are
+> all **LIVE on PRODUCTION (`sector4.net`)** — deploy `7811ae8` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 2026-07-26 — off-site promotion strategy + OG card refresh (PR #56, #57)
+> **Not code-driven — owner asked to start on the SEO audit's off-site/promotion gap,**
+> which is fundamentally account/publishing work I can't do unilaterally (no creating
+> Wikipedia pages, no posting to Reddit/X as the owner). Scoped to what IS deliverable:
+> `docs/promotion-strategy.md` (a prioritized channel plan, grounded in a live search check
+> confirming near-zero "Sector 4" F1 presence and a competing `sector.world`
+> business-of-F1 site already on adjacent positioning) and `docs/promotion-copy.md` (draft
+> copy — Show HN, a niche F1 analysis community rather than r/formula1 directly, an X post,
+> a reusable bio line — all leaning on the validated podium-no-edge/stop-count-real-edge
+> finding rather than generic hype). **Explicitly recommended AGAINST:** Wikipedia (no
+> realistic notability path for a brand-new small project — would likely get deleted, and
+> attempting one prematurely is itself against Wikipedia's own rules) and mass Reddit
+> cross-posting. Neither drafted doc is meant to ship unedited — bracketed placeholders and
+> live `/accuracy` numbers need filling in before posting.
+> **Separately, owner asked for the OG/Twitter card to use the real dither look** (it's
+> what shows when links get shared as part of this push). Built 4 rendered candidates via
+> temporary preview routes (dark vs. light bg × ASCII-character vs. dot-matrix fog) — owner
+> picked light bg + dot-matrix. **Real technical constraint surfaced and explained before
+> building:** OG images are static PNGs rendered server-side via satori — no JS/WebGL can
+> run in them, so the literal live shader can't appear there; the dot-matrix halftone
+> (dots sized/opacity by the same warped-FBM sample the old ASCII fog used) is the closest
+> static equivalent, and reads as real dither texture rather than text characters. Shipped
+> in `app/opengraph-image.tsx` (`app/twitter-image.tsx` re-exports it, so one file covers
+> both cards); eyebrow copy now leads with "F1, minus the false confidence" instead of the
+> generic "F1 WEEKEND COMPANION". Temp preview routes deleted before commit, never in
+> history.
 >
 > ## 🟢 2026-07-26 — font WOFF2 perf fix (PR #55), verified real, hero bundle work deferred
 > `PPMondwest-Regular` + `PPNeueBit-Bold` (the two pixel/bitmap display fonts) were served
