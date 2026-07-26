@@ -12,5 +12,20 @@ const nextConfig = {
       },
     ];
   },
+  // Baseline security headers beyond the HSTS Vercel already sets. No CSP yet — the
+  // WebGPU/canvas dither shaders on `/` and `/lab/dither` would need script-src/worker-src
+  // allowlisted carefully first; treat as a follow-up.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+        ],
+      },
+    ];
+  },
 };
 export default nextConfig;
