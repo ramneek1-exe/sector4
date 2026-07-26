@@ -92,6 +92,24 @@ describe("concepts.json integrity", () => {
     expect(drafted).toBe(0);
   });
 
+  // The 2026-07-26 expansion (24 -> 45) left 19 concepts orphaned: the new entries linked
+  // OUTWARD to established concepts, but nothing was added pointing back, so they were
+  // reachable only from the /learn index. Caught by a SERP-cluster analysis
+  // (docs/learn-cluster-analysis.md). These two assertions keep the link graph healthy as
+  // more concepts get added.
+  it("no concept is orphaned (every concept has at least 2 inbound related links)", () => {
+    const inbound = new Map<string, number>();
+    for (const c of concepts) for (const r of c.related) inbound.set(r, (inbound.get(r) ?? 0) + 1);
+    const weak = concepts.filter((c) => (inbound.get(c.slug) ?? 0) < 2).map((c) => c.slug);
+    expect(weak, `concepts with <2 inbound links: ${weak.join(", ")}`).toEqual([]);
+  });
+
+  it("no concept's related list is so long it bloats the Related chips row", () => {
+    for (const c of concepts) {
+      expect(c.related.length, `${c.slug} related`).toBeLessThanOrEqual(6);
+    }
+  });
+
   it("every theme has at least 9 concepts", () => {
     const counts = new Map<string, number>();
     for (const c of concepts) counts.set(c.group, (counts.get(c.group) ?? 0) + 1);
