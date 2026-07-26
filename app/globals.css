@@ -153,6 +153,13 @@ body {
   }
 }
 
+/* Light-on-dark variant of the grow underline. The default draws in --ramp-1 (#2f2e89,
+   a dark indigo), which is near-invisible on the footer's dark bg-ink panel — this swaps
+   it for the light page background colour so the underline actually reads there. */
+.cta-grow-light::after {
+  background: #fafafa;
+}
+
 /* /weekend side fog: an INNER GLOW hugging each vertical edge — brightest at the screen
    edge, fading inward (horizontal) and softening at top/bottom (vertical) so it clears the
    wordmark/heading and the corners. Edge-hugging, not a circle. The two gradients are
