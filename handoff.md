@@ -7,9 +7,59 @@
 > (ASCII/dither glyph + UI system), the LANDING PAGE (v1+v2, full race-track spine), the
 > LANDING FOOTER REDESIGN, the LANDING INTRO SECTION (About Sector 4 + radio helmet,
 > PR #49), the intro/landing TWEAKS (PR #50), AND the LANDING PRELOADER (start-lights
-> gantry) + a batch of site tweaks/fixes are all **LIVE on PRODUCTION (`sector4.net`)** —
-> plus the HERO CURTAIN REVEAL (the preloader's lights-out handoff, branch
-> `hero-curtain-reveal`) are all **LIVE on PRODUCTION (`sector4.net`)**.**
+> gantry) + a batch of site tweaks/fixes, the HERO CURTAIN REVEAL (the preloader's
+> lights-out handoff), a LANDING COPY editorial pass (hero thesis, S1/S2 copy), and the
+> CHAMPIONSHIP PICTURE (season standings, M7's stretch goal) are all **LIVE on
+> PRODUCTION (`sector4.net`)** — deploy `79b4e6e` (2026-07-25). **M7 is DONE.**
+>
+> ## 🟢 M7 COMPLETE (2026-07-25) — championship picture + landing copy pass, both merged + live
+> **M7's "optional championship-projection stretch" (PRD §11) shipped.** Season standings,
+> gap to the leader, and `requiredRate` (must **out-score the leader by** X per remaining
+> round — never "needs X a round", false since the leader also scores) — pure arithmetic,
+> no model. `app/lib/championship.ts`; `/weekend` section with a drivers/constructors
+> toggle; a new season-scoped `championship_picture` `/ask` intent (the first intent that
+> takes no `gp` and is NOT run through `resolveTarget`). Data: `scripts/build_2026.py`
+> emits `app/data/standings.json` on the existing weekend-refresh cadence — **the file does
+> not exist yet**, so the feature is live but invisible until the next weekend refresh
+> writes it; every consumer degrades to "not rendered / unavailable" by design (never
+> hand-write this file — invented championship points would ship as fact).
+> **Full build history, rejected options (title probabilities, an elimination flag —
+> both deliberately cut), the leak-guard note on the new `totalRounds`/`remainingRounds`
+> schedule fields, and every review round are in
+> `.superpowers/sdd/2026-07-25-championship-picture/progress.md` before that workspace is
+> cleaned up** — read it if picking this back up. Two owner-directed fixes after the last
+> independent review, both independently re-reviewed clean: the constructor car emblem was
+> illegible at `size=40` (20×4 sampling grid for a 144×31 silhouette — a blob), fixed to
+> `size=96` after the owner reviewed 4 rendered candidates; `LIN` (Arvid Lindblad, #41,
+> `#B9BEC7`) added to `drivers.json` — was on the grid but missing from the driver identity
+> map, would have been silently dropped from standings.
+> **Separately, a landing-page editorial pass** (owner-directed, iterative): hero thesis
+> reworked from "A lap has three sectors. / This is the one where you find out why." to
+> "Everything happens in three sectors. / The fourth tells you why." — the sector conceit
+> is load-bearing (sets up S4's "The fourth sector is the truth." + the Sector 1-4 eyebrows,
+> and is the only place the product name is explained), so it was kept, not dropped. Hero
+> `<h1>` capped at `sm:text-6xl` (was `md:text-7xl`) — the longer thesis measures 1021px at
+> 72px against a 896px `max-w-4xl` box and wraps, orphaning "sectors." onto its own centred
+> line; `text-wrap: balance` was tried and REMOVED, it didn't redistribute across the
+> forced `<br />` (verified in-browser, changed nothing at either width — don't re-add it
+> assuming it'll help here). S1's body no longer duplicates the intro's "honest about
+> limits" beat (both used the literal phrase "a straight answer" back to back); S2's
+> headline ("Every call comes with the why.") now ties to the new hero payoff word instead
+> of being the softest, most generic of the four section headlines. Full text measurements
+> (per-viewport line counts) live in the `landing-copy` branch history if needed again.
+> **Deploy `79b4e6e`** merges both `championship-picture` and `landing-copy` (branched
+> separately off slightly different points on `main`, no file overlap, clean `--no-ff`
+> merge). **Ops note:** the merge touched `.github/workflows/refresh-weekend-data.yml`
+> (already-live conditional-staging fix), which GitHub blocks unless the pushing token has
+> `workflow` scope — `gh`'s token needed `gh auth refresh -s workflow` AND git needed
+> pointing at it via `gh auth setup-git` (git's `credential.helper` was plain `osxkeychain`
+> holding a stale PAT, not delegating to `gh` at all). Not a code issue; if a future push
+> is rejected with the same "refusing to allow a Personal Access Token to create or update
+> workflow" message, that's the fix.
+> **NEXT UP (owner-stated, not yet scoped):** SEO + promotion/documentation, then expanding
+> `/learn` to 9 articles per theme (PRD's concept-what count is currently ~24 total across
+> all themes combined — this would be a substantial expansion, scope it properly before
+> starting).
 >
 > ## 🟢 PRELOADER — DONE + LIVE (2026-07-25, was branch `landing-preloader` → merged to `main`)
 > The last deferred landing-v2 piece shipped. See the newest session entry below for full
