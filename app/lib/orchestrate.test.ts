@@ -249,9 +249,17 @@ describe("answerQuery", () => {
       "who podiums in Austria?",
     );
     // Austria has an entity what (entity-whats.json), so context flows through (capped at 2).
-    expect(narrated?.context?.length).toBe(2);
+    // Asserted as a RANGE, not an exact 2: the context is sentence-split from an
+    // LLM-regenerated summary that changes on the weekend refresh cadence. This asserted
+    // `toBe(2)` and broke on 2026-07-26 when Austria's summary was rewritten from two
+    // sentences to one. The contract is "context flows through, capped at 2" — the exact
+    // count is live data.
+    expect(narrated?.context?.length).toBeGreaterThanOrEqual(1);
+    expect(narrated?.context?.length).toBeLessThanOrEqual(2);
     expect(out.supported).toBe(true);
-    if (out.supported && "podium" in out) expect(out.podium.context?.length).toBe(2);
+    if (out.supported && "podium" in out) {
+      expect(out.podium.context?.length).toBe(narrated?.context?.length);
+    }
   });
 
   it("falls back to the upcoming weekend when a prediction names no circuit", async () => {
