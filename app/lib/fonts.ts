@@ -37,14 +37,17 @@ export const lastik = localFont({
 });
 
 // Pixel serif — display moments (answer numbers, section headers, future landing). PP Mondwest.
+// WOFF2 (~52% smaller than the .otf) — the .otf stays on disk for app/opengraph-image.tsx,
+// which uses satori and can't read WOFF2.
 export const pixelSerif = localFont({
-  src: [{ path: "../fonts/bitmap/PPMondwest-Regular.otf", weight: "400", style: "normal" }],
+  src: [{ path: "../fonts/bitmap/PPMondwest-Regular.woff2", weight: "400", style: "normal" }],
   variable: "--font-pixel-serif",
   display: "swap",
 });
-// Pixel sans — small "computer" accents. PP NeueBit Bold.
+// Pixel sans — small "computer" accents. PP NeueBit Bold. WOFF2, same reasoning as above
+// (no satori consumer needs this one's .otf, but it's left on disk regardless).
 export const pixel = localFont({
-  src: [{ path: "../fonts/bitmap/PPNeueBit-Bold.otf", weight: "700", style: "normal" }],
+  src: [{ path: "../fonts/bitmap/PPNeueBit-Bold.woff2", weight: "700", style: "normal" }],
   variable: "--font-pixel",
   display: "swap",
 });
