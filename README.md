@@ -1,9 +1,15 @@
 # Sector 4
 
+[![Live](https://img.shields.io/badge/live-sector4.net-2348E0)](https://sector4.net)
+[![Next.js](https://img.shields.io/badge/Next.js-App_Router-000000?logo=next.js&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+
 An explainer-led F1 weekend companion: a natural-language interface that helps casual
 fans *understand* a race weekend, pairing honest, calibrated podium odds and strategy
 calls with grounded, plain-English explanations. Built for the fan who watches races
 but skips practice.
+
+![The Sector 4 landing page: a start-lights preloader gives way to a curtain reveal of the hero, "Everything happens in three sectors. The fourth tells you why."](docs/assets/hero-preview.gif)
 
 **Status:** live at [sector4.net](https://sector4.net). M1–M7 shipped — pipeline,
 `/ask`, `/weekend`, the learning layer, the landing page, and the season championship
