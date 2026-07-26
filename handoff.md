@@ -17,6 +17,39 @@
 > "SEE MORE" BUG FIX (PR #60) are all **LIVE on PRODUCTION (`sector4.net`)** — deploy
 > `0b68f3b` (2026-07-26). **M7 is DONE.**
 >
+> ## 🟢 2026-07-26 — SEO RE-AUDIT (PR #61) + a RETRACTED perf "regression" worth not re-chasing
+> Re-ran the audit against prod to check whether the #51-#60 fixes held. **They do**:
+> sitemap (50 URLs), robots, per-page canonical/OG, security headers, unique meta
+> descriptions across all 45 concepts, `/lab/dither` still noindex, the WOFF2 font fix
+> (element render delay down 37%), and the dither fps throttle (repeated-long-task cluster
+> gone) all verified live. New concept pages carry identical valid schema to the original
+> 24 — the 24→45 expansion introduced no regression. **One real bug found and fixed
+> (PR #61):** `/ask` and `/accuracy` emitted JSON-LD missing `@context` — both called
+> `webPageJsonLd(...)` directly instead of wrapping in `jsonLdGraph(...)`, which is what
+> adds the `@context`; every other route was correct.
+> **⚠️ RETRACTED FINDING — do not re-chase this.** The audit's performance agent reported a
+> homepage regression (TBT 165ms→**1,160ms**, score 90→**66**, a 767ms long task in the
+> unsplit route bundle) and recommended the deferred hero code-split as top priority. **It
+> does not reproduce.** Three consecutive runs on a clean prod build with no other browser
+> contexts open: **TBT 30/60/60ms, score 0.88/0.90/0.89, 4 long tasks all <80ms, bootup
+> 2052ms (not 3659ms).** The agent had run Lighthouse while several chrome-devtools MCP
+> contexts were still open from the `/learn` verification earlier in the session — **the
+> exact contamination that produced the false p95 reading during the hero-curtain-reveal
+> work.** Standing lesson, now confirmed twice: close stale browser contexts before any
+> perf measurement, and treat a confirming result with the same suspicion as a
+> contradicting one.
+> **There is no homepage perf problem.** On the residual LCP 3.7s "Needs Improvement": it
+> reproduces but is a simulated-throttling artifact — observed subparts on the same runs
+> are TTFB ~15ms + render delay ~85-185ms ≈ **200ms**, a ~20x gap. Lighthouse also
+> attributes LCP to `svg > defs > clipPath > text`, a node inside `<defs>` that is **never
+> painted**, so its attribution here isn't tracking real user-visible paint at all.
+> **The hero code-split stays DEFERRED and is now actively NOT recommended** on current
+> evidence — it buys no measurable win and would touch the readiness-gate timing, this
+> repo's most regression-prone surface. Revisit only if real CrUX field data disagrees.
+> **Highest-value perf action is now: configure a Google API key for CrUX/PSI field data** —
+> every number in both audits is a lab-only simulated estimate, and this pass is a concrete
+> demonstration of how misleading those can be.
+>
 > ## 🟢 2026-07-26 — /learn "see more" bug fixes (PR #60), owner-reported same day as #59
 > Two real bugs, both caught live within minutes of PR #59 shipping. **(1) Underline struck
 > across the whole page:** `.cta-grow::after` is `position: absolute` by design (documented
