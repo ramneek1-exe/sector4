@@ -51,7 +51,7 @@ type PodiumDriver = {
   p_podium?: number;
 };
 type Podium = { mode?: string; drivers?: PodiumDriver[]; reason?: string };
-type Strategy = { dominant?: { n_stops: number; share: number } | null; sc_caveat?: string };
+type Strategy = { dominant?: { n_stops: number; share: number | null } | null; sc_caveat?: string };
 type Pace = { drivers?: { driver: string; pace_delta_s: number }[] };
 
 const SHELL = "mx-auto max-w-3xl px-6 pb-12 pt-20";
@@ -252,8 +252,11 @@ export default async function WeekendPage() {
           <section className="mb-10">
             <h2 className={SECTION_LABEL}>Strategy</h2>
             <p>
-              Likely a {strategy.dominant.n_stops}-stop race (
-              {Math.round(strategy.dominant.share * 100)}% of the field).
+              Likely a {strategy.dominant.n_stops}-stop race
+              {strategy.dominant.share != null && (
+                <> ({Math.round(strategy.dominant.share * 100)}% of the field)</>
+              )}
+              .
             </p>
             {strategy.sc_caveat && <p className="mt-1 text-sm text-muted">{strategy.sc_caveat}</p>}
           </section>
