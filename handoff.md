@@ -12,8 +12,40 @@
 > CHAMPIONSHIP PICTURE (season standings, M7's stretch goal), an SEO FOUNDATION pass
 > (sitemap/robots/canonical/JSON-LD, PR #51), a README SYNC (PR #52), a WEEKEND STRATEGY
 > BUG FIX (PR #53), a README HERO GIF + badges (PR #54), a FONT WOFF2 PERF FIX (PR #55), an
-> OFF-SITE PROMOTION STRATEGY + COPY (PR #56), and an OG/TWITTER CARD REFRESH (PR #57) are
-> all **LIVE on PRODUCTION (`sector4.net`)** — deploy `7811ae8` (2026-07-26). **M7 is DONE.**
+> OFF-SITE PROMOTION STRATEGY + COPY (PR #56), an OG/TWITTER CARD REFRESH (PR #57), and the
+> DITHER PAINT-LOOP THROTTLE (PR #58 — the last deferred item from the perf audit) are all
+> **LIVE on PRODUCTION (`sector4.net`)** — deploy `ffe8b44` (2026-07-26). **M7 is DONE.**
+>
+> ## 🟢 2026-07-26 — dither paint-loop throttle (PR #58), the deferred hero perf work, DONE
+> The two performance items deferred back on the font-WOFF2 PR (#55) turned out to
+> collapse into ONE real fix, much smaller than the audit's original guess. Read
+> `StartLights.tsx` and `DitherVideo.tsx` fully before touching anything: **`StartLights`
+> has no rAF loop at all** (pure `setTimeout` + CSS animations) — not the audit's
+> "repeated long-task" source. `DitherVideo`'s paint loop was calling `paintFrame()`
+> (canvas `drawImage` + `getImageData` + a per-pixel dither loop + `putImageData`) on
+> **every rAF tick, uncapped** — native display refresh rate (60fps+). It's plain Canvas
+> 2D, not WebGPU — the audit's "WebGPU dither shader" language was imprecise about the
+> tech. `ffprobe public/hero.mp4` confirmed the source is exactly 30fps, so painting
+> faster than that was pure waste. **The audit's original recommended fix (code-split the
+> bundle off initial load) was rejected as unsafe**: `StartLights` needs the hero
+> `<video>`'s `canplay` event EARLY — that's the readiness signal its curtain-release
+> timing is gated on (`resolveLightsOut`) — deferring `DitherVideo`'s load would change
+> that timing, exactly the class of regression this codebase has a long history of.
+> **Shipped instead**: throttle `paintFrame()` to ~30fps via a new pure
+> `shouldPaint(now, lastPaint, minIntervalMs)` helper (`app/lib/frame-throttle.ts`,
+> tested) — `requestAnimationFrame` still fires every tick (pause/visibility semantics
+> unchanged), only the expensive paint work is now gated. `StartLights.tsx` and the
+> readiness-gate timing are completely untouched.
+> **Verified with a real before/after A/B, not just theory**: patched
+> `CanvasRenderingContext2D.prototype.putImageData` to count calls over a fixed window
+> via `chrome-devtools-mcp`. Before: 540 calls / 9.0s = exactly 60fps (matches uncapped
+> native refresh). After: ~23fps, reproduced twice — a ~62% cut in actual paint work.
+> Hero visually confirmed unchanged (screenshot: dither texture intact, no stutter).
+> Full spec/plan trail: `docs/superpowers/{specs,plans}/2026-07-26-dither-video-paint-throttle*`.
+> **This closes out the entire SEO/perf/promo audit arc from this stretch (PRs #51-#58).**
+> No open follow-ups from that audit remain except the two things that were always owner
+> actions, not build tasks: actually posting the drafted promo copy, and deciding on a
+> LICENSE file (still doesn't exist, still flagged not decided).
 >
 > ## 🟢 2026-07-26 — off-site promotion strategy + OG card refresh (PR #56, #57)
 > **Not code-driven — owner asked to start on the SEO audit's off-site/promotion gap,**
