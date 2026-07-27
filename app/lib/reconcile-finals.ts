@@ -25,7 +25,7 @@ export interface ReconcileDeps {
     gp: string,
     reconstructed: boolean,
     force?: boolean,
-  ) => Promise<unknown>;
+  ) => Promise<{ snapshot?: WeekendSnapshot } | unknown>;
 }
 
 /** True when this gp already has a live (non-reconstructed) pre-race checkpoint — i.e. we
@@ -50,6 +50,11 @@ export interface ReconcileResult {
   backfilled: string[]; // finals newly written this run
   alreadyPresent: string[]; // final snapshot already existed
   notRaced: string[]; // no actuals yet (un-raced target / results not ready)
+  /** The snapshots written this run, keyed by gp. Handed to the calibration rebuild so it
+   *  does not have to re-read them from Blob, which may not serve a just-written key yet
+   *  (read-after-write consistency). Without this a backfilled round misses the index and
+   *  only appears on the NEXT cron fire. */
+  written: Record<string, WeekendSnapshot>;
 }
 
 /** Backfill any completed round in `rounds` that lacks a `final` snapshot. A round is
@@ -71,6 +76,7 @@ export async function reconcileFinals(
   const backfilled: string[] = [];
   const alreadyPresent: string[] = [];
   const notRaced: string[] = [];
+  const written: Record<string, WeekendSnapshot> = {};
 
   for (const gp of rounds) {
     // A final only counts as complete if it carries a finishing order. A final with EMPTY
@@ -92,11 +98,22 @@ export async function reconcileFinals(
     const liveForecast = await hadLiveCheckpoint(year, gp, getJson);
     // Overwriting a poisoned final needs `force`; a genuinely absent one does not (and is
     // left unforced so a healthy snapshot can never be clobbered by a stray reconcile).
-    await write(year, gp, !liveForecast, Boolean(existing));
+    const res = (await write(year, gp, !liveForecast, Boolean(existing))) as
+      | { snapshot?: WeekendSnapshot; status?: string }
+      | undefined;
+    // The writer re-fetches actuals and refuses to persist a final without them. That can
+    // disagree with the check above if results vanish in between (a narrow race), and
+    // reporting a backfill that did not happen would send a reader chasing the wrong thing
+    // — so trust the writer's own verdict, not the earlier probe.
+    if (res?.status === "results not ready") {
+      notRaced.push(gp);
+      continue;
+    }
+    if (res?.snapshot) written[gp] = res.snapshot;
     backfilled.push(gp);
   }
 
-  return { backfilled, alreadyPresent, notRaced };
+  return { backfilled, alreadyPresent, notRaced, written };
 }
 
 /** Guarded wrapper: never throws, so a reconcile failure can never break the cron's primary
