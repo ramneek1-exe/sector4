@@ -17,6 +17,56 @@
 > "SEE MORE" BUG FIX (PR #60) are all **LIVE on PRODUCTION (`sector4.net`)** — deploy
 > `0b68f3b` (2026-07-26). **M7 is DONE.**
 >
+> ## 🔴→🟢 2026-07-27 — TWO REAL PIPELINE BUGS: races were silently never reaching /accuracy
+> Hungary raced 2026-07-26 and never appeared on `/accuracy`. It was NOT the benign timing
+> issue predicted the day before — two genuine, compounding bugs, both now fixed (PR #66,
+> #67). `/accuracy` now reads **4 races scored, 58% top-3, Brier 0.070** with Hungary
+> counted LIVE. (The headline dropped from 67% because Hungary was a miss — that is correct
+> and is the honest number to quote.)
+>
+> **BUG 1 — poisoned empty-actuals final (PR #66).** `schedule.final` is the race START
+> time, and the external weekend pinger fires HOURLY, so the due-write ran *while the race
+> was still running*. `getActualFinish` returned `[]` and a `final` snapshot was persisted
+> with `actuals: []`. That snapshot was then permanently stuck: the reconciler's bare
+> key-exists check saw it and marked it `alreadyPresent` (never retried), and the
+> calibration rebuild skips empty actuals (never indexed). **This was not Hungary-specific —
+> the hourly pinger went live 2026-07-25, so EVERY subsequent race would have been lost the
+> same way.** Fix: `writeWeekendSnapshot` refuses to persist a `final` without a finishing
+> order (new `"results not ready"` status), checked *before* the force path so forcing can't
+> poison it either; and `reconcileFinals` treats an empty-actuals final as MISSING and
+> force-rewrites it, which self-heals any already-poisoned snapshot.
+>
+> **BUG 2 — read-after-write race in the same cron run (PR #67).** After #66 deployed, the
+> first manual cron fire reported `backfilled:["Hungary"]` but STILL wrote `rows:10` — the
+> rebuild didn't see it. A second identical fire wrote `rows:11`. Cause: **Blob is
+> read-after-write eventually consistent**; `runSnapshotCron` writes a final in step 1/2 then
+> step 3 re-reads every final to project the index, and a just-written key is frequently not
+> served yet. `calibration-index.ts`'s own header already warned about this class of bug for
+> the OLD per-round design — making the rebuild atomic fixed the WRITE race and left the READ
+> race. **Left alone, every race would land on /accuracy a full cron cycle (24h) late.** Fix:
+> `writeWeekendSnapshot` returns the snapshot it wrote, `reconcileFinals` collects them into
+> `written`, and `runSnapshotCron` hands them to the rebuild as `fresh` (takes precedence
+> over the stored copy, which may also still be the pre-overwrite version). The snapshot is
+> destructured out of the cron's JSON response — that payload is a status, not a dump.
+>
+> **Reporting accuracy also tightened:** the reconciler now trusts the WRITER's verdict
+> rather than its own earlier actuals probe. `backfilled:["Hungary"]` while nothing reached
+> the index is precisely what sent me chasing the wrong thing.
+>
+> **LESSONS worth not relearning:**
+> - **`schedule.final` is the race START time, not the end.** Anything that consumes it and
+>   expects results to exist is wrong. The race takes ~2h.
+> - **Never persist a derived artifact in a state that makes it look complete.** An
+>   idempotency guard keyed on mere existence will then lock the bad state in forever.
+> - **Blob reads can't see Blob writes from moments earlier.** Never write-then-read-back
+>   within one cron run; pass the value through instead.
+> - **Verify the effect, not the status message.** The cron reported success while achieving
+>   nothing.
+>
+> **WATCH at the next race (Zandvoort, 2026-08-23):** confirm it appears on `/accuracy`
+> within one cron cycle and is labelled LIVE. Both bugs are fixed and regression-tested,
+> but this pipeline has now failed twice in ways only visible in production.
+>
 > ## 🟢 2026-07-26 — promotion drafts, footer credit (PR #63), red-main fix (PR #64)
 > **Footer author credit** (PR #63): "Made with ♥ by Ramneek" → ramneeksingh.ca, pixel font,
 > grow-underline, in the root-layout footer so it's on every page. Two gotchas worth
