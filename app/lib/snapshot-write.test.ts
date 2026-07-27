@@ -75,6 +75,47 @@ describe("writeWeekendSnapshot", () => {
     expect(io.store[seasonIndexKey(2026)]).toBeUndefined(); // index is rebuilt elsewhere now
   });
 
+  // Regression: Hungary 2026. `schedule.final` is the race START time, and the hourly
+  // weekend pinger fires within the hour — so the due-write ran while the race was still
+  // running, actuals came back empty, and a `final` snapshot was persisted with
+  // `actuals: []`. That snapshot was then permanently stuck: the reconciler saw the key
+  // exists and skipped it, and the calibration rebuild skips empty actuals, so the race
+  // never reached /accuracy. Refusing the write lets a later fire retry.
+  it("refuses to persist a final snapshot when actuals are not published yet", async () => {
+    const io = fakeStore();
+    const res = await writeWeekendSnapshot(2026, "Hungary", "final", {
+      ...io,
+      build: fakeBuild,
+      getActualFinish: async () => [],
+    });
+    expect(res.status).toBe("results not ready");
+    expect(io.store[snapshotKey(2026, "Hungary", "final")]).toBeUndefined();
+    expect(io.store[latestKey(2026, "Hungary")]).toBeUndefined();
+  });
+
+  it("still refuses the empty-actuals final write under force (force must not poison it)", async () => {
+    const io = fakeStore();
+    const res = await writeWeekendSnapshot(2026, "Hungary", "final", {
+      ...io,
+      build: fakeBuild,
+      getActualFinish: async () => [],
+      force: true,
+    });
+    expect(res.status).toBe("results not ready");
+    expect(io.store[snapshotKey(2026, "Hungary", "final")]).toBeUndefined();
+  });
+
+  it("non-final checkpoints are unaffected by the actuals guard", async () => {
+    const io = fakeStore();
+    const res = await writeWeekendSnapshot(2026, "Hungary", "pre-quali", {
+      ...io,
+      build: fakeBuild,
+      getActualFinish: async () => [],
+    });
+    expect(res.status).toBe("snapshotted");
+    expect(io.store[snapshotKey(2026, "Hungary", "pre-quali")]).toBeDefined();
+  });
+
 it("post-quali writes the snapshot without scoring", async () => {
     const io = fakeStore();
     await writeWeekendSnapshot(2026, "Great Britain", "post-quali", {

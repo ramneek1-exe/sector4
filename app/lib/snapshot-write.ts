@@ -42,7 +42,7 @@ export interface WriteDeps {
 }
 
 export interface WriteResult {
-  status: "already snapshotted" | "snapshotted";
+  status: "already snapshotted" | "snapshotted" | "results not ready";
   checkpoint: Checkpoint;
   forced: boolean;
 }
@@ -72,7 +72,19 @@ export async function writeWeekendSnapshot(
   const snap = await build(year, gp, checkpoint);
 
   if (checkpoint === "final") {
-    snap.actuals = await fetchActualFinish(year, gp);
+    const actuals = await fetchActualFinish(year, gp);
+    // NEVER persist a final without a finishing order. `schedule.final` is the race START
+    // time and the weekend pinger fires hourly, so the due-write routinely lands while the
+    // race is still running, when results don't exist yet. Writing then would bake in
+    // `actuals: []` — and because the key now exists, the reconciler would treat it as
+    // complete and the calibration rebuild skips empty actuals, so the round could never
+    // reach /accuracy. (Hungary 2026 was lost exactly this way.) Refusing the write leaves
+    // the key absent so the next fire retries. Deliberately checked before the `force`
+    // path too: forcing must not be able to poison it either.
+    if (actuals.length === 0) {
+      return { status: "results not ready", checkpoint, forced: force };
+    }
+    snap.actuals = actuals;
   }
   if (reconstructed) {
     snap.reconstructed = true;

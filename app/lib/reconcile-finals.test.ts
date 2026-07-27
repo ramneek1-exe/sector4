@@ -6,10 +6,14 @@ import { snapshotKey } from "./snapshot";
 // map of arbitrary snapshot keys -> snapshot contents (for pre-quali/post-quali lookups).
 function deps(opts: {
   existingFinals?: string[];
+  /** Finals that exist but carry empty actuals — the Hungary-2026 poisoned-snapshot case,
+   *  written by a due-write that fired while the race was still running. */
+  poisonedFinals?: string[];
   actuals?: Record<string, string[]>;
   snapshots?: Record<string, { reconstructed?: boolean }>;
 }) {
   const existingFinals = new Set(opts.existingFinals ?? []);
+  const poisonedFinals = new Set(opts.poisonedFinals ?? []);
   const actuals = opts.actuals ?? {};
   const snapshots = opts.snapshots ?? {};
   const write = vi.fn(
@@ -18,7 +22,10 @@ function deps(opts: {
   return {
     write,
     getJson: async <T>(key: string) => {
-      if (existingFinals.has(key)) return {} as T;
+      // A healthy existing final always carries a scored finishing order — that is what
+      // makes it "already present". The fixture models that rather than a bare {}.
+      if (existingFinals.has(key)) return { actuals: ["VER", "NOR", "LEC"] } as T;
+      if (poisonedFinals.has(key)) return { actuals: [] } as T;
       if (key in snapshots) return snapshots[key] as T;
       return null;
     },
@@ -36,7 +43,7 @@ describe("reconcileFinals", () => {
     expect(out.alreadyPresent).toEqual([]);
     expect(out.notRaced).toEqual([]);
     expect(d.write).toHaveBeenCalledTimes(1);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true, false);
   });
 
   it("backfills a missed final as LIVE (not reconstructed) when a live post-quali checkpoint already exists", async () => {
@@ -50,7 +57,7 @@ describe("reconcileFinals", () => {
     });
     const out = await reconcileFinals(YEAR, ["Belgium"], d);
     expect(out.backfilled).toEqual(["Belgium"]);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "Belgium", false);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Belgium", false, false);
   });
 
   it("still marks reconstructed:true when the only prior checkpoint was itself reconstructed", async () => {
@@ -61,7 +68,7 @@ describe("reconcileFinals", () => {
       },
     });
     const out = await reconcileFinals(YEAR, ["China"], d);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "China", true);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "China", true, false);
   });
 
   it("skips a round whose final snapshot already exists", async () => {
@@ -72,6 +79,33 @@ describe("reconcileFinals", () => {
     const out = await reconcileFinals(YEAR, ["Austria"], d);
     expect(out.alreadyPresent).toEqual(["Austria"]);
     expect(out.backfilled).toEqual([]);
+    expect(d.write).not.toHaveBeenCalled();
+  });
+
+  // Regression: Hungary 2026. A `final` written while the race was still running carried
+  // `actuals: []`, and the plain key-exists check treated it as complete forever — the
+  // reconciler skipped it and the calibration rebuild ignores empty actuals, so the race
+  // never appeared on /accuracy. An unscoreable final must be retried once results land.
+  it("rewrites a final that exists but has empty actuals, once results are available", async () => {
+    const d = deps({
+      poisonedFinals: [snapshotKey(YEAR, "Hungary", "final")],
+      actuals: { Hungary: ["NOR", "VER", "ANT"] },
+      // A live post-quali exists, so the rewrite must be LIVE, not reconstructed.
+      snapshots: { [snapshotKey(YEAR, "Hungary", "post-quali")]: {} },
+    });
+    const out = await reconcileFinals(YEAR, ["Hungary"], d);
+    expect(out.backfilled).toEqual(["Hungary"]);
+    expect(out.alreadyPresent).toEqual([]);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Hungary", false, true); // force: overwrite the poisoned key
+  });
+
+  it("leaves a poisoned final alone while results are still unavailable", async () => {
+    const d = deps({
+      poisonedFinals: [snapshotKey(YEAR, "Hungary", "final")],
+      actuals: {}, // race still running / results not published
+    });
+    const out = await reconcileFinals(YEAR, ["Hungary"], d);
+    expect(out.notRaced).toEqual(["Hungary"]);
     expect(d.write).not.toHaveBeenCalled();
   });
 
@@ -101,7 +135,7 @@ describe("reconcileFinals", () => {
     expect(out.backfilled).toEqual(["Great Britain"]);
     expect(out.notRaced).toEqual(["Belgium"]);
     expect(d.write).toHaveBeenCalledTimes(1);
-    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true);
+    expect(d.write).toHaveBeenCalledWith(YEAR, "Great Britain", true, false);
   });
 });
 

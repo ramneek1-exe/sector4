@@ -20,7 +20,12 @@ import { writeWeekendSnapshot, getActualFinish as realGetActualFinish } from "./
 export interface ReconcileDeps {
   getJson?: <T>(key: string) => Promise<T | null>;
   getActualFinish?: (year: number, gp: string) => Promise<string[]>;
-  write?: (year: number, gp: string, reconstructed: boolean) => Promise<unknown>;
+  write?: (
+    year: number,
+    gp: string,
+    reconstructed: boolean,
+    force?: boolean,
+  ) => Promise<unknown>;
 }
 
 /** True when this gp already has a live (non-reconstructed) pre-race checkpoint — i.e. we
@@ -60,15 +65,22 @@ export async function reconcileFinals(
   const getActualFinish = deps.getActualFinish ?? realGetActualFinish;
   const write =
     deps.write ??
-    ((y: number, g: string, reconstructed: boolean) =>
-      writeWeekendSnapshot(y, g, "final", { force: false, reconstructed }));
+    ((y: number, g: string, reconstructed: boolean, force = false) =>
+      writeWeekendSnapshot(y, g, "final", { force, reconstructed }));
 
   const backfilled: string[] = [];
   const alreadyPresent: string[] = [];
   const notRaced: string[] = [];
 
   for (const gp of rounds) {
-    if (await getJson<WeekendSnapshot>(snapshotKey(year, gp, "final"))) {
+    // A final only counts as complete if it carries a finishing order. A final with EMPTY
+    // actuals is unscoreable: the calibration rebuild skips it, so the round would never
+    // reach /accuracy, and a bare key-exists check would keep it that way forever. Treat it
+    // as missing so it gets rewritten once results land, which also self-heals any snapshot
+    // already poisoned this way (Hungary 2026).
+    const existing = await getJson<WeekendSnapshot>(snapshotKey(year, gp, "final"));
+    const existingActuals = existing?.actuals as string[] | undefined;
+    if (existing && existingActuals && existingActuals.length > 0) {
       alreadyPresent.push(gp);
       continue;
     }
@@ -78,7 +90,9 @@ export async function reconcileFinals(
       continue;
     }
     const liveForecast = await hadLiveCheckpoint(year, gp, getJson);
-    await write(year, gp, !liveForecast);
+    // Overwriting a poisoned final needs `force`; a genuinely absent one does not (and is
+    // left unforced so a healthy snapshot can never be clobbered by a stray reconcile).
+    await write(year, gp, !liveForecast, Boolean(existing));
     backfilled.push(gp);
   }
 
