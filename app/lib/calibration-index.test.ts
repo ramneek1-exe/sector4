@@ -68,3 +68,43 @@ describe("rebuildCalibrationIndex", () => {
     expect(out).toEqual({ error: "rebuild failed" });
   });
 });
+
+// Regression (Hungary 2026): Blob is read-after-write eventually consistent. The cron
+// reconciles a missing final and then rebuilds in the SAME run, so the just-written
+// snapshot is routinely invisible to the rebuild's own read — the round silently misses
+// the index and only lands on the NEXT cron fire (a 24h lag with a daily cron). Callers
+// can hand the freshly-written snapshots straight to the rebuild instead of hoping the
+// read catches up.
+describe("rebuildCalibrationIndex — freshly-written snapshots", () => {
+  it("indexes a fresh snapshot that Blob does not return yet", async () => {
+    const d = io({
+      [snapshotKey(YEAR, "Belgium", "final")]: snap("Belgium", ["NOR", "LEC", "PIA"]),
+      // Hungary deliberately absent from the store: models the read-after-write lag.
+    });
+    const out = await rebuildCalibrationIndex(YEAR, ["Belgium", "Hungary"], {
+      ...d,
+      fresh: { Hungary: snap("Hungary", ["VER", "NOR", "LEC"]) as never },
+    });
+    expect(out.rows).toBe(2);
+    const rows = d.putJson.mock.calls[0][1] as { gp: string }[];
+    expect(rows.map((r) => r.gp)).toEqual(["Belgium", "Hungary"]);
+  });
+
+  it("prefers the fresh snapshot over a stale one still being served by Blob", async () => {
+    const d = io({
+      // Stale read: the poisoned empty-actuals snapshot the fix just overwrote.
+      [snapshotKey(YEAR, "Hungary", "final")]: snap("Hungary", undefined),
+    });
+    const out = await rebuildCalibrationIndex(YEAR, ["Hungary"], {
+      ...d,
+      fresh: { Hungary: snap("Hungary", ["VER", "NOR", "LEC"]) as never },
+    });
+    expect(out.rows).toBe(1);
+  });
+
+  it("is unchanged when no fresh snapshots are supplied", async () => {
+    const d = io({ [snapshotKey(YEAR, "Belgium", "final")]: snap("Belgium", ["NOR"]) });
+    const out = await rebuildCalibrationIndex(YEAR, ["Belgium", "Hungary"], d);
+    expect(out.rows).toBe(1);
+  });
+});

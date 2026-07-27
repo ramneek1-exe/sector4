@@ -45,6 +45,10 @@ export interface WriteResult {
   status: "already snapshotted" | "snapshotted" | "results not ready";
   checkpoint: Checkpoint;
   forced: boolean;
+  /** The snapshot actually persisted by this call (absent when nothing was written). Lets a
+   *  caller hand it straight to the calibration rebuild instead of re-reading it from Blob,
+   *  which is read-after-write eventually consistent — see RebuildDeps.fresh. */
+  snapshot?: WeekendSnapshot;
 }
 
 /** Build, (score if final), and persist a weekend snapshot. Idempotent unless `force`: an
@@ -92,5 +96,5 @@ export async function writeWeekendSnapshot(
 
   await putJson(key, snap);
   await putJson(latestKey(year, gp), snap);
-  return { status: "snapshotted", checkpoint, forced: force };
+  return { status: "snapshotted", checkpoint, forced: force, snapshot: snap };
 }

@@ -57,3 +57,59 @@ describe("runSnapshotCron", () => {
     expect(out.status).toBe("no checkpoint due");
   });
 });
+
+// Regression (Hungary 2026): Blob is read-after-write eventually consistent, so a final
+// written in step 1 or 2 is routinely invisible to step 3's own read — the round misses the
+// index and only appears on the NEXT fire (24h late on a daily cron). Whatever was written
+// this run is handed to the rebuild directly.
+describe("runSnapshotCron — hands freshly-written finals to the rebuild", () => {
+  const snap = (gp: string) => ({ year: 2026, gp, checkpoint: "final", actuals: ["NOR"] });
+
+  it("passes a reconciler-backfilled final through to the rebuild", async () => {
+    const rebuild = vi.fn(async () => ({ rows: 1 }));
+    await runSnapshotCron(baseInput("2026-07-19T18:00:00Z"), {
+      write: vi.fn(async () => ({ status: "already snapshotted", checkpoint: "final", forced: false })),
+      reconcile: vi.fn(async () => ({
+        backfilled: ["Hungary"], alreadyPresent: [], notRaced: [],
+        written: { Hungary: snap("Hungary") },
+      })),
+      rebuild,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    expect(rebuild).toHaveBeenCalledWith(2026, ["Austria", "Belgium"], {
+      fresh: { Hungary: snap("Hungary") },
+    });
+  });
+
+  it("passes the due-write's own final through, and keeps it out of the JSON response", async () => {
+    const rebuild = vi.fn(async () => ({ rows: 1 }));
+    const out = await runSnapshotCron(baseInput("2026-07-19T18:00:00Z"), {
+      write: vi.fn(async () => ({
+        status: "snapshotted", checkpoint: "final", forced: false, snapshot: snap("Belgium"),
+      })),
+      reconcile: vi.fn(async () => ({ backfilled: [], alreadyPresent: [], notRaced: [], written: {} })),
+      rebuild,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    expect(rebuild).toHaveBeenCalledWith(2026, ["Austria", "Belgium"], {
+      fresh: { Belgium: snap("Belgium") },
+    });
+    // The payload is a cron response, not a snapshot dump.
+    expect(out.snapshot).toBeUndefined();
+    expect(out.status).toBe("snapshotted");
+  });
+
+  it("does not treat a non-final due-write as a calibration input", async () => {
+    const rebuild = vi.fn(async () => ({ rows: 0 }));
+    await runSnapshotCron(baseInput("2026-07-18T15:00:00Z"), {
+      write: vi.fn(async () => ({
+        status: "snapshotted", checkpoint: "post-quali", forced: false,
+        snapshot: { year: 2026, gp: "Belgium", checkpoint: "post-quali" },
+      })),
+      reconcile: vi.fn(async () => ({ backfilled: [], alreadyPresent: [], notRaced: [], written: {} })),
+      rebuild,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    expect(rebuild).toHaveBeenCalledWith(2026, ["Austria", "Belgium"], { fresh: {} });
+  });
+});

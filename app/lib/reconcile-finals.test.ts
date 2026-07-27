@@ -147,6 +147,8 @@ describe("safeReconcileFinals", () => {
       backfilled: ["Great Britain"],
       alreadyPresent: [],
       notRaced: [],
+      // The injected write spy returns no `snapshot`, so nothing is collected to hand on.
+      written: {},
     });
   });
 
@@ -157,5 +159,17 @@ describe("safeReconcileFinals", () => {
       },
     });
     expect(out).toEqual({ error: "reconcile failed" });
+  });
+});
+
+describe("reconcileFinals — writer's verdict wins", () => {
+  it("reports notRaced (not backfilled) when the writer refuses for want of actuals", async () => {
+    const d = deps({ actuals: { Hungary: ["NOR", "VER"] } });
+    // Models the narrow race: the probe saw actuals, the writer's own re-fetch did not.
+    const write = vi.fn(async () => ({ status: "results not ready" }));
+    const out = await reconcileFinals(2026, ["Hungary"], { ...d, write });
+    expect(out.backfilled).toEqual([]);
+    expect(out.notRaced).toEqual(["Hungary"]);
+    expect(out.written).toEqual({});
   });
 });
