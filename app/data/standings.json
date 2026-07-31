@@ -47,7 +47,7 @@
     "STR": 0.0,
     "VER": 109.0
   },
-  "remainingRounds": 11,
+  "remainingRounds": 12,
   "teams": {
     "Alpine F1 Team": 61.0,
     "Aston Martin": 1.0,
@@ -63,6 +63,6 @@
   },
   "throughGp": "Hungary",
   "throughRound": 11,
-  "totalRounds": 22,
+  "totalRounds": 23,
   "year": 2026
 }
