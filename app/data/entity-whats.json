@@ -3,830 +3,830 @@
     "type": "circuit",
     "slug": "Abu Dhabi",
     "title": "Yas Marina Circuit",
-    "summary": "Yas Marina Circuit, a 5. 281 km track designed by Hermann Tilke on Abu Dhabi's Yas Island, has been the home of Formula One's season finale since 2009. The venue represents the second Middle Eastern Formula One circuit, following Bahrain's establishment and preceding later additions in Qatar and Saudi Arabia.",
+    "summary": "Located on Abu Dhabi's Yas Island, the 5. 281 km Yas Marina Circuit was designed by Hermann Tilke and has served as the venue for the season-closing Formula One Abu Dhabi Grand Prix since 2009. It represents the second Middle Eastern Formula One venue to be constructed, following Bahrain's circuit and preceding facilities in Qatar and Saudi Arabia.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Yas_Marina_Circuit"
     },
     "track": "Yas Marina Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "9924f86290517fca"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "fab3be1af2bc181e"
   },
   "circuit:Australia": {
     "type": "circuit",
     "slug": "Australia",
     "title": "Albert Park Circuit",
-    "summary": "The Albert Park Circuit is a street course that winds around Albert Park Lake in Melbourne's Albert Park suburb and hosts the annual Formula One Australian Grand Prix alongside various support categories including a Supercars championship event. The venue holds the highest FIA classification for permanent racing circuits.",
+    "summary": "The Albert Park Circuit is a street layout that encircles Albert Park Lake in Melbourne's Albert Park suburb and holds an FIA Grade 1 classification. It hosts the Formula One Australian Grand Prix each year, along with the Supercars Championship's Melbourne event and various supporting race categories.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Albert_Park_Circuit"
     },
     "track": "Albert Park Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "6556d75199b5920b"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "a002195434787d19"
   },
   "circuit:Austria": {
     "type": "circuit",
     "slug": "Austria",
     "title": "Red Bull Ring",
-    "summary": "Located in Spielberg, Austria, this 4. 326 km circuit has a rich history hosting the Austrian Grand Prix across two separate periods: initially under its original name from 1970 to 1987, and again following its reconstruction and renaming from 1997 to 2003.",
+    "summary": "The 4. 326 km circuit in Spielberg, Austria, originally served as the venue for the Austrian Grand Prix during two separate periods, first as the Österreichring from 1970-1987 and later as the A1-Ring following its reconstruction and shortening from 1997-2003. The track underwent significant modifications between these eras before returning to host Formula One racing under its new identity.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Red_Bull_Ring"
     },
     "track": "Red Bull Ring",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "3671bef897445af4"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "7d48ec8992a337ae"
   },
   "circuit:Azerbaijan": {
     "type": "circuit",
     "slug": "Azerbaijan",
     "title": "Baku City Circuit",
-    "summary": "The Baku City Circuit is a street racing venue situated in Azerbaijan's capital city near the waterfront promenade, stretching 6. 003 km to rank among the longest tracks in Formula One racing. After hosting the 2016 European Grand Prix as its first F1 event, the circuit established its own championship race the following year with the Azerbaijan Grand Prix, which continues as an annual fixture on the racing calendar.",
+    "summary": "The Baku City Circuit is a street track in Azerbaijan's capital city that spans 6. 003 km, ranking as the fourth-longest venue in Formula One. The circuit first hosted F1 racing in 2016 with the European Grand Prix, before becoming home to the Azerbaijan Grand Prix from 2017 onwards.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Baku_City_Circuit"
     },
     "track": "Baku City Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "5918558836d07229"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "cee8dd011c72a76a"
   },
   "circuit:Bahrain": {
     "type": "circuit",
     "slug": "Bahrain",
     "title": "Bahrain International Circuit",
-    "summary": "Opened in 2004, the Bahrain International Circuit is a 5. 412 km venue that hosts the annual Formula One Grand Prix, which marked the first F1 race held in the Middle East. Beyond Formula One, the track accommodates various motorsport events including endurance racing, GP2 competition, and previously hosted V8 Supercar racing, with multiple circuit configurations available for different competitions.",
+    "summary": "The Bahrain International Circuit, a 5. 412 km facility that opened in 2004, hosts the annual Formula One Bahrain Grand Prix, making it the venue for the sport's inaugural Middle Eastern race. Beyond Formula One, the track accommodates various racing series including GP2, drag racing, and 24-hour endurance events, while holding FIA Grade 1 certification and offering multiple circuit configurations.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Bahrain_International_Circuit"
     },
     "track": "Bahrain International Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f921e6e72fec563a"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "16b802afc68bbc3f"
   },
   "circuit:Barcelona": {
     "type": "circuit",
     "slug": "Barcelona",
     "title": "Circuit de Barcelona-Catalunya",
-    "summary": "Located near Barcelona in Montmeló, the Circuit de Barcelona-Catalunya is a 4. 657 km track featuring a balanced mix of extended straights and diverse corner configurations that test multiple driving skills. The venue holds FIA Grade 1 certification and accommodates approximately 140,700 spectators across its facilities.",
+    "summary": "Located in Montmeló near Barcelona, the Circuit de Barcelona-Catalunya spans 4. 657 kilometers and features a balanced mix of lengthy straightaways and diverse corner configurations, making it a versatile test for competitors. The venue holds FIA Grade 1 accreditation and accommodates up to 140,700 spectators across its grandstands.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_de_Barcelona-Catalunya"
     },
     "track": "Circuit de Barcelona-Catalunya",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "87163e7842b6a798"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "a9bdfd26a3fd33b8"
   },
   "circuit:Belgium": {
     "type": "circuit",
     "slug": "Belgium",
     "title": "Circuit de Spa-Francorchamps",
-    "summary": "The 7-kilometre Belgian circuit at Francorchamps has hosted Formula One racing since 1950, appearing on the inaugural world championship calendar. Located near the town of Spa, the venue has staged its Grand Prix annually from 1985 onwards, with only two exceptions in 2003 and 2006.",
+    "summary": "Spa is a 7. 004 km Belgian circuit situated in the Wallonia region near the town of Spa, serving as the home of the Formula One Belgian Grand Prix since 1950. The venue has maintained continuous Grand Prix racing from 1985 onwards, with only two exceptions in 2003 and 2006.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps"
     },
     "track": "Circuit de Spa-Francorchamps",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "22089600d0d6b09f"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "1eca4e32d77863f8"
   },
   "circuit:Canada": {
     "type": "circuit",
     "slug": "Canada",
     "title": "Circuit Gilles Villeneuve",
-    "summary": "Located on Notre Dame Island in Montreal, the Circuit Gilles Villeneuve is a 4. 361-kilometre track that serves as the home of Formula One's Canadian Grand Prix. Beyond Formula One, the venue has hosted various international racing series including sports car championships, North American open-wheel competitions, and NASCAR events.",
+    "summary": "Located on Notre Dame Island in Montreal, Quebec, the Circuit Gilles Villeneuve is a 4. 361 km temporary road course that hosts the Formula One Canadian Grand Prix annually. Beyond Formula One, the track has accommodated various international racing series including sports car championships and North American racing competitions.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_Gilles_Villeneuve"
     },
     "track": "Circuit Gilles Villeneuve",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "d026b75d20f46a01"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "9764afd57713b944"
   },
   "circuit:China": {
     "type": "circuit",
     "slug": "China",
     "title": "Shanghai International Circuit",
-    "summary": "Located in Shanghai's Jiading District, the Shanghai International Circuit serves as the primary venue for the Chinese Grand Prix, which ran annually from 2004 to 2019 before resuming in 2024. The track has expanded its motorsport calendar to include electric racing events starting in 2024.",
+    "summary": "Located in Shanghai's Jiading District, this Chinese motorsport venue is primarily recognized as the home of the Chinese Grand Prix, which ran annually from 2004 through 2019 before resuming in 2024. The track has expanded its racing calendar to include the Shanghai ePrix beginning in 2024.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Shanghai_International_Circuit"
     },
     "track": "Shanghai International Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "7b97a1cedfb4a682"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "0ac2a8647a13a7b6"
   },
   "circuit:Great Britain": {
     "type": "circuit",
     "slug": "Great Britain",
     "title": "Silverstone Circuit",
-    "summary": "Silverstone Circuit, located in England near Northamptonshire, has been the principal venue for the British Grand Prix since 1948 and notably hosted the inaugural World Championship race in 1950. After sharing the British Grand Prix with Aintree and Brands Hatch between 1955 and 1986, the circuit became the permanent home of this event from 1987 onwards, while also regularly accommodating the MotoGP series.",
+    "summary": "Silverstone is an English racing circuit located near villages in Northamptonshire that has hosted the British Grand Prix since 1948, making it the venue for the first-ever World Championship race in 1950. Following decades of shared hosting with other tracks, the Grand Prix became permanently based at Silverstone from 1987 onwards, and the circuit continues to stage both Formula One and MotoGP events.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Silverstone_Circuit"
     },
     "track": "Silverstone Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "16986df148dfb26c"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "cef8c0d88d72ab0a"
   },
   "circuit:Hungary": {
     "type": "circuit",
     "slug": "Hungary",
     "title": "Hungaroring",
-    "summary": "The Hungaroring, located near Budapest in Hungary, hosted the inaugural Formula One Grand Prix held behind the Iron Curtain in 1986. Built in just eight months on a site chosen by the Hungarian government over a proposed street circuit in the capital's main park, the 4. 381 km track was constructed to commemorate János Drapál, Hungary's pioneering motorcycle racer.",
+    "summary": "The Hungaroring, located near Budapest in Mogyoród, hosted the first Formula One Grand Prix held in Eastern Europe when it opened in 1986. Built in just eight months, a faster construction timeline than any contemporary Grand Prix venue, the 4. 381 km circuit was established outside the city near a major road after initial plans for a street track in Budapest's central park were rejected by authorities.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Hungaroring"
     },
     "track": "Hungaroring",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "5ddaaeca6da6e0d8"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "9028eb42e695f185"
   },
   "circuit:Italy": {
     "type": "circuit",
     "slug": "Italy",
     "title": "Autodromo Nazionale Monza",
-    "summary": "Located near Milan in northern Italy, the Autodromo Nazionale Monza is a 5. 793 km circuit constructed in 1922 as the third purpose-built racing venue globally and Europe's oldest on mainland territory. The track, nicknamed \"the Temple of Speed\" for its extended straights and quick corners, has hosted the Italian Grand Prix continuously since 1949, except during a 1980 closure for renovation work.",
+    "summary": "Located near Milan in northern Italy, the Autodromo Nazionale Monza is a 5. 793 km circuit constructed in 1922 that ranks among Europe's oldest dedicated racing venues. The track hosts the Italian Grand Prix annually since 1949, earning its nickname \"the Temple of Speed\" for its distinctive layout featuring lengthy straights and fast-paced corner sequences.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Monza_Circuit"
     },
     "track": "Autodromo Nazionale Monza",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "58b79a2defcb4f3c"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "f01b91fd74dc073c"
   },
   "circuit:Japan": {
     "type": "circuit",
     "slug": "Japan",
     "title": "Suzuka International Racing Course",
-    "summary": "Suzuka Circuit is a 5. 807 km Japanese motorsport venue situated in Mie Prefecture and operated by Honda Mobilityland, featuring a 155,000-person capacity. The track serves as a prominent host for both Formula One world championship races and Japanese Super Formula competitions.",
+    "summary": "Suzuka Circuit, operated by Honda Mobilityland, is a 5. 807 km Japanese racing venue situated in Mie Prefecture that hosts major international motorsport competitions. The track, with a spectator capacity of 155,000, is particularly renowned for staging Formula One and Super Formula championship races.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Suzuka_Circuit"
     },
     "track": "Suzuka International Racing Course",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "63b75b2f3cfc6c79"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "bbb3f454ee1ed56c"
   },
   "circuit:Las Vegas": {
     "type": "circuit",
     "slug": "Las Vegas",
     "title": "Las Vegas Strip Circuit",
-    "summary": "The Las Vegas Strip Circuit is a temporary street course laid out around the famous Las Vegas Boulevard in Paradise, Nevada, weaving through sections hosting the city's premier casino resorts and hotels. The track incorporates several iconic Las Vegas landmarks such as MSG Sphere, Caesars Palace, Bellagio, and Paris Las Vegas as it navigates the urban landscape.",
+    "summary": "The Las Vegas Strip Circuit is a street course that navigates through Paradise, Nevada, running alongside the famous Las Vegas Boulevard and its collection of major hotels and casinos. The track passes by several iconic venues including the MSG Sphere, Caesars Palace, Bellagio, and Paris Las Vegas, making it one of motorsport's most distinctive urban settings.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Las_Vegas_Strip_Circuit"
     },
     "track": "Las Vegas Strip Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "655e2a669a28b075"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "22a5410459d45dfc"
   },
   "circuit:Mexico City": {
     "type": "circuit",
     "slug": "Mexico City",
     "title": "Autódromo Hermanos Rodríguez",
-    "summary": "Located in Mexico City, the Autódromo Hermanos Rodríguez is a 4. 304 km circuit honoring brothers Ricardo and Pedro Rodríguez, both prominent racing drivers who died in accidents. The track has hosted Formula One's Mexican Grand Prix across multiple eras, resuming as a regular venue from 2015 onwards on its current layout, having previously held the event until 1992 on a different configuration.",
+    "summary": "Mexico City's Autódromo Hermanos Rodríguez is a 4. 304 km circuit named in honour of two fatal racing drivers, the Rodriguez brothers, who died in separate incidents during the 1960s and 1970s. The venue resumed hosting Formula One's Mexican Grand Prix from 2015 onwards, having previously staged the race during two earlier eras on an alternative configuration until 1992.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Aut%C3%B3dromo_Hermanos_Rodr%C3%ADguez"
     },
     "track": "Autódromo Hermanos Rodríguez",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "a6c6e6ac1305ab34"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "3df96d1e6bb7d905"
   },
   "circuit:Miami": {
     "type": "circuit",
     "slug": "Miami",
     "title": "Miami International Autodrome",
-    "summary": "The Miami International Autodrome is a temporary street circuit constructed around Hard Rock Stadium in Miami Gardens, featuring a 3. 363-mile layout with 19 corners that generates qualifying speeds near 139 mph. Designed by Apex Circuit Design specifically for Formula One use, the track joined the championship calendar in 2022 as the venue for the Miami Grand Prix.",
+    "summary": "The Miami International Autodrome is a temporary circuit constructed around Hard Rock Stadium in Miami Gardens, featuring a 3. 363-mile layout with 19 corners that drivers navigate at an average qualifying speed of approximately 139 mph. Designed by specialist track architects, the circuit was created specifically to host the Miami Grand Prix, which joined the Formula One World Championship calendar starting in 2022.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Miami_International_Autodrome"
     },
     "track": "Miami International Autodrome",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "4f5dc0c518ca142b"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "e5956e340682c49c"
   },
   "circuit:Monaco": {
     "type": "circuit",
     "slug": "Monaco",
     "title": "Circuit de Monaco",
-    "summary": "The Circuit de Monaco stretches 3. 337 kilometres through the streets of Monte Carlo and La Condamine, hugging the waterfront of the principality. Though officially named after Monaco itself, the track is widely known as Monte Carlo because the majority of its layout occupies that particular neighbourhood.",
+    "summary": "The Circuit de Monaco is a 3. 337 km street track winding through the Monte Carlo and La Condamine districts of Monaco, circling the harbour area. Though officially named after the principality itself, it is widely known as Monte Carlo since the majority of the circuit traverses that particular neighbourhood.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_de_Monaco"
     },
     "track": "Circuit de Monaco",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "445718d31196bfb7"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "9682e480f6019e1d"
   },
   "circuit:Netherlands": {
     "type": "circuit",
     "slug": "Netherlands",
     "title": "Circuit Zandvoort",
-    "summary": "Located in the Dutch coastal dunes west of Amsterdam, Zandvoort is a 4. 259 km track that hosted Formula One racing from 1958 to 1985 before its return in 2021 with the revival of the Dutch Grand Prix. The circuit will conclude its current Formula One partnership after the 2026 season.",
+    "summary": "Located in the Dutch coastal dunes west of Amsterdam, Circuit Zandvoort is a 4. 259 km track that rejoined Formula One's schedule in 2021 for the Dutch Grand Prix. The venue's involvement with the sport will conclude following the 2026 season.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_Zandvoort"
     },
     "track": "Circuit Zandvoort",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "2164b4fc63b60b0b"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "0afaf3980a64ee75"
   },
   "circuit:Qatar": {
     "type": "circuit",
     "slug": "Qatar",
     "title": "Lusail International Circuit",
-    "summary": "Lusail International Circuit is situated near Doha in Qatar and features a 5. 419-kilometer layout with a 1. 068-kilometer main straight, holding FIA Grade 1 certification.",
+    "summary": "Situated north of Doha in Qatar, Lusail International Circuit is an FIA Grade 1 facility measuring 5. 419 km with a notably long main straight of 1. 068 km.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Lusail_International_Circuit"
     },
     "track": "Lusail International Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "a99de315af1d8d4e"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "6836cdb7a0d55ee5"
   },
   "circuit:São Paulo": {
     "type": "circuit",
     "slug": "São Paulo",
     "title": "Autódromo José Carlos Pace",
-    "summary": "Interlagos is a 4. 309 km Brazilian motorsport facility in São Paulo that opened in 1940 and was later renamed after Formula One driver José Carlos Pace, who perished in an aviation accident in 1977. The track operates in a counterclockwise direction and features supporting amenities including a kart circuit dedicated to fellow racing legend Ayrton Senna.",
+    "summary": "Interlagos is a 4. 309 km Brazilian racing venue in São Paulo that opened in 1940 and was later renamed after deceased Formula 1 driver José Carlos Pace in 1985. The track operates in a counterclockwise direction and features an associated kart facility dedicated to Ayrton Senna.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Interlagos_Circuit"
     },
     "track": "Autódromo José Carlos Pace",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "c79afdefa8ea92a8"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "9c693f501eb8580d"
   },
   "circuit:Saudi Arabia": {
     "type": "circuit",
     "slug": "Saudi Arabia",
     "title": "Jeddah Corniche Circuit",
-    "summary": "The Jeddah Corniche Circuit is a street track situated along the Red Sea waterfront in Jeddah, Saudi Arabia, serving as the venue for the Formula One Saudi Arabian Grand Prix from 2021 onwards and the Formula E championship from 2025.",
+    "summary": "The Jeddah Corniche Circuit is a street racing venue situated along Saudi Arabia's Red Sea waterfront in Jeddah. Since its debut in 2021, it has served as the permanent home of the Saudi Arabian Grand Prix in Formula One, and recently began hosting electric racing competitions as well.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Jeddah_Corniche_Circuit"
     },
     "track": "Jeddah Corniche Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "d0e71db275e861a7"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "80d3fb04e4092567"
   },
   "circuit:Singapore": {
     "type": "circuit",
     "slug": "Singapore",
     "title": "Marina Bay Street Circuit",
-    "summary": "The Marina Bay Street Circuit winds through Singapore's downtown waterfront area, utilizing roads around the iconic Marina Bay and spanning across the Downtown Core and Kallang districts.",
+    "summary": "The Marina Bay Street Circuit is a temporary road course located in Singapore that winds around Marina Bay, incorporating sections of the Downtown Core and Kallang urban districts.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Marina_Bay_Street_Circuit"
     },
     "track": "Marina Bay Street Circuit",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "9e07cbad590866a0"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "3c182b99743eb6a2"
   },
   "circuit:Spain": {
     "type": "circuit",
     "slug": "Spain",
     "title": "Circuit de Barcelona-Catalunya",
-    "summary": "Located near Barcelona in Montmeló, Spain, the Circuit de Barcelona-Catalunya spans 4. 657 kilometers and features a balanced combination of extended straights and diverse corner configurations, making it suitable for testing all aspects of racing performance. The venue holds FIA Grade 1 certification and accommodates approximately 140,700 spectators across its grandstand facilities.",
+    "summary": "Located near Barcelona in Catalonia, this 4. 657-kilometer circuit near Montmeló features a balanced layout combining extended straights with diverse corner configurations, making it a versatile test for Formula One machinery. The venue holds FIA Grade 1 certification and accommodates approximately 140,700 spectators across its grandstands.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_de_Barcelona-Catalunya"
     },
     "track": "Circuit de Barcelona-Catalunya",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "c93ca8397465df70"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "fefd18abb895be8c"
   },
   "circuit:United States": {
     "type": "circuit",
     "slug": "United States",
     "title": "Circuit of the Americas",
-    "summary": "The Circuit of the Americas in Austin, Texas is a 3. 426-mile FIA Grade 1 facility that primarily hosts the Formula One United States Grand Prix alongside major NASCAR and MotoGP events. Beyond these marquee races, the venue has accommodated various international motorsport series including endurance racing championships and previously hosted IndyCar and rallycross competitions.",
+    "summary": "The Circuit of the Americas, situated in Austin, Texas, is a 3. 426-mile FIA Grade 1 facility that serves as the permanent home of the United States Formula One Grand Prix. Beyond F1, the track hosts major international motorsport events including NASCAR, MotoGP's Motorcycle Grand Prix of the Americas, and the Lone Star Le Mans endurance race, while previously accommodating various other racing series.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Circuit_of_the_Americas"
     },
     "track": "Circuit of the Americas",
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "82470b5f956e8f3d"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "77bc5a7d9b23241b"
   },
   "driver:ALB": {
     "type": "driver",
     "slug": "ALB",
     "title": "Alexander Albon",
-    "summary": "Alexander Albon is a Thai-British motorsport competitor who represents Thailand in Formula One, currently driving for Williams.",
+    "summary": "Thai-British driver Alexander Albon currently races for Williams in Formula One, competing under Thailand's flag.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Alex_Albon"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "02329d882f530692"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "908c7b75e5100937"
   },
   "driver:ALO": {
     "type": "driver",
     "slug": "ALO",
     "title": "Fernando Alonso",
-    "summary": "Spanish driver Fernando Alonso competes for Aston Martin in Formula One, bringing a record of two world championship titles earned with Renault in 2005 and 2006, along with 32 Grand Prix victories accumulated over 23 seasons. Beyond single-seaters, Alonso has achieved remarkable success in endurance racing, including victories at Le Mans twice and the 2018-19 World Endurance Championship, making him the sole driver to have won both F1 and World Sportscar championships.",
+    "summary": "Spanish driver Fernando Alonso currently races for Aston Martin in Formula One, where he has claimed two world championships in 2005 and 2006 during his time at Renault, along with 32 Grand Prix victories. Beyond single-seaters, Alonso has achieved remarkable success in endurance racing, including two Le Mans wins and the 2018-19 World Endurance Championship, making him the sole driver to have won both the Formula One drivers' title and the world sportscar championship.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Fernando_Alonso"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "4634f3ecb5c6e0d9"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "c20201715d69937b"
   },
   "driver:ANT": {
     "type": "driver",
     "slug": "ANT",
     "title": "Andrea Kimi Antonelli",
-    "summary": "Italian driver Andrea Kimi Antonelli represents Mercedes in Formula One, having claimed six race victories since entering the sport in 2025.",
+    "summary": "Italian driver Andrea Kimi Antonelli joined Mercedes for the 2025 Formula One season and has already secured six race victories during his inaugural campaign.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Kimi_Antonelli"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "203152725a0e69ce"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "e0440fcd879fcce7"
   },
   "driver:BEA": {
     "type": "driver",
     "slug": "BEA",
     "title": "Oliver Bearman",
-    "summary": "Oliver Bearman is a British motorsport competitor currently driving for Haas in the Formula One world championship.",
+    "summary": "British driver Oliver Bearman currently races for Haas in Formula One competition. His career has progressed through the ranks to reach the sport's premier championship level.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Oliver_Bearman"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "3b038b6f1e18aad9"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "aa0fc5315b2ef918"
   },
   "driver:BOR": {
     "type": "driver",
     "slug": "BOR",
     "title": "Gabriel Bortoleto",
-    "summary": "Brazilian driver Gabi Bortoleto currently races in Formula One as a member of the Audi team, competing at the sport's highest level.",
+    "summary": "Brazilian driver Gabi Bortoleto currently races in Formula One as a member of the Audi team, representing his nation in the sport's premier competition.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Gabriel_Bortoleto"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "76ce46e7a943522f"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "b9f83ee72ff96ae2"
   },
   "driver:BOT": {
     "type": "driver",
     "slug": "BOT",
     "title": "Valtteri Bottas",
-    "summary": "Finnish driver Valtteri Bottas currently races for Cadillac in Formula One, bringing extensive experience from a career spanning over a decade. He achieved runner-up finishes in the drivers' championship during consecutive seasons with Mercedes, and has accumulated 10 race victories throughout his time in the sport.",
+    "summary": "Finnish driver Valtteri Bottas currently races for Cadillac in Formula One, bringing extensive experience from a 13-season career that has yielded ten Grand Prix victories. He achieved the runner-up position in the drivers' championship on two occasions, both while driving for Mercedes in 2019 and 2020.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Valtteri_Bottas"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "b01d3b9241dd656c"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "b78cbada43cb62ee"
   },
   "driver:COL": {
     "type": "driver",
     "slug": "COL",
     "title": "Franco Colapinto",
-    "summary": "Franco Alejandro Colapinto is an Argentine racing driver currently competing in Formula One as part of the Alpine team.",
+    "summary": "Franco Alejandro Colapinto is an Argentine motorsport competitor currently racing in Formula One with the Alpine team.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Franco_Colapinto"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "a9e551e9ad9a2444"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "aedd2decad3bf125"
   },
   "driver:DOO": {
     "type": "driver",
     "slug": "DOO",
     "title": "Jack Doohan (racing driver)",
-    "summary": "Jack Doohan is an Australian driver who races in the European Le Mans Series' LMP2 category with Nielsen Racing while holding a reserve driver position at Haas in Formula One. He has made seven Grand Prix appearances between 2024 and 2025.",
+    "summary": "Jack Doohan, an Australian driver, holds a reserve position with Haas in Formula One while competing in the European Le Mans Series' LMP2 category for Nielsen Racing. Between 2024 and 2025, he made seven Grand Prix appearances in the sport's top category.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Jack_Doohan"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f338223a28fc7cea"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "47264cce42364ee4"
   },
   "driver:GAS": {
     "type": "driver",
     "slug": "GAS",
     "title": "Pierre Gasly",
-    "summary": "Pierre Gasly is a French Formula One driver currently racing for Alpine. The 2020 Italian Grand Prix victory with AlphaTauri remains a significant achievement in his racing career.",
+    "summary": "French driver Pierre Gasly currently races for Alpine in Formula One. He achieved a Grand Prix victory at Monza in 2020 while competing for AlphaTauri.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Pierre_Gasly"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "0d1864e6141c63dc"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "78069d95b6cddae1"
   },
   "driver:HAD": {
     "type": "driver",
     "slug": "HAD",
     "title": "Isack Hadjar",
-    "summary": "A French-Algerian motorsport competitor, Isack Alexandre Hadjar represents France in Formula One while driving for Red Bull Racing.",
+    "summary": "Isack Alexandre Hadjar is a Franco-Algerian driver who represents France in Formula One, currently racing for Red Bull Racing.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Isack_Hadjar"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "83b54ad34f4393d7"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "3b8310986f45b935"
   },
   "driver:HAM": {
     "type": "driver",
     "slug": "HAM",
     "title": "Lewis Hamilton",
-    "summary": "Lewis Hamilton is a British Formula One driver currently competing for Ferrari who has secured seven world championship titles, matching Michael Schumacher's record. He holds multiple performance records in the sport, including the most race victories, pole positions, and podium finishes in Formula One history.",
+    "summary": "Lewis Hamilton is a British Formula One driver currently racing for Ferrari, holding a record-tying seven world championship titles alongside Michael Schumacher. He leads the sport in multiple statistical categories, including the most race victories, pole positions, and podium finishes throughout his career.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Lewis_Hamilton"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "bb46f8fc64d7021c"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "afab948db4aa2e38"
   },
   "driver:HUL": {
     "type": "driver",
     "slug": "HUL",
     "title": "Nico Hülkenberg",
-    "summary": "German driver Nicolas Hülkenberg currently races for Audi in Formula One, bringing significant experience from his lengthy career in the sport. Beyond his Formula One efforts, he achieved notable success in endurance racing, including a victory at the 24 Hours of Le Mans in 2015 while driving for Porsche.",
+    "summary": "German driver Nicolas Hülkenberg currently races for Audi in Formula One. Beyond his single-seater commitments, he achieved significant success in endurance racing by winning the 24 Hours of Le Mans in 2015 while driving for Porsche.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Nico_H%C3%BClkenberg"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "1321550af0f8b1b8"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "85a480f576cb5e86"
   },
   "driver:LAW": {
     "type": "driver",
     "slug": "LAW",
     "title": "Liam Lawson",
-    "summary": "Liam Lawson, a New Zealand motorsport competitor, currently drives for Racing Bulls in Formula One.",
+    "summary": "Liam Lawson, a New Zealand racing driver, currently competes in Formula One for the Racing Bulls team.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Liam_Lawson"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "fe44a55979959e49"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "3844839791e22769"
   },
   "driver:LEC": {
     "type": "driver",
     "slug": "LEC",
     "title": "Charles Leclerc",
-    "summary": "The Monégasque driver races for Ferrari in Formula One, having achieved nine Grand Prix victories throughout his career. Leclerc finished as championship runner-up in 2022 while competing for the Italian team.",
+    "summary": "The Monégasque driver currently races for Ferrari in Formula One, having achieved nine Grand Prix victories throughout his career. Leclerc finished as championship runner-up in 2022 while competing for the Scuderia.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Charles_Leclerc"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "4923d37268cc198f"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "8cef6becd1c6956c"
   },
   "driver:MAG": {
     "type": "driver",
     "slug": "MAG",
     "title": "Kevin Magnussen",
-    "summary": "Kevin Magnussen is a Danish driver who stepped away from Formula One after 2024, having previously competed in the sport across 2014-2020 and 2022-2024. He currently focuses on endurance racing with BMW's factory team in the WEC while also pursuing a part-time NASCAR career driving for Trackhouse Racing.",
+    "summary": "Kevin Magnussen is a Danish driver who has alternated between Formula One and other motorsport series, most recently competing in F1 from 2022 to 2024. Currently, he races in the FIA World Endurance Championship as a BMW factory driver for WRT, while also taking part in NASCAR's Cup Series with Trackhouse Racing.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Kevin_Magnussen"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "2e2124b35a33f69e"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "b80e2db22b499b36"
   },
   "driver:NOR": {
     "type": "driver",
     "slug": "NOR",
     "title": "Lando Norris",
-    "summary": "Lando Norris is a British Formula One driver currently racing for McLaren, where he claimed the 2025 World Drivers' Championship. Throughout his eight seasons in the sport, he has secured 12 Grand Prix victories.",
+    "summary": "Lando Norris, a British driver competing for McLaren, claimed the 2025 Formula One World Drivers' Championship with the team. Throughout his eight-season career in the sport, he has accumulated twelve Grand Prix victories.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Lando_Norris"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "9ac4e61ecb9b3547"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "e7937687ed328524"
   },
   "driver:OCO": {
     "type": "driver",
     "slug": "OCO",
     "title": "Esteban Ocon",
-    "summary": "Esteban Ocon is a French Formula One driver currently racing for Haas. He previously secured victory at the 2021 Hungarian Grand Prix while competing for Alpine.",
+    "summary": "French driver Esteban Ocon currently races for Haas in Formula One after previously achieving success with Alpine, where he secured victory at the 2021 Hungarian Grand Prix.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Esteban_Ocon"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "1dbb620cdea23d31"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "0f3f8a76e7e7382f"
   },
   "driver:PER": {
     "type": "driver",
     "slug": "PER",
     "title": "Sergio Pérez",
-    "summary": "Mexican driver Sergio Pérez competes for Cadillac in Formula One, bringing extensive experience from his 15-season career in the sport. He finished as championship runner-up in 2023 while driving for Red Bull and has accumulated six Grand Prix victories throughout his time in the series.",
+    "summary": "Mexican driver Sergio Pérez currently races for Cadillac in Formula One, bringing over 15 seasons of experience and six Grand Prix victories to the grid. He achieved his strongest championship result in 2023 when he finished as runner-up in the drivers' standings while competing for Red Bull.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Sergio_P%C3%A9rez"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "29bd8c41a48fc814"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "4e612625e0e375d6"
   },
   "driver:PIA": {
     "type": "driver",
     "slug": "PIA",
     "title": "Oscar Piastri",
-    "summary": "The Australian driver Oscar Piastri currently races for McLaren in Formula One, having accumulated nine Grand Prix victories since joining the championship.",
+    "summary": "Oscar Piastri is an Australian driver currently competing for McLaren in Formula One, where he has secured nine Grand Prix victories over his four seasons in the sport.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Oscar_Piastri"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "dc998a37cc6e1a1f"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "a19badd38fe549b2"
   },
   "driver:RIC": {
     "type": "driver",
     "slug": "RIC",
     "title": "Daniel Ricciardo",
-    "summary": "An Australian racing driver who participated in Formula One throughout the 2011-2024 period, Ricciardo earned the nickname \"the Honey Badger\" during his competitive career spanning 14 seasons. He achieved eight Grand Prix victories during his time in the sport.",
+    "summary": "An Australian driver who raced in Formula One over a 14-year span from 2011 through 2024, Daniel Ricciardo earned eight Grand Prix victories during his career and was known by the nickname \"the Honey Badger\". His racing tenure spanned multiple teams throughout this period.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Daniel_Ricciardo"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f6adce6af908ffe1"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "c40741ba5439e247"
   },
   "driver:RUS": {
     "type": "driver",
     "slug": "RUS",
     "title": "George Russell (racing driver)",
-    "summary": "British driver George Russell currently competes for Mercedes in Formula One, having secured seven Grand Prix victories throughout his eight-season career in the sport.",
+    "summary": "George Russell, a British driver, has competed in Formula One for eight seasons and claimed seven Grand Prix victories. He currently races for Mercedes in the championship.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/George_Russell_(racing_driver)"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "ac7f42c59725d5ac"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "f422701036dc2071"
   },
   "driver:SAI": {
     "type": "driver",
     "slug": "SAI",
     "title": "Carlos Sainz Jr.",
-    "summary": "Spanish driver Carlos Sainz Vázquez de Castro currently races for Williams in Formula One, having secured four Grand Prix victories throughout his 12-season career in the sport.",
+    "summary": "Spanish driver Carlos Sainz competes for Williams in Formula One, where he has accumulated four Grand Prix victories throughout his 12-season career in the sport.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Carlos_Sainz_Jr."
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "11130709a6dba579"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "5805d24d9c42da15"
   },
   "driver:SAR": {
     "type": "driver",
     "slug": "SAR",
     "title": "Logan Sargeant",
-    "summary": "American driver Logan Sargeant raced in Formula One during the 2023 and 2024 seasons before transitioning to endurance racing. He currently competes in the FIA World Endurance Championship's LMGT3 category for Proton Competition, having previously contested IMSA's LMP2 class.",
+    "summary": "American driver Logan Sargeant competed in Formula One during 2023 and 2024 before transitioning to sports car racing. He currently races in the FIA World Endurance Championship's LMGT3 category with Proton Competition, having previously campaigned in the IMSA SportsCar Championship's LMP2 division.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Logan_Sargeant"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "5cc6a48e304307f9"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "3f924c423250734b"
   },
   "driver:STR": {
     "type": "driver",
     "slug": "STR",
     "title": "Lance Stroll",
-    "summary": "Lance Stroll is a Canadian motorsport competitor who currently races in Formula One, driving for the Aston Martin team.",
+    "summary": "Lance Stroll is a Canadian driver currently racing in Formula One with the Aston Martin team.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Lance_Stroll"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "2f79a9164f111f8a"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "896e7a0b4f3387bc"
   },
   "driver:TSU": {
     "type": "driver",
     "slug": "TSU",
     "title": "Yuki Tsunoda",
-    "summary": "Yuki Tsunoda, a Japanese motorsport competitor, held a reserve driver position with Red Bull Racing and Racing Bulls during his Formula One involvement spanning 2021 through 2025.",
+    "summary": "Yuki Tsunoda, a Japanese driver, held a reserve position with Red Bull Racing and Racing Bulls during his Formula One tenure spanning 2021 to 2025.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Yuki_Tsunoda"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "5ea44c2d7f02c8ce"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "4d5b5d7280c52737"
   },
   "driver:VER": {
     "type": "driver",
     "slug": "VER",
     "title": "Max Verstappen",
-    "summary": "Max Verstappen is a Dutch-Belgian driver competing for Red Bull Racing who has claimed four consecutive world championships between 2021 and 2024. The accomplished racer has secured 71 Grand Prix victories throughout his 12-season Formula One career.",
+    "summary": "The Dutch-Belgian driver races for Red Bull Racing and has secured four consecutive world championships between 2021 and 2024. Across his 12 seasons in Formula One, Verstappen has accumulated 71 Grand Prix victories.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Max_Verstappen"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "c152247694409536"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "2974ebbb55b5d39a"
   },
   "driver:ZHO": {
     "type": "driver",
     "slug": "ZHO",
     "title": "Zhou Guanyu",
-    "summary": "Zhou Guanyu is China's sole Formula One competitor to date, having raced in the championship from 2022 through 2024. He currently holds a reserve driver position with Cadillac in the series.",
+    "summary": "Zhou Guanyu is a Chinese racing driver currently employed as a reserve driver by Cadillac in Formula One. He competed in the sport's top category between 2022 and 2024, holding the distinction of being the sole Chinese driver to have raced in the championship.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Zhou_Guanyu"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "c10c93cde08151d0"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "18e9fa0e6824107f"
   },
   "team:Alpine": {
     "type": "team",
     "slug": "Alpine",
     "title": "Alpine F1 Team",
-    "summary": "Alpine Racing operates as Renault's Formula One works team from its Enstone base, competing under the French manufacturer's sports car brand since 2021 before Renault's withdrawal at the end of 2025. The team secured its only victory in this guise when Esteban Ocon triumphed at the 2021 Hungarian Grand Prix, and currently competes with Mercedes power units, a partnership previously established during its earlier Lotus incarnation.",
+    "summary": "The Enstone-based Alpine F1 team, operating under French licence, rebranded from Renault in 2021 to represent the Alpine sports car marque while maintaining works team status until Renault's 2025 departure from the sport. The team has claimed a single victory in its Alpine iteration, courtesy of Esteban Ocon's triumph at the 2021 Hungarian Grand Prix, and currently competes with Mercedes power units.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Alpine_F1_Team"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f31020f6d5fc9d5a"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "0b66183198424883"
   },
   "team:Aston Martin": {
     "type": "team",
     "slug": "Aston Martin",
     "title": "Aston Martin in Formula One",
-    "summary": "Aston Martin, a British automotive manufacturer, has maintained a presence in Formula One through different organizational structures, currently competing under the AMR GP Limited banner as the Aston Martin Aramco Formula One Team.",
+    "summary": "Aston Martin has competed in Formula One across multiple eras through different organizational structures, with the current iteration operating as AMR GP Limited under the Aston Martin Aramco Formula One Team banner.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Aston_Martin_in_Formula_One"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "97aa1fbdc5ac2928"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "ceca22b7c72f4733"
   },
   "team:Ferrari": {
     "type": "team",
     "slug": "Ferrari",
     "title": "Scuderia Ferrari",
-    "summary": "Scuderia Ferrari, the racing arm of the Italian luxury automaker Ferrari, is motorsport's oldest continuously competing Formula One outfit and its most accomplished, participating in every World Championship season since the sport's 1950 inception. The team's iconic emblem has earned them the popular moniker \"the Prancing Horse.",
+    "summary": "Scuderia Ferrari represents the motorsport arm of the Italian luxury automaker and stands as Formula One's longest-running and most accomplished team, having participated in every world championship since the sport's inaugural 1950 season. The squad, colloquially referred to by their emblem's equine moniker, remains unmatched in its competitive longevity and achievements within the championship.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Scuderia_Ferrari"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f1bdec09326bd6b9"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "515a3f11218587ea"
   },
   "team:Haas F1 Team": {
     "type": "team",
     "slug": "Haas F1 Team",
     "title": "Haas F1 Team",
-    "summary": "Gene Haas founded this American-licensed F1 team in 2014, with the outfit making its competitive debut in 2016. Ayao Komatsu became team principal in 2024, succeeding Guenther Steiner who had led the squad since its establishment.",
+    "summary": "An American-based Formula One outfit founded by NASCAR entrepreneur Gene Haas, the team commenced competition in 2016 after its establishment in 2014. Leadership transitioned in early 2024 when Ayao Komatsu assumed the team principal role from Guenther Steiner, who had directed operations since the squad's inception.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Haas_F1_Team"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "b7a13f64c9c535eb"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "11b092392ee7050f"
   },
   "team:Kick Sauber": {
     "type": "team",
     "slug": "Kick Sauber",
     "title": "Sauber Motorsport",
-    "summary": "A Swiss engineering and racing enterprise established in 1970, this constructor initially built sports cars before transitioning to Formula One machinery as an independent team. Following notable endurance racing successes including the 1989 Le Mans victory with Mercedes-Benz, the operation competed in Formula One from 1993 until 2025, becoming one of the sport's longest-serving constructors before Audi acquired its operations to establish their own Formula One project.",
+    "summary": "Founded in 1970 by Peter Sauber, this Swiss engineering outfit built sports cars before graduating to Formula One as an independent constructor in 1993, achieving notable success in endurance racing including a Le Mans victory. After three decades competing in the championship under various guises, the team ceased operations in 2025 as one of the sport's longest-serving constructors, with its assets subsequently acquired to form the foundation of Audi's factory F1 effort.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Sauber_Motorsport"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "bc686da3a130b793"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "735662279f47e970"
   },
   "team:McLaren": {
     "type": "team",
     "slug": "McLaren",
     "title": "McLaren",
-    "summary": "McLaren Racing Limited is a British Formula One outfit headquartered at the McLaren Technology Centre in Woking, Surrey. Operating as a subsidiary of the McLaren Group, the team is currently owned by Bahrain's Mumtalakat Holding Company.",
+    "summary": "McLaren Racing is a British Formula One outfit headquartered in Woking that competes under the McLaren Mastercard banner. As a subsidiary of the McLaren Group, the team operates from the McLaren Technology Centre.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/McLaren"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "e41a5dfebed39514"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "34a185009609bc5d"
   },
   "team:Mercedes": {
     "type": "team",
     "slug": "Mercedes",
     "title": "Mercedes-AMG Petronas F1 Team",
-    "summary": "Mercedes has maintained a continuous presence in Formula One since 1954, functioning variously as a constructor and power unit supplier. The current Mercedes-AMG Petronas team, based in Brackley under a German licence, became a tripartite operation in 2022 when Ineos joined Mercedes-Benz Group and Toto Wolff as equal stakeholders. The marque is traditionally associated with the \"Silver Arrows\" designation.",
+    "summary": "Mercedes has been a major Formula One presence since 1954, competing as both a constructor and power unit supplier at different points in its history. The current team, based in Brackley and operating under a German licence, operates as a tripartite partnership between the Mercedes-Benz Group, Ineos, and team principal Toto Wolff following a 2022 restructuring. The marque's racing endeavours are famously known by the \"Silver Arrows\" designation.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Mercedes-Benz_in_Formula_One"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "fe716dde3a854269"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "d421f36bfbb540a9"
   },
   "team:Racing Bulls": {
     "type": "team",
     "slug": "Racing Bulls",
     "title": "Racing Bulls",
-    "summary": "Visa Cash App Racing Bulls is an Italian Formula One constructor competing since 2024, based in Faenza with additional facilities in Milton Keynes. Owned by Red Bull GmbH, it operates as the company's second works team alongside Red Bull Racing, sharing resources and engineering expertise across both operations.",
+    "summary": "Visa Cash App Racing Bulls is an Italian Formula One constructor established in 2024, operating as Red Bull's second factory team alongside the primary Red Bull Racing outfit. Based in Faenza with a secondary facility near Milton Keynes, the team represents Austrian conglomerate Red Bull's dual-team strategy in the sport.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Racing_Bulls"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "547e2db4be80b679"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "5f274ddb5914c6fe"
   },
   "team:RB": {
     "type": "team",
     "slug": "RB",
     "title": "Racing Bulls",
-    "summary": "Racing Bulls is an Italian Formula One constructor that debuted in 2024 as part of Red Bull's multi-team strategy alongside Red Bull Racing. Based in Faenza with operations in Milton Keynes, the team represents Red Bull GmbH's expansion into a second constructor entry in the sport.",
+    "summary": "Visa Cash App Racing Bulls is an Italian Formula One team and constructor that began competing in 2024 as the second team owned by Red Bull GmbH alongside Red Bull Racing. Based in Faenza with an additional facility near Milton Keynes, the team operates as a sister squad within the Red Bull motorsport structure.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Racing_Bulls"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "09acd511746dfb6a"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "a4fbfcf55ea6b45c"
   },
   "team:Red Bull Racing": {
     "type": "team",
     "slug": "Red Bull Racing",
     "title": "Red Bull Racing",
-    "summary": "Oracle Red Bull Racing competes in Formula One under an Austrian license while operating from England, representing one of two F1 teams owned by Red Bull GmbH. Founded in 2005 and led by Christian Horner until 2025, the team transitioned to Laurent Mekies as team principal following Horner's departure.",
+    "summary": "Oracle Red Bull Racing operates as an Austrian-licensed Formula One outfit headquartered in England, representing one of two racing operations within the Red Bull GmbH portfolio. Established in 2005 and guided by Christian Horner through two decades of competition, the team transitioned leadership to Laurent Mekies in 2025 following Horner's departure.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Red_Bull_Racing"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "43ee32657aa529d8"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "2ba86ba5f57e0d6c"
   },
   "team:Williams": {
     "type": "team",
     "slug": "Williams",
     "title": "Williams Racing",
-    "summary": "Williams Grand Prix Engineering, established in 1977 by Frank Williams and Patrick Head following the collapse of Williams's previous racing venture, is a British Formula One constructor headquartered in Grove, Oxfordshire. The team will compete in 2026 under the Atlassian Williams F1 Team name.",
+    "summary": "Williams Grand Prix Engineering is a British Formula One team and constructor founded in 1977 by Frank Williams and Patrick Head, emerging from the collapse of Williams's prior racing venture. Based in Grove, Oxfordshire, the team competes in 2026 as Atlassian Williams F1 Team and operates from a substantial facility spanning 60 acres.",
     "source": {
       "label": "Wikipedia",
       "url": "https://en.wikipedia.org/wiki/Williams_Racing"
     },
     "badge": "verified",
-    "generatedAt": "2026-08-07T08:53:29.382Z",
-    "contentHash": "f8b6c7f0b2afd3a0"
+    "generatedAt": "2026-08-07T18:47:18.780Z",
+    "contentHash": "406200216e8ade70"
   }
 }
