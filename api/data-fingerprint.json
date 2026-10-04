@@ -3,7 +3,7 @@
   "pace_features.parquet": "79d6fc7f5b83005f70a291f0e798a12e372e1f95b2ebb32cdda28bfa5e198467",
   "pit_loss.parquet": "f61ec26a86a789f81c414fd088595c9c3dc813a4e6c6206da235ad64d3bd6d86",
   "podium_features.parquet": "fbac3e95bb5e3e33654cf4249bbccc00af84f2d74930a11e747647fda3e47165",
-  "season_results.parquet": "801186bedce94325a3a9f92f3ac5a006ff46e5897a2e21a6300dec6614cbea1a",
+  "season_results.parquet": "d166c22cc83daa6601c21956166d5d65b5afe9df523325efc746ace5ace27875",
   "strategy_features.parquet": "ee33c0378f63affbcc70bf1d969afd7e1df3991a71450436670275c3e6e00b41",
-  "team_map.parquet": "c11f98894f508fcf83e7aeed08b41ccd6e700bf00e426d56fc0e108b3e35b140"
+  "team_map.parquet": "8576488ed834236c3aa61492bf1e44066358e0eb8777757382ace976dd543b01"
 }
