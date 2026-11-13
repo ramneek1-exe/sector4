@@ -6,6 +6,7 @@
     "BEA": "Haas F1 Team",
     "BOR": "Audi",
     "BOT": "Cadillac F1 Team",
+    "CAM": "Haas F1 Team",
     "COL": "Alpine F1 Team",
     "GAS": "Alpine F1 Team",
     "HAD": "Red Bull",
@@ -23,8 +24,7 @@
     "SAI": "Williams",
     "STR": "Aston Martin",
     "TSU": "RB F1 Team",
-    "VER": "Red Bull",
-    "nan": "Haas F1 Team"
+    "VER": "Red Bull"
   },
   "drivers": {
     "ALB": 5.0,
@@ -33,14 +33,15 @@
     "BEA": 23.0,
     "BOR": 14.0,
     "BOT": 0.0,
+    "CAM": 0.0,
     "COL": 27.0,
     "GAS": 42.0,
     "HAD": 122.0,
     "HAM": 261.0,
     "HIR": 1.0,
     "HUL": 14.0,
-    "LAW": 87.0,
-    "LEC": 251.0,
+    "LAW": 89.0,
+    "LEC": 249.0,
     "LIN": 38.0,
     "NOR": 246.0,
     "OCO": 7.0,
@@ -50,8 +51,7 @@
     "SAI": 7.0,
     "STR": 0.0,
     "TSU": 1.0,
-    "VER": 279.0,
-    "nan": 0.0
+    "VER": 279.0
   },
   "remainingRounds": 3,
   "teams": {
@@ -59,11 +59,11 @@
     "Aston Martin": 7.0,
     "Audi": 28.0,
     "Cadillac F1 Team": 0.0,
-    "Ferrari": 512.0,
+    "Ferrari": 510.0,
     "Haas F1 Team": 31.0,
     "McLaren": 398.0,
     "Mercedes": 652.0,
-    "RB F1 Team": 112.0,
+    "RB F1 Team": 114.0,
     "Red Bull": 415.0,
     "Williams": 12.0
   },
